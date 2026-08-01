@@ -2,6 +2,7 @@ import { Component, type ErrorInfo, type ReactNode } from "react";
 
 import { Button } from "@/shared/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/components/ui/card";
+import { env } from "@/shared/config/env";
 
 type ErrorBoundaryProps = { children: ReactNode };
 type ErrorBoundaryState = { hasError: boolean };
@@ -29,11 +30,14 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
             <CardHeader>
               <CardTitle>Something went wrong</CardTitle>
               <CardDescription>
-                AetherMind encountered an unexpected error. Reload the application to continue.
+                {env.appName} encountered an unexpected error. Reload the application to continue.
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <Button onClick={this.handleReload}>Reload application</Button>
+              <div className="flex items-center gap-3">
+                <Button onClick={this.handleReload}>Reload application</Button>
+                <span className="text-xs text-muted-foreground">v{env.version}</span>
+              </div>
             </CardContent>
           </Card>
         </main>
@@ -45,4 +49,3 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
 }
 
 export default ErrorBoundary;
-

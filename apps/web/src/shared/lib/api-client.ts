@@ -1,6 +1,7 @@
 import axios, { type AxiosError, type AxiosInstance, type InternalAxiosRequestConfig } from "axios";
 
 import { beginRequest, endRequest } from "./request-state";
+import { env } from "@/shared/config/env";
 
 type ApiErrorDetail = { code?: string; field?: string; message: string };
 type ApiErrorPayload = { success?: false; message?: string; errors?: ApiErrorDetail[] };
@@ -23,7 +24,7 @@ export class ApiError extends Error {
 
 type RequestConfig = InternalAxiosRequestConfig & { _skipAuthRefresh?: boolean; __retryCount?: number };
 
-const baseURL = import.meta.env.VITE_API_URL ?? "http://localhost:4000/api/v1";
+const baseURL = env.apiUrl;
 const refreshClient = axios.create({ baseURL, withCredentials: true, headers: { "Content-Type": "application/json" } });
 
 const apiClient: AxiosInstance = axios.create({
@@ -129,4 +130,3 @@ apiClient.interceptors.response.use(
 );
 
 export default apiClient;
-

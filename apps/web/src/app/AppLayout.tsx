@@ -10,6 +10,7 @@ import { NavLink, Outlet } from "react-router-dom";
 
 import ThemeToggle from "@/features/theme/ThemeToggle";
 import RouteLoading from "@/app/RouteLoading";
+import { env } from "@/shared/config/env";
 import { Avatar, AvatarFallback } from "@/shared/components/ui/avatar";
 import { Button } from "@/shared/components/ui/button";
 import {
@@ -64,7 +65,7 @@ function Sidebar() {
         <div className="flex size-8 items-center justify-center rounded-lg bg-primary text-sm font-semibold text-primary-foreground">
           A
         </div>
-        <span className="text-lg font-semibold tracking-tight">AetherMind</span>
+        <span className="text-lg font-semibold tracking-tight">{env.appName}</span>
       </div>
       <Separator />
       <ScrollArea className="flex-1 px-4 py-6">
@@ -115,7 +116,7 @@ function AppLayout() {
           </Sheet>
           <div className="relative max-w-md flex-1">
             <Search className="text-muted-foreground absolute top-1/2 left-3 size-4 -translate-y-1/2" />
-            <Input className="pl-9" placeholder="Search AetherMind..." />
+            <Input className="pl-9" placeholder={`Search ${env.appName}...`} />
           </div>
           <div className="ml-auto flex items-center gap-1">
             <ThemeToggle />
