@@ -1,159 +1,229 @@
-# Turborepo starter
+# AetherMind AI
 
-This Turborepo starter is maintained by the Turborepo core team.
+A full-stack task management application built with React, Express, TypeScript, MongoDB, and Turborepo.
 
-## Using this example
+This guide explains how beginners can clone and run the project on Windows.
 
-Run the following command:
+## 1. Install the required software
 
-```sh
-npx create-turbo@latest
+Install:
+
+1. Git for Windows: https://git-scm.com/download/win
+2. Node.js 18 or newer (LTS recommended): https://nodejs.org/
+3. MongoDB Community Server: https://www.mongodb.com/try/download/community
+4. MongoDB Shell (mongosh): https://www.mongodb.com/try/download/shell
+
+Open PowerShell and verify Node.js:
+
+```powershell
+node --version
+npm --version
 ```
 
-## What's inside?
+Install pnpm:
 
-This Turborepo includes the following packages/apps:
-
-### Apps and Packages
-
-- `docs`: a [Next.js](https://nextjs.org/) app
-- `web`: another [Next.js](https://nextjs.org/) app
-- `@repo/ui`: a stub React component library shared by both `web` and `docs` applications
-- `@repo/eslint-config`: `eslint` configurations (includes `eslint-config-next` and `eslint-config-prettier`)
-- `@repo/typescript-config`: `tsconfig.json`s used throughout the monorepo
-
-Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
-
-### Utilities
-
-This Turborepo has some additional tools already setup for you:
-
-- [TypeScript](https://www.typescriptlang.org/) for static type checking
-- [ESLint](https://eslint.org/) for code linting
-- [Prettier](https://prettier.io) for code formatting
-
-### Build
-
-To build all apps and packages, run the following command:
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended):
-
-```sh
-cd my-turborepo
-turbo build
+```powershell
+npm install --global pnpm@9
+pnpm --version
 ```
 
-Without global `turbo`, use your package manager:
+## 2. Clone the project
 
-```sh
-cd my-turborepo
-npx turbo build
-pnpm dlx turbo build
-pnpm exec turbo build
+```powershell
+git clone <YOUR_REPOSITORY_URL>
+cd aethermind-ai
 ```
 
-You can build a specific package by using a [filter](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters):
+Replace <YOUR_REPOSITORY_URL> with the Git repository URL.
 
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed:
+## 3. Install dependencies
 
-```sh
-turbo build --filter=docs
+From the project root:
+
+```powershell
+pnpm install
 ```
 
-Without global `turbo`:
+## 4. Install and start MongoDB
 
-```sh
-npx turbo build --filter=docs
-pnpm exec turbo build --filter=docs
-pnpm exec turbo build --filter=docs
+During MongoDB installation, choose Install MongoD as a Service if available.
+
+Check the service:
+
+```powershell
+Get-Service MongoDB
 ```
 
-### Develop
+If it is stopped, start it:
 
-To develop all apps and packages, run the following command:
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended):
-
-```sh
-cd my-turborepo
-turbo dev
+```powershell
+Start-Service MongoDB
 ```
 
-Without global `turbo`, use your package manager:
+You can also open Windows Services, find MongoDB Server, and click Start.
 
-```sh
-cd my-turborepo
-npx turbo dev
-pnpm exec turbo dev
-pnpm exec turbo dev
+Verify MongoDB:
+
+```powershell
+mongosh --eval "db.runCommand({ ping: 1 })"
 ```
 
-You can develop a specific package by using a [filter](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters):
+The result should contain:
 
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed:
-
-```sh
-turbo dev --filter=web
+```text
+{ ok: 1 }
 ```
 
-Without global `turbo`:
+## 5. Configure the API
 
-```sh
-npx turbo dev --filter=web
-pnpm exec turbo dev --filter=web
-pnpm exec turbo dev --filter=web
+Create this file:
+
+```text
+apps/api/.env
 ```
 
-### Remote Caching
+Add:
 
-> [!TIP]
-> Vercel Remote Cache is free for all plans. Get started today at [vercel.com](https://vercel.com/signup?utm_source=remote-cache-sdk&utm_campaign=free_remote_cache).
-
-Turborepo can use a technique known as [Remote Caching](https://turborepo.dev/docs/core-concepts/remote-caching) to share cache artifacts across machines, enabling you to share build caches with your team and CI/CD pipelines.
-
-By default, Turborepo will cache locally. To enable Remote Caching you will need an account with Vercel. If you don't have an account you can [create one](https://vercel.com/signup?utm_source=turborepo-examples), then enter the following commands:
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended):
-
-```sh
-cd my-turborepo
-turbo login
+```env
+PORT=4000
+WEB_ORIGIN=http://localhost:5173
+NODE_ENV=development
+MONGODB_URI=mongodb://127.0.0.1:27017/aethermind
+JWT_ACCESS_SECRET=aethermind-development-access-secret-change-me
+JWT_REFRESH_SECRET=aethermind-development-refresh-secret-change-me
+JWT_ACCESS_EXPIRES_IN=15m
+JWT_REFRESH_EXPIRES_IN=7d
 ```
 
-Without global `turbo`, use your package manager:
+The MongoDB URI connects to local MongoDB on port 27017 and uses the aethermind database.
 
-```sh
-cd my-turborepo
-npx turbo login
-pnpm exec turbo login
-pnpm exec turbo login
+## 6. Configure the web app
+
+Create:
+
+```text
+apps/web/.env
 ```
 
-This will authenticate the Turborepo CLI with your [Vercel account](https://vercel.com/docs/concepts/personal-accounts/overview).
+Add:
 
-Next, you can link your Turborepo to your Remote Cache by running the following command from the root of your Turborepo:
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed:
-
-```sh
-turbo link
+```env
+VITE_API_URL=http://localhost:4000/api/v1
+VITE_APP_NAME=AetherMind
+VITE_APP_VERSION=1.0.0
 ```
 
-Without global `turbo`:
+## 7. Start the project
 
-```sh
-npx turbo link
-pnpm exec turbo link
-pnpm exec turbo link
+From the project root:
+
+```powershell
+pnpm dev
 ```
 
-## Useful Links
+Open the web app at http://localhost:5173.
 
-Learn more about the power of Turborepo:
+The API runs at http://localhost:4000.
 
-- [Tasks](https://turborepo.dev/docs/crafting-your-repository/running-tasks)
-- [Caching](https://turborepo.dev/docs/crafting-your-repository/caching)
-- [Remote Caching](https://turborepo.dev/docs/core-concepts/remote-caching)
-- [Filtering](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters)
-- [Configuration Options](https://turborepo.dev/docs/reference/configuration)
-- [CLI Usage](https://turborepo.dev/docs/reference/command-line-reference)
+Keep PowerShell open while using the application. Press Ctrl+C to stop the servers.
+
+## 8. Check the API
+
+Open:
+
+```text
+http://localhost:4000/api/v1/health
+```
+
+The response should contain:
+
+```json
+{
+  "success": true,
+  "data": {
+    "status": "ok"
+  }
+}
+```
+
+## 9. View saved MongoDB data
+
+Open MongoDB Shell:
+
+```powershell
+mongosh
+```
+
+Select the database and list collections:
+
+```javascript
+use aethermind
+show collections
+```
+
+View tasks:
+
+```javascript
+db.tasks.find().pretty()
+```
+
+View registered users:
+
+```javascript
+db.users.find({}, { firstName: 1, lastName: 1, email: 1 }).pretty()
+```
+
+Exit:
+
+```javascript
+exit
+```
+
+MongoDB Compass connection string:
+
+```text
+mongodb://127.0.0.1:27017
+```
+
+Open the aethermind database, then the tasks or users collection.
+
+## 10. Common problems
+
+### pnpm is not recognized
+
+Close and reopen PowerShell, then run:
+
+```powershell
+npm install --global pnpm@9
+```
+
+### MongoDB connection refused
+
+```powershell
+Get-Service MongoDB
+Start-Service MongoDB
+mongosh --eval "db.runCommand({ ping: 1 })"
+```
+
+### The web app cannot connect to the API
+
+Confirm that the API is running on port 4000 and that apps/web/.env contains:
+
+```env
+VITE_API_URL=http://localhost:4000/api/v1
+```
+
+Restart pnpm dev after changing an environment file.
+
+### Port 5173 or 4000 is already in use
+
+Stop the other application using the port and run pnpm dev again. Vite may choose another web port, but the API must use port 4000 unless PORT is changed in apps/api/.env.
+
+## Useful commands
+
+```powershell
+pnpm dev
+pnpm check-types
+pnpm lint
+pnpm format
+```
