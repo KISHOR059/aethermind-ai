@@ -5,6 +5,7 @@ import express from "express";
 import type { Express } from "express";
 import helmet from "helmet";
 
+import { registerEventListeners } from "./shared/events/listeners/index.js";
 import { errorMiddleware } from "./middlewares/error.middleware.js";
 import { notFoundMiddleware } from "./middlewares/not-found.middleware.js";
 import { requestIdMiddleware } from "./middlewares/request-id.middleware.js";
@@ -12,6 +13,8 @@ import { requestLogger } from "./lib/logger.js";
 import apiRouter from "./routes/index.js";
 
 const app: Express = express();
+
+registerEventListeners();
 
 app.use(requestIdMiddleware);
 app.use(helmet());

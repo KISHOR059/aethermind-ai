@@ -1,4 +1,12 @@
 import { NotFoundError } from "../../utils/app-error.js";
+import {
+  eventBus,
+  TaskCompletedEvent,
+  TaskCreatedEvent,
+  TaskDeletedEvent,
+  TaskUpdatedEvent,
+  type TaskEventData,
+} from "../../shared/events/index.js";
 import type { PublicUser } from "../auth/auth.types.js";
 import { TaskStatus, type TaskDocument, type TaskPriority } from "./task.model.js";
 import type {
@@ -47,13 +55,28 @@ function toPublicTask(task: TaskDocument): PublicTask {
   };
 }
 
+function toTaskEventData(task: PublicTask): TaskEventData {
+  return {
+    taskId: task.id,
+    ownerId: task.owner,
+    title: task.title,
+    status: task.status,
+    priority: task.priority,
+    dueDate: task.dueDate,
+  };
+}
+
 export class TaskService {
   public constructor(private readonly taskRepository: ITaskRepository) {}
 
   public async create(owner: PublicUser, input: CreateTaskInput): Promise<PublicTask> {
     const task = await this.taskRepository.create(owner.id, input as CreateTaskData);
 
-    return toPublicTask(task);
+    const publicTask = toPublicTask(task);
+
+    eventBus.publish(new TaskCreatedEvent(toTaskEventData(publicTask)));
+
+    return publicTask;
   }
 
   public async list(owner: PublicUser, query: TaskListQueryInput) {
@@ -103,7 +126,16 @@ export class TaskService {
       throw new NotFoundError("Task not found");
     }
 
-    return toPublicTask(task);
+    const publicTask = toPublicTask(task);
+    const eventData = toTaskEventData(publicTask);
+
+    eventBus.publish(new TaskUpdatedEvent(eventData, Object.keys(input)));
+
+    if (input.status === TaskStatus.COMPLETED && currentTask.status !== TaskStatus.COMPLETED) {
+      eventBus.publish(new TaskCompletedEvent(eventData));
+    }
+
+    return publicTask;
   }
 
   public async remove(owner: PublicUser, taskId: string): Promise<void> {
@@ -112,5 +144,7 @@ export class TaskService {
     if (!deleted) {
       throw new NotFoundError("Task not found");
     }
+
+    eventBus.publish(new TaskDeletedEvent({ taskId, ownerId: owner.id }));
   }
 }
