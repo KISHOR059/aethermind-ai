@@ -73,6 +73,22 @@ export class AuthService {
     return toPublicUser(user);
   }
 
+  public async refreshSession(refreshToken: string): Promise<AuthSession> {
+    const payload = this.verifyToken(refreshToken, env.JWT_REFRESH_SECRET);
+
+    if (!payload.sub) {
+      throw new UnauthorizedError("Invalid refresh token");
+    }
+
+    const user = await this.userRepository.findById(payload.sub);
+
+    if (!user || !user.isActive) {
+      throw new UnauthorizedError("User is not authorized");
+    }
+
+    return this.createSession(user);
+  }
+
   private createSession(user: UserDocument): AuthSession {
     const userId = user._id.toString();
 

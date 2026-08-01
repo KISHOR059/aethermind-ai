@@ -48,6 +48,22 @@ export class AuthController {
     successResponse(response, {}, "Logout successful");
   };
 
+  public refresh = async (request: Request, response: Response): Promise<void> => {
+    const refreshToken = request.cookies[REFRESH_TOKEN_COOKIE] as string | undefined;
+
+    if (!refreshToken) {
+      throw new UnauthorizedError("A refresh token is required");
+    }
+
+    const session = await this.service.refreshSession(refreshToken);
+    this.setRefreshToken(response, session.refreshToken);
+    successResponse(
+      response,
+      { user: session.user, accessToken: session.accessToken },
+      "Token refreshed",
+    );
+  };
+
   public me = async (request: Request, response: Response): Promise<void> => {
     if (!request.user) {
       throw new UnauthorizedError("Authenticated user is not available");

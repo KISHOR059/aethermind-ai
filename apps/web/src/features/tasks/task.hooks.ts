@@ -11,7 +11,7 @@ export const taskKeys = {
 export const defaultTaskParams: TaskListParams = { page: 1, limit: 20, sortBy: "createdAt", sortOrder: "desc" };
 
 export function useTasks(params: TaskListParams = defaultTaskParams) {
-  return useQuery({ queryKey: taskKeys.list(params), queryFn: () => taskService.list(params) });
+  return useQuery({ queryKey: taskKeys.list(params), queryFn: ({ signal }) => taskService.list(params, signal) });
 }
 
 export function useTaskCounts() {

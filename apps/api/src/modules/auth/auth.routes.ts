@@ -23,6 +23,7 @@ authRouter.post(
   asyncHandler(authController.login),
 );
 authRouter.post("/logout", asyncHandler(authController.logout));
+authRouter.post("/refresh", asyncHandler(authController.refresh));
 authRouter.get("/me", requireAuth, asyncHandler(authController.me));
 
 export default authRouter;
