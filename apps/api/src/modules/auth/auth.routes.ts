@@ -1,13 +1,13 @@
 import { Router } from "express";
 import type { Router as RouterType } from "express";
 
+import { validateBody } from "../../middlewares/validate.middleware.js";
 import { asyncHandler } from "../../utils/async-handler.js";
 import { authController } from "./auth.controller.js";
 import { requireAuth } from "./auth.middleware.js";
 import {
   loginSchema,
   registerSchema,
-  validateBody,
 } from "./auth.validation.js";
 
 const authRouter: RouterType = Router();
