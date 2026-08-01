@@ -23,7 +23,12 @@ function createValidationMiddleware<T>(
       return;
     }
 
-    request[source] = result.data;
+    Object.defineProperty(request, source, {
+      configurable: true,
+      enumerable: true,
+      value: result.data,
+      writable: true,
+    });
     next();
   };
 }
