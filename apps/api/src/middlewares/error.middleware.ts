@@ -26,7 +26,9 @@ export const errorMiddleware: ErrorRequestHandler = (
 
   logger.error(normalizedError.message, {
     requestId: _request.requestId,
-    error: normalizedError.name,
+    errorName: normalizedError.name,
+    errorCode: normalizedError.code,
+    statusCode: normalizedError.statusCode,
     stack: error instanceof Error ? error.stack : undefined,
   });
 

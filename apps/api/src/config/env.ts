@@ -7,6 +7,7 @@ const envSchema = z.object({
   NODE_ENV: z
     .enum(["development", "test", "production"])
     .default("development"),
+  WEB_ORIGIN: z.string().url().default("http://localhost:5173"),
   MONGODB_URI: z
     .string()
     .trim()

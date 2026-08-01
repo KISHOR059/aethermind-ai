@@ -5,6 +5,7 @@ import express from "express";
 import type { Express } from "express";
 import helmet from "helmet";
 
+import { env } from "./config/env.js";
 import { registerEventListeners } from "./shared/events/listeners/index.js";
 import { errorMiddleware } from "./middlewares/error.middleware.js";
 import { notFoundMiddleware } from "./middlewares/not-found.middleware.js";
@@ -18,7 +19,7 @@ registerEventListeners();
 
 app.use(requestIdMiddleware);
 app.use(helmet());
-app.use(cors());
+app.use(cors({ origin: env.WEB_ORIGIN, credentials: true }));
 app.use(compression());
 app.use(express.json());
 app.use(cookieParser());
