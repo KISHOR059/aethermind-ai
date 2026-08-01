@@ -4,6 +4,15 @@ import { logger } from "../lib/logger.js";
 import { AppError, InternalServerError } from "../utils/app-error.js";
 import { errorResponse } from "../utils/response.js";
 
+function isErrorDetail(value: unknown): value is { field?: string; message: string } {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    "message" in value &&
+    typeof value.message === "string"
+  );
+}
+
 export const errorMiddleware: ErrorRequestHandler = (
   error: unknown,
   _request,
@@ -21,13 +30,20 @@ export const errorMiddleware: ErrorRequestHandler = (
     stack: error instanceof Error ? error.stack : undefined,
   });
 
-  errorResponse(
-    response,
-    normalizedError.message,
-    normalizedError.errors.map((item) => ({
+  const errors = normalizedError.errors.map((item) => {
+    if (isErrorDetail(item)) {
+      return {
+        code: normalizedError.code,
+        ...(item.field ? { field: item.field } : {}),
+        message: item.message,
+      };
+    }
+
+    return {
       code: normalizedError.code,
       message: typeof item === "string" ? item : normalizedError.message,
-    })),
-    normalizedError.statusCode,
-  );
+    };
+  });
+
+  errorResponse(response, normalizedError.message, errors, normalizedError.statusCode);
 };

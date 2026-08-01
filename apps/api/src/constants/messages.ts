@@ -1,5 +1,6 @@
 export const MESSAGES = {
   HEALTH_CHECK_SUCCESS: "Health check successful",
+  AUTHENTICATED_USER: "Authenticated user retrieved",
   VALIDATION_ERROR: "Request validation failed",
   UNAUTHORIZED: "Authentication is required",
   FORBIDDEN: "You do not have permission to perform this action",
