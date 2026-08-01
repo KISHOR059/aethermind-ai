@@ -5,6 +5,7 @@ import { useForm } from "react-hook-form";
 import { Button } from "@/shared/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/shared/components/ui/dialog";
 import { Input } from "@/shared/components/ui/input";
+import { notify } from "@/shared/lib/notifications";
 
 import { useCreateTask } from "./task.hooks";
 import { createTaskSchema, type CreateTaskFormValues } from "./task.validation";
@@ -19,7 +20,14 @@ function CreateTaskDialog() {
   });
 
   const onSubmit = (values: CreateTaskFormValues) => {
-    createTask.mutate(values, { onSuccess: () => { reset(); setOpen(false); } });
+    createTask.mutate(values, {
+      onSuccess: () => {
+        reset();
+        setOpen(false);
+        notify.success("Task created", "Your task has been added to the workspace.");
+      },
+      onError: (error) => notify.error("Unable to create task", error.message),
+    });
   };
 
   return (
@@ -43,4 +51,3 @@ function CreateTaskDialog() {
 }
 
 export default CreateTaskDialog;
-

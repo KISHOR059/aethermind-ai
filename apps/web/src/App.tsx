@@ -2,6 +2,7 @@ import { AppRouter } from "@/app/router";
 import ThemeProvider from "@/app/ThemeProvider";
 import QueryProvider from "@/app/QueryProvider";
 import GlobalLoadingIndicator from "@/shared/components/GlobalLoadingIndicator";
+import AppToaster from "@/shared/components/AppToaster";
 import { TooltipProvider } from "@/shared/components/ui/tooltip";
 
 function App() {
@@ -9,6 +10,7 @@ function App() {
     <QueryProvider>
       <GlobalLoadingIndicator />
       <ThemeProvider>
+        <AppToaster />
         <TooltipProvider>
           <AppRouter />
         </TooltipProvider>
