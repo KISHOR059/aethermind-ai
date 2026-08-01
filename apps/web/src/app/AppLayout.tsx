@@ -1,13 +1,9 @@
 import {
-  BarChart3,
-  Bot,
-  CalendarDays,
   CheckSquare,
   LayoutDashboard,
   Menu,
   Search,
   Settings,
-  StickyNote,
 } from "lucide-react";
 import { NavLink, Outlet } from "react-router-dom";
 
@@ -30,11 +26,7 @@ import { cn } from "@/shared/lib/cn";
 
 const navigationItems = [
   { label: "Dashboard", icon: LayoutDashboard, to: "/" },
-  { label: "Tasks", icon: CheckSquare, to: "/not-found" },
-  { label: "Notes", icon: StickyNote, to: "/not-found" },
-  { label: "Calendar", icon: CalendarDays, to: "/not-found" },
-  { label: "AI Assistant", icon: Bot, to: "/not-found" },
-  { label: "Analytics", icon: BarChart3, to: "/not-found" },
+  { label: "Tasks", icon: CheckSquare, to: "/tasks" },
   { label: "Settings", icon: Settings, to: "/settings" },
 ];
 
