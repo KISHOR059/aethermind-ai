@@ -1,5 +1,7 @@
+import { AppRouter } from "@/app/router";
+
 function App() {
-  return <h1>AetherMind</h1>;
+  return <AppRouter />;
 }
 
 export default App;
