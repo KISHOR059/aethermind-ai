@@ -1,4 +1,7 @@
 import type { ErrorCode } from "../constants/error-codes.js";
+import type { PaginationMeta } from "../shared/query/types.js";
+
+export type { PaginationMeta } from "../shared/query/types.js";
 
 export type ApiError = {
   code?: ErrorCode | string;
@@ -16,13 +19,6 @@ export type FailureResponse = {
   success: false;
   message: string;
   errors: ApiError[];
-};
-
-export type PaginationMeta = {
-  page: number;
-  limit: number;
-  total: number;
-  totalPages: number;
 };
 
 export type PaginatedData<T> = {

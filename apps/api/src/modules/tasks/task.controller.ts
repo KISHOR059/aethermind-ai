@@ -47,10 +47,10 @@ export class TaskController {
       response,
       result.items,
       {
-        page: result.page,
-        limit: result.limit,
+        page: result.pagination.page,
+        limit: result.pagination.limit,
         total: result.total,
-        totalPages: Math.ceil(result.total / result.limit),
+        totalPages: Math.ceil(result.total / result.pagination.limit),
       },
       "Tasks retrieved successfully",
     );

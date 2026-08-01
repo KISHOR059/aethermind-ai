@@ -1,4 +1,5 @@
 import type { TaskDocument, TaskPriority, TaskStatus } from "./task.model.js";
+import type { QueryOptions } from "../../shared/query/types.js";
 
 export type CreateTaskData = {
   title: string;
@@ -14,15 +15,19 @@ export type CreateTaskData = {
 
 export type UpdateTaskData = Partial<CreateTaskData>;
 
-export type TaskListQuery = {
-  page: number;
-  limit: number;
+export type TaskFilters = {
   status?: TaskStatus;
   priority?: TaskPriority;
-  search?: string;
-  sortBy: "createdAt" | "dueDate" | "title" | "priority" | "status";
-  sortOrder: "asc" | "desc";
 };
+
+export type TaskSortField =
+  | "createdAt"
+  | "dueDate"
+  | "title"
+  | "priority"
+  | "status";
+
+export type TaskListQuery = QueryOptions<TaskFilters, TaskSortField>;
 
 export type PaginatedTasks = {
   items: TaskDocument[];

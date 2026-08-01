@@ -62,8 +62,7 @@ export class TaskService {
     return {
       items: result.items.map(toPublicTask),
       total: result.total,
-      page: query.page,
-      limit: query.limit,
+      pagination: query.pagination,
     };
   }
 

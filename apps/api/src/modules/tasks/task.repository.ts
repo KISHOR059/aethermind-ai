@@ -1,6 +1,5 @@
-import type { QueryFilter } from "mongoose";
-
-import { TaskModel, type Task } from "./task.model.js";
+import { TaskModel } from "./task.model.js";
+import { MongooseQueryBuilder } from "../../shared/query/index.js";
 import type {
   CreateTaskData,
   ITaskRepository,
@@ -9,45 +8,24 @@ import type {
   UpdateTaskData,
 } from "./task.repository.interface.js";
 
-function escapeRegex(value: string): string {
-  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-}
-
 export class TaskRepository implements ITaskRepository {
   public async create(ownerId: string, data: CreateTaskData) {
     return TaskModel.create({ ...data, owner: ownerId });
   }
 
   public async findMany(ownerId: string, query: TaskListQuery): Promise<PaginatedTasks> {
-    const filter: QueryFilter<Task> = {
+    const builder = new MongooseQueryBuilder(TaskModel, {
       owner: ownerId,
       deletedAt: null,
-    };
-
-    if (query.status) {
-      filter.status = query.status;
-    }
-
-    if (query.priority) {
-      filter.priority = query.priority;
-    }
-
-    if (query.search) {
-      const search = escapeRegex(query.search);
-      filter.$or = [
-        { title: { $regex: search, $options: "i" } },
-        { description: { $regex: search, $options: "i" } },
-        { tags: { $regex: search, $options: "i" } },
-      ];
-    }
-
-    const direction: 1 | -1 = query.sortOrder === "asc" ? 1 : -1;
-    const sort = { [query.sortBy]: direction };
-    const skip = (query.page - 1) * query.limit;
+    })
+      .filters(query.filters)
+      .search(["title", "description", "tags"], query.search)
+      .sort(query.sort)
+      .paginate(query.pagination);
 
     const [items, total] = await Promise.all([
-      TaskModel.find(filter).sort(sort).skip(skip).limit(query.limit).exec(),
-      TaskModel.countDocuments(filter).exec(),
+      builder.exec(),
+      builder.count(),
     ]);
 
     return { items, total };

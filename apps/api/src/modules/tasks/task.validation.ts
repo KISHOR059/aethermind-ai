@@ -1,5 +1,12 @@
 import { z } from "zod";
 
+import {
+  paginationQuerySchema,
+  parseFilters,
+  parsePagination,
+  parseSearch,
+  parseSort,
+} from "../../shared/query/index.js";
 import { TaskPriority, TaskStatus } from "./task.model.js";
 
 const dateSchema = z.coerce.date().optional();
@@ -17,17 +24,32 @@ export const createTaskSchema = z.object({
 
 export const updateTaskSchema = createTaskSchema.partial();
 
-export const taskListQuerySchema = z.object({
-  page: z.coerce.number().int().min(1).default(1),
-  limit: z.coerce.number().int().min(1).max(100).default(20),
-  status: z.enum(TaskStatus).optional(),
-  priority: z.enum(TaskPriority).optional(),
-  search: z.string().trim().max(100).optional(),
-  sortBy: z
-    .enum(["createdAt", "dueDate", "title", "priority", "status"])
-    .default("createdAt"),
-  sortOrder: z.enum(["asc", "desc"]).default("desc"),
-});
+const taskSortFields = [
+  "createdAt",
+  "dueDate",
+  "title",
+  "priority",
+  "status",
+] as const;
+
+export const taskListQuerySchema = z
+  .object({
+    ...paginationQuerySchema.shape,
+    status: z.enum(TaskStatus).optional(),
+    priority: z.enum(TaskPriority).optional(),
+    search: z.string().optional(),
+    sortBy: z.string().optional(),
+    sortOrder: z.enum(["asc", "desc"]).optional(),
+  })
+  .transform((input) => ({
+    pagination: parsePagination(input),
+    sort: parseSort(input, taskSortFields, "createdAt"),
+    search: parseSearch(input.search),
+    filters: parseFilters({
+      status: input.status,
+      priority: input.priority,
+    }),
+  }));
 
 export type CreateTaskInput = z.infer<typeof createTaskSchema>;
 export type UpdateTaskInput = z.infer<typeof updateTaskSchema>;
