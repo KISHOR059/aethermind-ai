@@ -1,6 +1,6 @@
 import { useGlobalLoading } from "@/shared/lib/request-state";
 
-function GlobalLoadingIndicator() {
+function LoadingOverlay() {
   const isLoading = useGlobalLoading();
 
   return (
@@ -10,5 +10,5 @@ function GlobalLoadingIndicator() {
   );
 }
 
-export default GlobalLoadingIndicator;
+export default LoadingOverlay;
 

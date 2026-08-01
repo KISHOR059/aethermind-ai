@@ -5,12 +5,13 @@ import { TaskEmptyState, TaskErrorState, TaskLoadingState } from "@/features/tas
 import TaskList from "@/features/tasks/TaskList";
 import { useTasks } from "@/features/tasks/task.hooks";
 import { Input } from "@/shared/components/ui/input";
+import PageHeader from "@/shared/components/PageHeader";
 
 function TasksPage() {
   const [search, setSearch] = useState("");
   const tasks = useTasks({ page: 1, limit: 20, search: search || undefined, sortBy: "createdAt", sortOrder: "desc" });
   return <div className="space-y-8">
-    <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between"><div><p className="text-sm text-muted-foreground">Workspace</p><h1 className="mt-1 text-3xl font-semibold tracking-tight">Tasks</h1><p className="mt-2 text-muted-foreground">Plan and prioritize your work.</p></div><CreateTaskDialog /></div>
+    <PageHeader eyebrow="Workspace" title="Tasks" description="Plan and prioritize your work." actions={<CreateTaskDialog />} />
     <Input className="max-w-md" placeholder="Search tasks..." value={search} onChange={(event) => setSearch(event.target.value)} />
     {tasks.isLoading ? <TaskLoadingState /> : tasks.isError ? <TaskErrorState message={tasks.error.message} onRetry={() => void tasks.refetch()} /> : !tasks.data || tasks.data.items.length === 0 ? <TaskEmptyState /> : <TaskList tasks={tasks.data.items} />}
   </div>;
