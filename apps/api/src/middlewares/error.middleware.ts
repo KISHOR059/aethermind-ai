@@ -1,6 +1,8 @@
 import type { ErrorRequestHandler } from "express";
 
-import { AppError } from "../utils/app-error.js";
+import { logger } from "../lib/logger.js";
+import { AppError, InternalServerError } from "../utils/app-error.js";
+import { errorResponse } from "../utils/response.js";
 
 export const errorMiddleware: ErrorRequestHandler = (
   error: unknown,
@@ -10,12 +12,22 @@ export const errorMiddleware: ErrorRequestHandler = (
 ) => {
   void _next;
 
-  const statusCode = error instanceof AppError ? error.statusCode : 500;
-  const message =
-    error instanceof AppError ? error.message : "Internal server error";
+  const normalizedError =
+    error instanceof AppError ? error : new InternalServerError();
 
-  response.status(statusCode).json({
-    status: "error",
-    message,
+  logger.error(normalizedError.message, {
+    requestId: _request.requestId,
+    error: normalizedError.name,
+    stack: error instanceof Error ? error.stack : undefined,
   });
+
+  errorResponse(
+    response,
+    normalizedError.message,
+    normalizedError.errors.map((item) => ({
+      code: normalizedError.code,
+      message: typeof item === "string" ? item : normalizedError.message,
+    })),
+    normalizedError.statusCode,
+  );
 };

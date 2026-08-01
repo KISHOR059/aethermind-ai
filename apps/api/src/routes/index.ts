@@ -5,6 +5,6 @@ import healthRouter from "./health.routes.js";
 
 const apiRouter: RouterType = Router();
 
-apiRouter.use(healthRouter);
+apiRouter.use("/api/v1", healthRouter);
 
 export default apiRouter;
