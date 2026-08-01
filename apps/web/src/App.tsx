@@ -1,4 +1,5 @@
 import { AppRouter } from "@/app/router";
+import ErrorBoundary from "@/app/ErrorBoundary";
 import ThemeProvider from "@/app/ThemeProvider";
 import QueryProvider from "@/app/QueryProvider";
 import GlobalLoadingIndicator from "@/shared/components/GlobalLoadingIndicator";
@@ -12,7 +13,9 @@ function App() {
       <ThemeProvider>
         <AppToaster />
         <TooltipProvider>
-          <AppRouter />
+          <ErrorBoundary>
+            <AppRouter />
+          </ErrorBoundary>
         </TooltipProvider>
       </ThemeProvider>
     </QueryProvider>
