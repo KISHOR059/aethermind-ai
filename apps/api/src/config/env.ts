@@ -11,6 +11,7 @@ const envSchema = z.object({
   AI_PROVIDER: z.string().trim().min(1).default("gemini"),
   GEMINI_API_KEY: z.string().trim().default(""),
   GEMINI_MODEL: z.string().trim().min(1).default("gemini-2.5-pro"),
+  AI_REQUEST_TIMEOUT_MS: z.coerce.number().int().min(1_000).max(120_000).default(30_000),
   MONGODB_URI: z
     .string()
     .trim()

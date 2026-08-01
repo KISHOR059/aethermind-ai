@@ -61,6 +61,51 @@ export class ConflictError extends AppError {
   }
 }
 
+export class AIProviderError extends AppError {
+  public constructor(
+    message = "The AI provider is temporarily unavailable",
+    statusCode: number = HTTP_STATUS.BAD_GATEWAY,
+    code: ErrorCode = ERROR_CODES.AI_PROVIDER_ERROR,
+  ) {
+    super(message, statusCode, code);
+    this.name = "AIProviderError";
+  }
+}
+
+export class AIProviderTimeoutError extends AIProviderError {
+  public constructor() {
+    super(
+      "The AI provider timed out. Please try again.",
+      HTTP_STATUS.GATEWAY_TIMEOUT ?? 504,
+      ERROR_CODES.AI_PROVIDER_TIMEOUT,
+    );
+    this.name = "AIProviderTimeoutError";
+  }
+}
+
+export class AIRateLimitError extends AIProviderError {
+  public constructor() {
+    super(
+      "The AI service is busy. Please try again shortly.",
+      HTTP_STATUS.TOO_MANY_REQUESTS,
+      ERROR_CODES.AI_RATE_LIMIT,
+    );
+    this.name = "AIRateLimitError";
+  }
+}
+
+export class AIResponseError extends AppError {
+  public constructor(errors: unknown[] = []) {
+    super(
+      "The AI returned an invalid plan. Please try again.",
+      HTTP_STATUS.BAD_GATEWAY,
+      ERROR_CODES.AI_RESPONSE_INVALID,
+      errors,
+    );
+    this.name = "AIResponseError";
+  }
+}
+
 export class InternalServerError extends AppError {
   public constructor(message: string = MESSAGES.INTERNAL_SERVER_ERROR) {
     super(message, HTTP_STATUS.INTERNAL_SERVER_ERROR, ERROR_CODES.INTERNAL_SERVER_ERROR);

@@ -8,13 +8,17 @@ export type TaskSummary = {
   readonly priority: TaskPriority;
   readonly dueDate?: Date;
   readonly estimatedMinutes?: number;
+  readonly completedAt?: Date;
 };
 
 export type TaskContext = {
   readonly totalTasks: number;
+  readonly incompleteTasks: number;
   readonly completedTasks: number;
   readonly overdueTasks: number;
+  readonly dueTodayTasks: number;
   readonly highPriorityTasks: number;
+  readonly completedTodayTasks: number;
   readonly estimatedMinutes: number;
   readonly tasks: readonly TaskSummary[];
 };

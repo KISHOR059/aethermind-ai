@@ -26,29 +26,44 @@ export class TaskContextProvider implements ContextProvider<TaskContext> {
     });
 
     const now = new Date();
+    const today = now.toISOString().slice(0, 10);
     const tasks = result.items.map(toTaskSummary);
+    const incompleteTasks = tasks.filter(
+      (task) =>
+        task.status !== TaskStatus.COMPLETED &&
+        task.status !== TaskStatus.ARCHIVED,
+    );
     const completedTasks = tasks.filter(
       (task) => task.status === TaskStatus.COMPLETED,
     ).length;
-    const overdueTasks = tasks.filter(
+    const overdueTasks = incompleteTasks.filter(
       (task) =>
         task.dueDate !== undefined &&
-        task.dueDate < now &&
-        task.status !== TaskStatus.COMPLETED &&
-        task.status !== TaskStatus.ARCHIVED,
+        task.dueDate.toISOString().slice(0, 10) < today,
     ).length;
-    const highPriorityTasks = tasks.filter(
+    const dueTodayTasks = incompleteTasks.filter(
+      (task) => task.dueDate?.toISOString().slice(0, 10) === today,
+    ).length;
+    const highPriorityTasks = incompleteTasks.filter(
       (task) =>
         task.priority === TaskPriority.HIGH ||
         task.priority === TaskPriority.URGENT,
     ).length;
+    const completedTodayTasks = tasks.filter(
+      (task) =>
+        task.status === TaskStatus.COMPLETED &&
+        task.completedAt?.toISOString().slice(0, 10) === today,
+    ).length;
 
     return {
       totalTasks: result.total,
+      incompleteTasks: incompleteTasks.length,
       completedTasks,
       overdueTasks,
+      dueTodayTasks,
       highPriorityTasks,
-      estimatedMinutes: tasks.reduce(
+      completedTodayTasks,
+      estimatedMinutes: incompleteTasks.reduce(
         (total, task) => total + (task.estimatedMinutes ?? 0),
         0,
       ),
@@ -64,6 +79,7 @@ function toTaskSummary(task: {
   priority: TaskPriority;
   dueDate?: Date;
   estimatedMinutes?: number;
+  completedAt?: Date;
 }): TaskSummary {
   return {
     id: task._id.toString(),
@@ -72,5 +88,6 @@ function toTaskSummary(task: {
     priority: task.priority,
     dueDate: task.dueDate,
     estimatedMinutes: task.estimatedMinutes,
+    completedAt: task.completedAt,
   };
 }

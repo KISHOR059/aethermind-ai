@@ -1,6 +1,8 @@
 import type { ContextBuilder } from "../context/context-builder.js";
+import { AIParseError } from "../parser/response.types.js";
 import type { ResponseParser } from "../parser/response-parser.js";
 import type { PromptBuilder } from "../prompt/prompt-builder.js";
+import { AIResponseError } from "../../../utils/app-error.js";
 import type { AIProvider } from "../providers/ai-provider.interface.js";
 import type { GenerateTextResponse } from "../providers/types.js";
 import {
@@ -44,22 +46,31 @@ export class AIPipeline {
       context,
       this.dependencies.promptBuilder,
     );
-    const providerResponse = await this.dependencies.aiProvider.generateText({
-      input: serializePrompt(builtPrompt.fragments),
-    });
-    const data = this.dependencies.responseParser.parse(
-      providerResponse.text,
-      promptDefinition.schema,
-    );
 
-    return {
-      data,
-      metrics: createMetrics(
-        startedAt,
-        providerResponse,
-        builtPrompt.version,
-      ),
-    };
+    try {
+      const providerResponse = await this.dependencies.aiProvider.generateText({
+        input: serializePrompt(builtPrompt.fragments),
+      });
+      const data = this.dependencies.responseParser.parse(
+        providerResponse.text,
+        promptDefinition.schema,
+      );
+
+      return {
+        data,
+        metrics: createMetrics(
+          startedAt,
+          providerResponse,
+          builtPrompt.version,
+        ),
+      };
+    } catch (error) {
+      if (error instanceof AIParseError) {
+        throw new AIResponseError([...error.issues]);
+      }
+
+      throw error;
+    }
   }
 }
 

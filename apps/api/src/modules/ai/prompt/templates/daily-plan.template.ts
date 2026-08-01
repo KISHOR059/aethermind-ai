@@ -19,7 +19,7 @@ export function dailyPlanTemplate(
     {
       role: "user",
       content: renderPromptText(
-        "Create a daily plan for {{userName}} for {{today}} using these tasks:\n{{tasks}}",
+        "Plan {{userName}}'s day for {{today}} using the task context below. Prioritize overdue and high-priority work, schedule difficult tasks first, avoid context switching, estimate a realistic workload, and suggest breaks. Return structured JSON only with exactly these fields: summary (string), priorities (string[]), schedule ({ time: string, task: string }[]), recommendations (string[]), productivityScore (number from 0 to 100).\n\nTask context:\n{{tasks}}",
         variables,
       ),
     },
