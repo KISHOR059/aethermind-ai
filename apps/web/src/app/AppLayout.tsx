@@ -1,44 +1,134 @@
+import {
+  BarChart3,
+  Bot,
+  CalendarDays,
+  CheckSquare,
+  LayoutDashboard,
+  Menu,
+  Search,
+  Settings,
+  StickyNote,
+} from "lucide-react";
 import { NavLink, Outlet } from "react-router-dom";
+
+import ThemeToggle from "@/features/theme/ThemeToggle";
+import { Avatar, AvatarFallback } from "@/shared/components/ui/avatar";
+import { Button } from "@/shared/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/shared/components/ui/dropdown-menu";
+import { Input } from "@/shared/components/ui/input";
+import { ScrollArea } from "@/shared/components/ui/scroll-area";
+import { Separator } from "@/shared/components/ui/separator";
+import { Sheet, SheetContent, SheetTrigger } from "@/shared/components/ui/sheet";
+import { cn } from "@/shared/lib/cn";
+
+const navigationItems = [
+  { label: "Dashboard", icon: LayoutDashboard, to: "/" },
+  { label: "Tasks", icon: CheckSquare, to: "/not-found" },
+  { label: "Notes", icon: StickyNote, to: "/not-found" },
+  { label: "Calendar", icon: CalendarDays, to: "/not-found" },
+  { label: "AI Assistant", icon: Bot, to: "/not-found" },
+  { label: "Analytics", icon: BarChart3, to: "/not-found" },
+  { label: "Settings", icon: Settings, to: "/settings" },
+];
+
+function SidebarNavigation() {
+  return (
+    <nav aria-label="Primary navigation" className="space-y-1">
+      {navigationItems.map(({ label, icon: Icon, to }) => (
+        <NavLink
+          key={label}
+          to={to}
+          end={to === "/"}
+          className={({ isActive }) =>
+            cn(
+              "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors",
+              isActive
+                ? "bg-primary text-primary-foreground"
+                : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
+            )
+          }
+        >
+          <Icon className="size-4" />
+          {label}
+        </NavLink>
+      ))}
+    </nav>
+  );
+}
+
+function Sidebar() {
+  return (
+    <div className="flex h-full flex-col">
+      <div className="flex h-16 items-center gap-2 px-6">
+        <div className="flex size-8 items-center justify-center rounded-lg bg-primary text-sm font-semibold text-primary-foreground">
+          A
+        </div>
+        <span className="text-lg font-semibold tracking-tight">AetherMind</span>
+      </div>
+      <Separator />
+      <ScrollArea className="flex-1 px-4 py-6">
+        <SidebarNavigation />
+      </ScrollArea>
+    </div>
+  );
+}
+
+function UserMenu() {
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button aria-label="Open account menu" className="rounded-full" size="icon" variant="ghost">
+          <Avatar className="size-8">
+            <AvatarFallback>AM</AvatarFallback>
+          </Avatar>
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-48">
+        <DropdownMenuLabel>Account</DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem>Profile</DropdownMenuItem>
+        <DropdownMenuItem>Sign out</DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
 
 function AppLayout() {
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-950">
-      <aside className="fixed inset-y-0 left-0 w-64 border-r border-slate-200 bg-white p-6">
-        <p className="text-lg font-semibold">Sidebar</p>
-        <nav aria-label="Primary navigation" className="mt-6 space-y-2">
-          <NavLink
-            to="/"
-            end
-            className={({ isActive }) =>
-              `block rounded-md px-3 py-2 text-sm ${
-                isActive
-                  ? "bg-slate-100 font-medium"
-                  : "text-slate-600 hover:bg-slate-50"
-              }`
-            }
-          >
-            Dashboard
-          </NavLink>
-          <NavLink
-            to="/settings"
-            className={({ isActive }) =>
-              `block rounded-md px-3 py-2 text-sm ${
-                isActive
-                  ? "bg-slate-100 font-medium"
-                  : "text-slate-600 hover:bg-slate-50"
-              }`
-            }
-          >
-            Settings
-          </NavLink>
-        </nav>
+    <div className="min-h-screen bg-background text-foreground">
+      <aside className="fixed inset-y-0 left-0 z-20 hidden w-64 border-r bg-card lg:block">
+        <Sidebar />
       </aside>
 
-      <div className="pl-64">
-        <header className="flex h-16 items-center border-b border-slate-200 bg-white px-8">
-          <p className="text-sm font-medium text-slate-600">Navbar</p>
+      <div className="lg:pl-64">
+        <header className="sticky top-0 z-10 flex h-16 items-center gap-4 border-b bg-background/95 px-4 backdrop-blur sm:px-6">
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button aria-label="Open navigation" className="lg:hidden" size="icon" variant="outline">
+                <Menu />
+              </Button>
+            </SheetTrigger>
+            <SheetContent className="p-0" side="left">
+              <Sidebar />
+            </SheetContent>
+          </Sheet>
+          <div className="relative max-w-md flex-1">
+            <Search className="text-muted-foreground absolute top-1/2 left-3 size-4 -translate-y-1/2" />
+            <Input className="pl-9" placeholder="Search AetherMind..." />
+          </div>
+          <div className="ml-auto flex items-center gap-1">
+            <ThemeToggle />
+            <UserMenu />
+          </div>
         </header>
-        <main className="p-8">
+        <main className="mx-auto w-full max-w-7xl p-4 sm:p-6 lg:p-8">
           <Outlet />
         </main>
       </div>

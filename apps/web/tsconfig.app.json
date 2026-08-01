@@ -4,6 +4,8 @@
     "target": "es2023",
     "lib": ["ES2023", "DOM"],
     "strict": true,
+    "baseUrl": ".",
+    "ignoreDeprecations": "6.0",
     "paths": {
       "@/*": ["./src/*"]
     },
