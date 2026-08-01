@@ -8,6 +8,9 @@ const envSchema = z.object({
     .enum(["development", "test", "production"])
     .default("development"),
   WEB_ORIGIN: z.string().url().default("http://localhost:5173"),
+  AI_PROVIDER: z.string().trim().min(1).default("gemini"),
+  GEMINI_API_KEY: z.string().trim().default(""),
+  GEMINI_MODEL: z.string().trim().min(1).default("gemini-2.5-pro"),
   MONGODB_URI: z
     .string()
     .trim()
