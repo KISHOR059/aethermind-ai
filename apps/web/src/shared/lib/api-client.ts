@@ -2,6 +2,7 @@ import axios, { type AxiosError, type AxiosInstance, type InternalAxiosRequestCo
 
 import { beginRequest, endRequest } from "./request-state";
 import { env } from "@/shared/config/env";
+import { tokenStorage } from "@/shared/lib/token-storage";
 
 type ApiErrorDetail = { code?: string; field?: string; message: string };
 type ApiErrorPayload = { success?: false; message?: string; errors?: ApiErrorDetail[] };
@@ -37,11 +38,11 @@ const apiClient: AxiosInstance = axios.create({
 let refreshPromise: Promise<string> | null = null;
 
 function getAccessToken() {
-  return localStorage.getItem("aethermind_access_token");
+  return tokenStorage.get();
 }
 
 function setAccessToken(token: string) {
-  localStorage.setItem("aethermind_access_token", token);
+  tokenStorage.set(token);
 }
 
 function normalizeError(error: unknown) {
@@ -49,7 +50,9 @@ function normalizeError(error: unknown) {
 
   const response = error.response;
   const payload = response?.data;
-  return new ApiError(payload?.message ?? (error.code === "ERR_CANCELED" ? "Request cancelled" : "Request failed"), {
+  const message = payload?.message
+    ?? (error.code === "ERR_CANCELED" ? "Request cancelled" : error.request ? "Network error. Check your connection." : "Request failed");
+  return new ApiError(message, {
     status: response?.status,
     code: payload?.errors?.[0]?.code,
     errors: payload?.errors,
@@ -107,14 +110,18 @@ apiClient.interceptors.response.use(
 
     if (!config) return Promise.reject(normalizeError(error));
 
-    if (error.response?.status === 401 && !config._skipAuthRefresh && !config.url?.endsWith("/auth/refresh")) {
+    const isAuthEndpoint = ["/auth/login", "/auth/register", "/auth/logout", "/auth/refresh"].some((path) => config.url?.endsWith(path));
+    const hasAccessToken = Boolean(tokenStorage.get());
+
+    if (error.response?.status === 401 && hasAccessToken && !config._skipAuthRefresh && !isAuthEndpoint) {
       try {
         const token = await refreshAccessToken();
         config._skipAuthRefresh = true;
         config.headers.Authorization = `Bearer ${token}`;
         return apiClient(config);
       } catch {
-        localStorage.removeItem("aethermind_access_token");
+        tokenStorage.remove();
+        if (!window.location.pathname.startsWith("/login")) window.location.assign("/login");
       }
     }
 

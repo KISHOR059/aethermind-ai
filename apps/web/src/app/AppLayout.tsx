@@ -26,9 +26,10 @@ import { ScrollArea } from "@/shared/components/ui/scroll-area";
 import { Separator } from "@/shared/components/ui/separator";
 import { Sheet, SheetContent, SheetTrigger } from "@/shared/components/ui/sheet";
 import { cn } from "@/shared/lib/cn";
+import { useAuth } from "@/features/auth/hooks/auth.context";
 
 const navigationItems = [
-  { label: "Dashboard", icon: LayoutDashboard, to: "/" },
+  { label: "Dashboard", icon: LayoutDashboard, to: "/dashboard" },
   { label: "Tasks", icon: CheckSquare, to: "/tasks" },
   { label: "Settings", icon: Settings, to: "/settings" },
 ];
@@ -76,20 +77,27 @@ function Sidebar() {
 }
 
 function UserMenu() {
+  const { user, isAuthenticated, logout } = useAuth();
+  const initials = user ? `${user.firstName[0] ?? ""}${user.lastName[0] ?? ""}`.toUpperCase() : "AM";
+
+  if (!isAuthenticated) {
+    return <div className="flex items-center gap-2"><Button asChild variant="ghost"><NavLink to="/login">Login</NavLink></Button><Button asChild><NavLink to="/register">Register</NavLink></Button></div>;
+  }
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button aria-label="Open account menu" className="rounded-full" size="icon" variant="ghost">
           <Avatar className="size-8">
-            <AvatarFallback>AM</AvatarFallback>
+            <AvatarFallback>{initials}</AvatarFallback>
           </Avatar>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-48">
-        <DropdownMenuLabel>Account</DropdownMenuLabel>
+        <DropdownMenuLabel>{user ? `${user.firstName} ${user.lastName}` : "Account"}</DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuItem>Profile</DropdownMenuItem>
-        <DropdownMenuItem>Sign out</DropdownMenuItem>
+        <DropdownMenuItem onSelect={() => { void logout(); }}>Sign out</DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );

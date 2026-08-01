@@ -1,25 +1,36 @@
-import { lazy } from "react";
+import { lazy, Suspense } from "react";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 
 import AppLayout from "@/app/AppLayout";
+import RequireAuth from "@/features/auth/components/RequireAuth";
+import RouteLoading from "@/app/RouteLoading";
 
 const DashboardPage = lazy(() => import("@/pages/DashboardPage"));
 const NotFoundPage = lazy(() => import("@/pages/NotFoundPage"));
 const SettingsPage = lazy(() => import("@/pages/SettingsPage"));
 const TasksPage = lazy(() => import("@/pages/TasksPage"));
+const LoginPage = lazy(() => import("@/pages/LoginPage"));
+const RegisterPage = lazy(() => import("@/pages/RegisterPage"));
+const UnauthorizedPage = lazy(() => import("@/pages/UnauthorizedPage"));
 
 export function AppRouter() {
   return (
     <BrowserRouter>
-      <Routes>
-        <Route element={<AppLayout />}>
-          <Route path="/" element={<DashboardPage />} />
-          <Route path="/tasks" element={<TasksPage />} />
-          <Route path="/settings" element={<SettingsPage />} />
+      <Suspense fallback={<RouteLoading />}>
+        <Routes>
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
+          <Route path="/unauthorized" element={<UnauthorizedPage />} />
           <Route path="/not-found" element={<NotFoundPage />} />
+          <Route element={<RequireAuth><AppLayout /></RequireAuth>}>
+            <Route path="/" element={<Navigate replace to="/dashboard" />} />
+            <Route path="/dashboard" element={<DashboardPage />} />
+            <Route path="/tasks" element={<TasksPage />} />
+            <Route path="/settings" element={<SettingsPage />} />
+          </Route>
           <Route path="*" element={<Navigate to="/not-found" replace />} />
-        </Route>
-      </Routes>
+        </Routes>
+      </Suspense>
     </BrowserRouter>
   );
 }

@@ -5,6 +5,7 @@ import QueryProvider from "@/app/QueryProvider";
 import LoadingOverlay from "@/shared/components/LoadingOverlay";
 import AppToaster from "@/shared/components/AppToaster";
 import { TooltipProvider } from "@/shared/components/ui/tooltip";
+import AuthProvider from "@/features/auth/hooks/AuthProvider";
 
 function App() {
   return (
@@ -12,11 +13,13 @@ function App() {
       <LoadingOverlay />
       <ThemeProvider>
         <AppToaster />
-        <TooltipProvider>
-          <ErrorBoundary>
-            <AppRouter />
-          </ErrorBoundary>
-        </TooltipProvider>
+        <AuthProvider>
+          <TooltipProvider>
+            <ErrorBoundary>
+              <AppRouter />
+            </ErrorBoundary>
+          </TooltipProvider>
+        </AuthProvider>
       </ThemeProvider>
     </QueryProvider>
   );
