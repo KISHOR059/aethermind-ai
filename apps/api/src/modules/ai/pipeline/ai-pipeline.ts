@@ -1,4 +1,5 @@
 import type { ContextBuilder } from "../context/context-builder.js";
+import { logger } from "../../../lib/logger.js";
 import { AIParseError } from "../parser/response.types.js";
 import type { ResponseParser } from "../parser/response-parser.js";
 import type { PromptBuilder } from "../prompt/prompt-builder.js";
@@ -51,10 +52,40 @@ export class AIPipeline {
       const providerResponse = await this.dependencies.aiProvider.generateText({
         input: serializePrompt(builtPrompt.fragments),
       });
-      const data = this.dependencies.responseParser.parse(
-        providerResponse.text,
-        promptDefinition.schema,
-      );
+      logger.debug("AI response before parsing", {
+        rawResponse: providerResponse.text,
+      });
+
+      let data: PipelineResultMap[TPrompt];
+      try {
+        data = this.dependencies.responseParser.parse(
+          providerResponse.text,
+          promptDefinition.schema,
+        );
+        logger.debug("AI response parsed JSON", { parsedJson: data });
+      } catch (error) {
+        if (error instanceof AIParseError) {
+          logger.error("AI response parsing failed", {
+            rawResponse: providerResponse.text,
+            parserError: {
+              name: error.name,
+              message: error.message,
+              code: error.code,
+            },
+            schemaValidationError:
+              error.code === "SCHEMA_VALIDATION_FAILED"
+                ? error.message
+                : undefined,
+            missingOrInvalidFields: error.issues.map((issue) => ({
+              path: issue.path,
+              message: issue.message,
+              code: issue.code,
+            })),
+          });
+        }
+
+        throw error;
+      }
 
       return {
         data,
