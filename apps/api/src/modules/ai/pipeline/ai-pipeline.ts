@@ -56,7 +56,9 @@ export class AIPipeline {
         rawResponse: providerResponse.text,
       });
 
+      let finalResponse = providerResponse;
       let data: PipelineResultMap[TPrompt];
+
       try {
         data = this.dependencies.responseParser.parse(
           providerResponse.text,
@@ -64,7 +66,57 @@ export class AIPipeline {
         );
         logger.debug("AI response parsed JSON", { parsedJson: data });
       } catch (error) {
-        if (error instanceof AIParseError) {
+        if (error instanceof AIParseError && error.code === "INVALID_JSON") {
+          logger.warn("AI response is invalid JSON, attempting single retry", {
+            rawResponse: providerResponse.text,
+            error: error.message,
+          });
+
+          const retryPrompt =
+            "The previous response was not valid JSON. Return ONLY valid JSON that matches the schema.";
+          const retryInput = serializePrompt([
+            ...builtPrompt.fragments,
+            { role: "assistant", content: providerResponse.text },
+            { role: "user", content: retryPrompt },
+          ]);
+
+          try {
+            finalResponse = await this.dependencies.aiProvider.generateText({
+              input: retryInput,
+            });
+            logger.debug("AI response on retry before parsing", {
+              rawResponse: finalResponse.text,
+            });
+
+            data = this.dependencies.responseParser.parse(
+              finalResponse.text,
+              promptDefinition.schema,
+            );
+            logger.debug("AI response parsed JSON on retry", { parsedJson: data });
+          } catch (retryError) {
+            if (retryError instanceof AIParseError) {
+              logger.error("AI response parsing failed after retry", {
+                rawResponse: finalResponse.text,
+                parserError: {
+                  name: retryError.name,
+                  message: retryError.message,
+                  code: retryError.code,
+                },
+                schemaValidationError:
+                  retryError.code === "SCHEMA_VALIDATION_FAILED"
+                    ? retryError.message
+                    : undefined,
+                missingOrInvalidFields: retryError.issues.map((issue) => ({
+                  path: issue.path,
+                  message: issue.message,
+                  code: issue.code,
+                })),
+              });
+              throw new AIResponseError([...retryError.issues]);
+            }
+            throw retryError;
+          }
+        } else if (error instanceof AIParseError) {
           logger.error("AI response parsing failed", {
             rawResponse: providerResponse.text,
             parserError: {
@@ -82,20 +134,25 @@ export class AIPipeline {
               code: issue.code,
             })),
           });
+          throw new AIResponseError([...error.issues]);
+        } else {
+          throw error;
         }
-
-        throw error;
       }
 
       return {
         data,
         metrics: createMetrics(
           startedAt,
-          providerResponse,
+          finalResponse,
           builtPrompt.version,
         ),
       };
     } catch (error) {
+      if (error instanceof AIResponseError) {
+        throw error;
+      }
+
       if (error instanceof AIParseError) {
         throw new AIResponseError([...error.issues]);
       }

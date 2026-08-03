@@ -21,7 +21,15 @@ export function dailyPlanTemplate(
       content: renderPromptText(
         `Plan {{userName}}'s day for {{today}} using the task context below. Prioritize overdue and high-priority work, schedule difficult tasks first, avoid context switching, estimate a realistic workload, and suggest breaks.
 
-Return ONLY one valid JSON object. Do not wrap it in Markdown or code fences. Do not explain your reasoning. Do not include any text before or after the JSON. Follow this exact structure:
+Return ONLY valid JSON.
+No markdown.
+No code fences.
+No explanations.
+No reasoning.
+No comments.
+No trailing commas.
+Double quotes only.
+Follow the provided schema exactly:
 {
   "summary": "short summary",
   "priorities": ["task title"],

@@ -1,4 +1,4 @@
-export type PromptRole = "system" | "user";
+export type PromptRole = "system" | "user" | "assistant";
 
 export type PromptFragment = {
   readonly role: PromptRole;

@@ -67,6 +67,7 @@ export class OllamaProvider implements AIProvider {
           model,
           prompt: request.input,
           stream: false,
+          format: "json",
           options: {
             ...(request.temperature === undefined
               ? {}

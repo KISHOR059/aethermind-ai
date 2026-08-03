@@ -3,6 +3,7 @@ import axios, { type AxiosError, type AxiosInstance, type InternalAxiosRequestCo
 import { beginRequest, endRequest } from "./request-state";
 import { env } from "@/shared/config/env";
 import { tokenStorage } from "@/shared/lib/token-storage";
+import type { ApiSuccess } from "@/shared/types/api";
 
 type ApiErrorDetail = { code?: string; field?: string; message: string };
 type ApiErrorPayload = { success?: false; message?: string; errors?: ApiErrorDetail[] };
@@ -73,10 +74,11 @@ function wait(milliseconds: number) {
 async function refreshAccessToken() {
   if (!refreshPromise) {
     refreshPromise = refreshClient
-      .post<{ data: { accessToken: string } }>("/auth/refresh")
+      .post<ApiSuccess<{ user: unknown; accessToken: string }>>("/auth/refresh")
       .then(({ data }) => {
-        setAccessToken(data.data.accessToken);
-        return data.data.accessToken;
+        const token = data.data.accessToken;
+        setAccessToken(token);
+        return token;
       })
       .finally(() => {
         refreshPromise = null;
@@ -111,17 +113,17 @@ apiClient.interceptors.response.use(
     if (!config) return Promise.reject(normalizeError(error));
 
     const isAuthEndpoint = ["/auth/login", "/auth/register", "/auth/logout", "/auth/refresh"].some((path) => config.url?.endsWith(path));
-    const hasAccessToken = Boolean(tokenStorage.get());
 
-    if (error.response?.status === 401 && hasAccessToken && !config._skipAuthRefresh && !isAuthEndpoint) {
+    if (error.response?.status === 401 && !config._skipAuthRefresh && !isAuthEndpoint) {
       try {
         const token = await refreshAccessToken();
         config._skipAuthRefresh = true;
         config.headers.Authorization = `Bearer ${token}`;
         return apiClient(config);
-      } catch {
+      } catch (refreshError) {
         tokenStorage.remove();
         if (!window.location.pathname.startsWith("/login")) window.location.assign("/login");
+        return Promise.reject(normalizeError(refreshError));
       }
     }
 

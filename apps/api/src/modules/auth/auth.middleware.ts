@@ -7,6 +7,9 @@ import { authService } from "./auth.container.js";
 export const requireAuth: RequestHandler = asyncHandler(
   async (request, _response, next) => {
     const authorization = request.header("authorization");
+
+    console.log("AUTH HEADER:", authorization);
+
     const [scheme, token] = authorization?.split(" ") ?? [];
 
     if (scheme !== "Bearer" || !token) {
@@ -14,6 +17,9 @@ export const requireAuth: RequestHandler = asyncHandler(
     }
 
     request.user = await authService.authenticateAccessToken(token);
+
+    console.log("AUTHENTICATED USER:", request.user.id);
+
     next();
   },
 );
