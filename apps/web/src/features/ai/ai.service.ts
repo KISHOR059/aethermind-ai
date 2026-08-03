@@ -3,10 +3,30 @@ import apiClient from "@/shared/lib/api-client";
 
 import type { PlanDayResult } from "./ai.types";
 
+/**
+ * Extended timeout (120 seconds) for AI endpoints.
+ * Local LLM inference (e.g., Ollama llama3.2:3b) requires 25–40 seconds
+ * to process prompts and generate validated JSON plans. This constant
+ * ensures AI requests are not prematurely aborted by Axios, unlike standard
+ * millisecond CRUD operations.
+ *
+ * Exported for easy reuse across present and future AI endpoints:
+ * - /ai/plan-day
+ * - /ai/summarize
+ * - /ai/prioritize
+ * - /ai/chat
+ * - /ai/weekly-review
+ */
+export const AI_REQUEST_TIMEOUT_MS = 120_000;
+
 export const aiService = {
   planDay: async () => {
     const response = await apiClient.post<ApiSuccess<PlanDayResult>>(
       "/ai/plan-day",
+      {},
+      {
+        timeout: AI_REQUEST_TIMEOUT_MS,
+      },
     );
 
     return response.data.data;
