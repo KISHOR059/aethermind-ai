@@ -1,3 +1,5 @@
+import { env } from "../../config/env.js";
+import { logger } from "../../lib/logger.js";
 import { AiController } from "./ai.controller.js";
 import { AiService } from "./ai.service.js";
 import { ContextBuilder } from "./context/context-builder.js";
@@ -7,6 +9,15 @@ import { PromptBuilder } from "./prompt/prompt-builder.js";
 import { createAIProvider } from "./providers/provider.factory.js";
 
 const aiProvider = createAIProvider();
+logger.info("AI provider initialized", {
+  Provider: aiProvider.modelInformation.provider,
+  Model: aiProvider.modelInformation.model,
+  Configured: aiProvider.status !== "not_configured",
+  Timeout:
+    env.AI_PROVIDER.toLowerCase() === "ollama"
+      ? env.OLLAMA_REQUEST_TIMEOUT_MS
+      : env.AI_REQUEST_TIMEOUT_MS,
+});
 const contextBuilder = new ContextBuilder();
 const promptBuilder = new PromptBuilder();
 const responseParser = new ResponseParser();

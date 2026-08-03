@@ -40,4 +40,8 @@ export type StructuredGenerationRequest<T> = {
   maxOutputTokens?: number;
 };
 
-export type ProviderStatus = "configured" | "not_configured";
+export type ProviderStatus =
+  | "configured"
+  | "healthy"
+  | "offline"
+  | "not_configured";

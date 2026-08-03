@@ -97,6 +97,25 @@ JWT_REFRESH_EXPIRES_IN=7d
 
 The MongoDB URI connects to local MongoDB on port 27017 and uses the aethermind database.
 
+For local Ollama, set these API environment variables:
+
+```env
+AI_PROVIDER=ollama
+OLLAMA_BASE_URL=http://localhost:11434
+OLLAMA_MODEL=qwen3
+OLLAMA_REQUEST_TIMEOUT_MS=60000
+```
+
+Start Ollama and pull the model before using the AI feature:
+
+```powershell
+ollama serve
+ollama pull qwen3
+```
+
+To switch back to Gemini, set `AI_PROVIDER=gemini` and configure the Gemini
+environment variables. No source code changes are required.
+
 ## 6. Configure the web app
 
 Create:
