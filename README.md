@@ -102,15 +102,15 @@ For local Ollama, set these API environment variables:
 ```env
 AI_PROVIDER=ollama
 OLLAMA_BASE_URL=http://localhost:11434
-OLLAMA_MODEL=qwen3
-OLLAMA_REQUEST_TIMEOUT_MS=60000
+OLLAMA_MODEL=llama3.2:3b
+OLLAMA_REQUEST_TIMEOUT_MS=180000
 ```
 
 Start Ollama and pull the model before using the AI feature:
 
 ```powershell
 ollama serve
-ollama pull qwen3
+ollama pull llama3.2:3b
 ```
 
 To switch back to Gemini, set `AI_PROVIDER=gemini` and configure the Gemini

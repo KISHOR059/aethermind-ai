@@ -19,7 +19,21 @@ export function dailyPlanTemplate(
     {
       role: "user",
       content: renderPromptText(
-        "Plan {{userName}}'s day for {{today}} using the task context below. Prioritize overdue and high-priority work, schedule difficult tasks first, avoid context switching, estimate a realistic workload, and suggest breaks. Return structured JSON only with exactly these fields: summary (string), priorities (string[]), schedule ({ time: string, task: string }[]), recommendations (string[]), productivityScore (number from 0 to 100).\n\nTask context:\n{{tasks}}",
+        `Plan {{userName}}'s day for {{today}} using the task context below. Prioritize overdue and high-priority work, schedule difficult tasks first, avoid context switching, estimate a realistic workload, and suggest breaks.
+
+Return ONLY one valid JSON object. Do not wrap it in Markdown or code fences. Do not explain your reasoning. Do not include any text before or after the JSON. Follow this exact structure:
+{
+  "summary": "short summary",
+  "priorities": ["task title"],
+  "schedule": [{ "time": "09:00-10:00", "task": "task title" }],
+  "recommendations": ["recommendation"],
+  "productivityScore": 75
+}
+
+Rules: summary must be a string; priorities and recommendations must be arrays of strings; schedule must be an array, and every schedule item must contain exactly time and task strings; productivityScore must be a number from 0 to 100.
+
+Task context:
+{{tasks}}`,
         variables,
       ),
     },

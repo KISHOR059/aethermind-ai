@@ -101,7 +101,7 @@ export class OllamaProvider implements AIProvider {
         throw new AIProviderError("Ollama returned invalid JSON");
       }
 
-      const text = typeof data.response === "string" ? data.response.trim() : "";
+      const text = normalizeResponseText(data.response);
       if (!text) {
         throw new AIProviderError("Ollama returned an empty response");
       }
@@ -200,4 +200,15 @@ function toUsageMetadata(data: OllamaResponse): UsageMetadata | undefined {
 
 function toNumber(value: unknown): number | undefined {
   return typeof value === "number" && Number.isFinite(value) ? value : undefined;
+}
+
+function normalizeResponseText(value: unknown): string {
+  if (typeof value !== "string") {
+    return "";
+  }
+
+  const text = value.replace(/^\uFEFF/, "").trim();
+  const fenced = text.match(/^```(?:json)?\s*([\s\S]*?)\s*```$/i);
+
+  return (fenced?.[1] ?? text).trim();
 }
