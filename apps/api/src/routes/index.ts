@@ -6,6 +6,7 @@ import assistantRouter from "../modules/assistant/assistant.routes.js";
 import authRouter from "../modules/auth/auth.routes.js";
 import dashboardRouter from "../modules/dashboard/dashboard.routes.js";
 import taskRouter from "../modules/tasks/task.routes.js";
+import voiceRouter from "../modules/voice/voice.routes.js";
 import healthRouter from "./health.routes.js";
 
 const apiRouter: RouterType = Router();
@@ -16,5 +17,6 @@ apiRouter.use("/api/v1/ai", aiRouter);
 apiRouter.use("/api/v1/assistant", assistantRouter);
 apiRouter.use("/api/v1/dashboard", dashboardRouter);
 apiRouter.use("/api/v1/tasks", taskRouter);
+apiRouter.use("/api/v1/voice", voiceRouter);
 
 export default apiRouter;

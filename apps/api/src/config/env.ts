@@ -30,6 +30,12 @@ const envSchema = z.object({
     .default("aethermind-development-refresh-secret-change-me"),
   JWT_ACCESS_EXPIRES_IN: z.string().default("15m"),
   JWT_REFRESH_EXPIRES_IN: z.string().default("7d"),
+  WHISPER_MODEL: z.string().trim().default("base"),
+  WHISPER_PATH: z.string().trim().default("whisper"),
+  PIPER_MODEL: z.string().trim().default("en_US-lessac-medium"),
+  PIPER_PATH: z.string().trim().default("piper"),
+  VOICE_ENABLED: z.coerce.boolean().default(true),
+  VOICE_STREAMING_ENABLED: z.coerce.boolean().default(false),
 });
 
 export const env = envSchema.parse(process.env);

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Sliders, Volume2, Mic, RotateCcw, Check } from "lucide-react";
+import { Sliders, Volume2, Mic, RotateCcw, Check, Cpu } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -34,6 +34,13 @@ const SUPPORTED_LANGUAGES = [
   { code: "zh-CN", name: "Chinese (Mandarin)" },
 ];
 
+const WHISPER_MODELS = [
+  { id: "tiny", name: "Whisper Tiny (Fastest / Low RAM)" },
+  { id: "base", name: "Whisper Base (Recommended)" },
+  { id: "small", name: "Whisper Small (High Accuracy)" },
+  { id: "medium", name: "Whisper Medium (Best Quality)" },
+];
+
 export function VoiceSettingsDialog({
   open,
   onOpenChange,
@@ -42,6 +49,7 @@ export function VoiceSettingsDialog({
   onSaveSettings,
 }: VoiceSettingsDialogProps) {
   const [localSettings, setLocalSettings] = useState<VoiceSettings>(settings);
+  const [sttModel, setSttModel] = useState("base");
 
   const handleOpenChange = (newOpen: boolean) => {
     if (newOpen) {
@@ -66,22 +74,53 @@ export function VoiceSettingsDialog({
 
   const handleReset = () => {
     setLocalSettings(DEFAULT_VOICE_SETTINGS);
+    setSttModel("base");
   };
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-base">
             <Sliders className="size-4 text-primary" />
             Voice Assistant Settings
           </DialogTitle>
           <DialogDescription className="text-xs">
-            Configure speech recognition language, text-to-speech voice, rate, and automatic features.
+            Configure offline AI models (Whisper.cpp & Piper TTS), language, rate, and audio processing options.
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4 py-2">
+          {/* Engine Mode Notice */}
+          <div className="p-2.5 rounded-lg bg-primary/10 border border-primary/20 flex items-center gap-2 text-xs">
+            <Cpu className="size-4 text-primary shrink-0" />
+            <div>
+              <span className="font-semibold block">Offline AI Voice Engine Active</span>
+              <span className="text-[11px] text-muted-foreground">
+                All voice recognition and synthesis run locally on your host machine.
+              </span>
+            </div>
+          </div>
+
+          {/* Whisper STT Model Selection */}
+          <div className="space-y-1.5">
+            <label className="text-xs font-semibold flex items-center justify-between">
+              <span>Speech-to-Text Model (Whisper.cpp)</span>
+              <span className="text-[10px] text-primary font-mono">Local Model</span>
+            </label>
+            <select
+              value={sttModel}
+              onChange={(e) => setSttModel(e.target.value)}
+              className="w-full rounded-md border border-input bg-background px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-primary/20"
+            >
+              {WHISPER_MODELS.map((model) => (
+                <option key={model.id} value={model.id}>
+                  {model.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
           {/* Language Selection */}
           <div className="space-y-1.5">
             <label className="text-xs font-semibold">Language</label>
@@ -115,7 +154,7 @@ export function VoiceSettingsDialog({
               }
               className="w-full rounded-md border border-input bg-background px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-primary/20"
             >
-              <option value="">Default System Voice</option>
+              <option value="">Piper TTS (en_US-lessac-medium)</option>
               {voices.map((voice) => (
                 <option key={voice.voiceURI} value={voice.voiceURI}>
                   {voice.name} ({voice.lang})
