@@ -33,7 +33,7 @@ export function ChatWindow({
   }, [messages, isSending]);
 
   return (
-    <div className="flex h-[calc(100vh-10rem)] flex-col rounded-xl border bg-card shadow-sm">
+    <div className="flex h-[calc(100vh-14rem)] flex-col rounded-xl border bg-card shadow-sm overflow-hidden">
       {/* Header */}
       <div className="flex items-center justify-between border-b px-6 py-4">
         <div>

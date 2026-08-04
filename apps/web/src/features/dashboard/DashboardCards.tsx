@@ -5,6 +5,8 @@ import {
   Flame,
   Hourglass,
   Percent,
+  Sparkles,
+  TrendingUp,
   Zap,
 } from "lucide-react";
 
@@ -26,7 +28,7 @@ export function DashboardCards({ stats }: DashboardCardsProps) {
   return (
     <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-7">
       {/* 1. Productivity Score */}
-      <Card className="relative overflow-hidden border-primary/20 bg-gradient-to-br from-primary/5 to-transparent">
+      <Card className="relative overflow-hidden border-primary/20 bg-gradient-to-br from-primary/5 to-transparent h-full flex flex-col justify-between">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
             Score
@@ -42,19 +44,27 @@ export function DashboardCards({ stats }: DashboardCardsProps) {
           </div>
           <Badge
             variant="outline"
-            className="mt-1.5 text-[10px] bg-primary/10 text-primary border-primary/20"
+            className="mt-1.5 text-[10px] bg-primary/10 text-primary border-primary/20 gap-1"
           >
-            {stats.productivityScore >= 80
-              ? "⚡ Peak Focus"
-              : stats.productivityScore >= 60
-                ? "👍 Good Momentum"
-                : "🌱 Building Habits"}
+            {stats.productivityScore >= 80 ? (
+              <>
+                <Zap className="size-3 text-amber-500" /> Peak Focus
+              </>
+            ) : stats.productivityScore >= 60 ? (
+              <>
+                <TrendingUp className="size-3 text-blue-500" /> Good Momentum
+              </>
+            ) : (
+              <>
+                <Sparkles className="size-3 text-emerald-500" /> Building Habits
+              </>
+            )}
           </Badge>
         </CardContent>
       </Card>
 
       {/* 2. Tasks Completed */}
-      <Card>
+      <Card className="h-full flex flex-col justify-between">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
             Completed
@@ -72,7 +82,7 @@ export function DashboardCards({ stats }: DashboardCardsProps) {
       </Card>
 
       {/* 3. Pending Tasks */}
-      <Card>
+      <Card className="h-full flex flex-col justify-between">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
             Pending
@@ -90,7 +100,7 @@ export function DashboardCards({ stats }: DashboardCardsProps) {
       </Card>
 
       {/* 4. Overdue Tasks */}
-      <Card>
+      <Card className="h-full flex flex-col justify-between">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
             Overdue
@@ -108,7 +118,7 @@ export function DashboardCards({ stats }: DashboardCardsProps) {
       </Card>
 
       {/* 5. Completion Rate */}
-      <Card>
+      <Card className="h-full flex flex-col justify-between">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
             Completion Rate
@@ -124,7 +134,7 @@ export function DashboardCards({ stats }: DashboardCardsProps) {
       </Card>
 
       {/* 6. Current Streak */}
-      <Card>
+      <Card className="h-full flex flex-col justify-between">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
             Current Streak
@@ -142,7 +152,7 @@ export function DashboardCards({ stats }: DashboardCardsProps) {
       </Card>
 
       {/* 7. Estimated Hours Worked */}
-      <Card>
+      <Card className="h-full flex flex-col justify-between">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
             Focus Time

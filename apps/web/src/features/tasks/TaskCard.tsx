@@ -1,4 +1,4 @@
-import { Check, Sparkles, Trash2 } from "lucide-react";
+import { CalendarDays, Check, Sparkles, Trash2 } from "lucide-react";
 import { useState } from "react";
 
 import { Button } from "@/shared/components/ui/button";
@@ -23,13 +23,15 @@ function TaskCard({ task }: { task: Task }) {
   const updateTask = useUpdateTask();
   const deleteTask = useDeleteTask();
 
+  const formattedDate = formatDueDate(task.dueDate);
+
   return (
-    <Card className="flex flex-col justify-between">
+    <Card className="flex flex-col justify-between transition-all duration-200 hover:shadow-md border-border/60">
       <div>
-        <CardHeader className="flex flex-row items-start justify-between gap-4 space-y-0 pb-3">
-          <div className="min-w-0 space-y-2">
-            <CardTitle className="truncate text-base">{task.title}</CardTitle>
-            <div className="flex flex-wrap gap-2">
+        <CardHeader className="flex flex-row items-start justify-between gap-3 space-y-0 pb-3">
+          <div className="min-w-0 space-y-2 flex-1">
+            <CardTitle className="truncate text-base font-semibold">{task.title}</CardTitle>
+            <div className="flex flex-wrap gap-1.5">
               <TaskStatusBadge status={task.status} />
               <TaskPriorityBadge priority={task.priority} />
             </div>
@@ -40,6 +42,7 @@ function TaskCard({ task }: { task: Task }) {
                 aria-label={`Complete ${task.title}`}
                 size="icon-sm"
                 variant="ghost"
+                className="hover:bg-emerald-500/10 hover:text-emerald-600 dark:hover:text-emerald-400"
                 onClick={() =>
                   updateTask.mutate(
                     { id: task.id, input: { status: "COMPLETED" } },
@@ -51,34 +54,38 @@ function TaskCard({ task }: { task: Task }) {
                   )
                 }
               >
-                <Check />
+                <Check className="size-4" />
               </Button>
             )}
             <Button
               aria-label={`Delete ${task.title}`}
               size="icon-sm"
               variant="ghost"
+              className="hover:bg-rose-500/10 hover:text-rose-600 dark:hover:text-rose-400"
               onClick={() => setConfirmDelete(true)}
             >
-              <Trash2 />
+              <Trash2 className="size-4" />
             </Button>
           </div>
         </CardHeader>
-        <CardContent className="space-y-2 text-sm">
+        <CardContent className="space-y-2 text-xs">
           {task.description && (
-            <p className="line-clamp-2 text-muted-foreground">{task.description}</p>
+            <p className="line-clamp-2 text-muted-foreground leading-relaxed">{task.description}</p>
           )}
-          {formatDueDate(task.dueDate) && (
-            <p className="text-muted-foreground">Due {formatDueDate(task.dueDate)}</p>
+          {formattedDate && (
+            <div className="flex items-center gap-1.5 text-muted-foreground text-xs font-medium">
+              <CalendarDays className="size-3.5 text-primary" />
+              <span>Due {formattedDate}</span>
+            </div>
           )}
         </CardContent>
       </div>
 
-      <CardFooter className="pt-2 flex justify-end">
+      <CardFooter className="pt-3 border-t border-border/40 flex justify-end">
         <Button
           variant="outline"
           size="sm"
-          className="gap-1.5 text-xs font-medium"
+          className="gap-1.5 text-xs font-medium h-8"
           onClick={() => setBreakdownOpen(true)}
         >
           <Sparkles className="size-3.5 text-primary animate-pulse" />

@@ -7,6 +7,7 @@ import {
   Loader2,
   RefreshCw,
   Sparkles,
+  Target,
   Zap,
 } from "lucide-react";
 
@@ -193,7 +194,8 @@ function InsightsSuccessState({
         <div className="flex items-center gap-2 shrink-0">
           <Badge variant="secondary" className="gap-1 text-xs py-1 font-semibold">
             <Zap className="size-3.5 text-amber-500 fill-amber-500" />
-            🎯 {insights.productivityScore}/100 Score
+            <Target className="size-3.5 text-primary" />
+            {insights.productivityScore}/100 Score
           </Badge>
           <Button variant="ghost" size="sm" onClick={onRefresh}>
             <RefreshCw className="size-3.5" />

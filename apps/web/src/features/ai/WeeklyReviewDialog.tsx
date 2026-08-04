@@ -8,6 +8,8 @@ import {
   Loader2,
   RefreshCw,
   Sparkles,
+  Target,
+  TrendingUp,
   Trophy,
   Zap,
 } from "lucide-react";
@@ -216,7 +218,8 @@ function WeeklyReviewSuccessState({
       <div className="flex items-center justify-between">
         <Badge variant="secondary" className="gap-1.5 font-semibold text-xs py-1">
           <Zap className="size-3.5 text-amber-500 fill-amber-500" />
-          🎯 {review.productivityScore}/100 Productivity Score
+          <Target className="size-3.5 text-primary" />
+          {review.productivityScore}/100 Productivity Score
         </Badge>
         <Button variant="ghost" size="sm" onClick={onRefresh}>
           <RefreshCw className="size-3.5 mr-1" />
@@ -241,8 +244,8 @@ function WeeklyReviewSuccessState({
             {/* Statistics Grid */}
             <div className="space-y-2">
               <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
-                <BarChart3 className="size-3.5" />
-                📈 Weekly Statistics
+                <TrendingUp className="size-3.5 text-primary" />
+                Weekly Statistics
               </h4>
               <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 text-center">
                 <div className="p-2.5 rounded-lg border bg-card space-y-1">
@@ -286,7 +289,7 @@ function WeeklyReviewSuccessState({
               <div className="space-y-2">
                 <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
                   <Trophy className="size-3.5 text-amber-500" />
-                  🏆 Key Achievements
+                  Key Achievements
                 </h4>
                 <div className="space-y-1.5">
                   {review.achievements.map((item, idx) => (
@@ -307,7 +310,7 @@ function WeeklyReviewSuccessState({
               <div className="space-y-2">
                 <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
                   <Lightbulb className="size-3.5 text-blue-500" />
-                  💡 Productivity Insights
+                  Productivity Insights
                 </h4>
                 <div className="space-y-1.5">
                   {review.insights.map((item, idx) => (

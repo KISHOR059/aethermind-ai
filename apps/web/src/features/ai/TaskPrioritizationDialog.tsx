@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
 import {
   AlertCircle,
+  Award,
   CheckCircle2,
   Clock,
   Lightbulb,
   Loader2,
+  Medal,
   RefreshCw,
   Sparkles,
   Trophy,
@@ -205,19 +207,19 @@ function getRankBadge(rank: number) {
     case 1:
       return (
         <Badge className="bg-amber-500 hover:bg-amber-600 text-white gap-1 font-bold">
-          🥇 Rank #1
+          <Trophy className="size-3" /> Rank #1
         </Badge>
       );
     case 2:
       return (
         <Badge className="bg-slate-400 hover:bg-slate-500 text-white gap-1 font-bold">
-          🥈 Rank #2
+          <Medal className="size-3" /> Rank #2
         </Badge>
       );
     case 3:
       return (
         <Badge className="bg-amber-700 hover:bg-amber-800 text-white gap-1 font-bold">
-          🥉 Rank #3
+          <Award className="size-3" /> Rank #3
         </Badge>
       );
     default:
@@ -233,26 +235,26 @@ function getUrgencyBadge(urgency: PrioritizedTask["urgency"]) {
   switch (urgency) {
     case "URGENT":
       return (
-        <Badge className="bg-purple-600 hover:bg-purple-700 text-white text-[10px]">
-          🟣 URGENT
+        <Badge className="bg-purple-600 hover:bg-purple-700 text-white text-[10px] gap-1">
+          <AlertCircle className="size-3" /> URGENT
         </Badge>
       );
     case "HIGH":
       return (
-        <Badge className="bg-red-500 hover:bg-red-600 text-white text-[10px]">
-          🔴 HIGH
+        <Badge className="bg-red-500 hover:bg-red-600 text-white text-[10px] gap-1">
+          <AlertCircle className="size-3" /> HIGH
         </Badge>
       );
     case "MEDIUM":
       return (
-        <Badge className="bg-amber-500 hover:bg-amber-600 text-white text-[10px]">
-          🟡 MEDIUM
+        <Badge className="bg-amber-500 hover:bg-amber-600 text-white text-[10px] gap-1">
+          <Clock className="size-3" /> MEDIUM
         </Badge>
       );
     case "LOW":
       return (
-        <Badge className="bg-emerald-500 hover:bg-emerald-600 text-white text-[10px]">
-          🟢 LOW
+        <Badge className="bg-emerald-500 hover:bg-emerald-600 text-white text-[10px] gap-1">
+          <CheckCircle2 className="size-3" /> LOW
         </Badge>
       );
     default:
