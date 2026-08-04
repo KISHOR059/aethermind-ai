@@ -1,41 +1,39 @@
 import { useState } from "react";
-import { BarChart3, CheckCircle2, ListTodo, TrendingUp } from "lucide-react";
+import { BarChart3, RefreshCw } from "lucide-react";
 
+import { useDashboardStats } from "@/features/dashboard/dashboard.hooks";
+import DashboardCards from "@/features/dashboard/DashboardCards";
+import DashboardCharts from "@/features/dashboard/DashboardCharts";
+import DashboardInsights from "@/features/dashboard/DashboardInsights";
 import CreateTaskDialog from "@/features/tasks/CreateTaskDialog";
 import WeeklyReviewDialog from "@/features/ai/WeeklyReviewDialog";
-import { TaskEmptyState, TaskErrorState, TaskLoadingState } from "@/features/tasks/TaskStates";
+import {
+  TaskEmptyState,
+  TaskErrorState,
+  TaskLoadingState,
+} from "@/features/tasks/TaskStates";
 import TaskList from "@/features/tasks/TaskList";
-import { defaultTaskParams, useTaskCounts, useTasks } from "@/features/tasks/task.hooks";
-import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
+import { defaultTaskParams, useTasks } from "@/features/tasks/task.hooks";
+import { Alert } from "@/shared/components/ui/alert";
 import { Button } from "@/shared/components/ui/button";
+import { Skeleton } from "@/shared/components/ui/skeleton";
 import PageHeader from "@/shared/components/PageHeader";
 import { useAuth } from "@/features/auth/hooks/auth.context";
 
-function isToday(value?: string) {
-  if (!value) return false;
-  const date = new Date(value);
-  const today = new Date();
-  return (
-    date.getFullYear() === today.getFullYear() &&
-    date.getMonth() === today.getMonth() &&
-    date.getDate() === today.getDate()
-  );
-}
-
 function DashboardPage() {
   const [weeklyReviewOpen, setWeeklyReviewOpen] = useState(false);
-  const tasks = useTasks(defaultTaskParams);
   const { user } = useAuth();
-  const counts = useTaskCounts();
-  const items = tasks.data?.items ?? [];
-  const todayTasks = items.filter((task) => isToday(task.dueDate));
+  const statsQuery = useDashboardStats();
+  const tasks = useTasks(defaultTaskParams);
+  const recentTasks = tasks.data?.items.slice(0, 5) ?? [];
 
   return (
     <div className="space-y-8">
+      {/* 1. Page Header */}
       <PageHeader
         eyebrow="Overview"
         title={`Hello, ${user?.firstName ?? "there"}`}
-        description="A focused view of what needs your attention."
+        description="A focused view of your productivity analytics, performance trends, and AI insights."
         actions={
           <div className="flex items-center gap-2">
             <Button
@@ -50,42 +48,36 @@ function DashboardPage() {
           </div>
         }
       />
-      <div className="grid gap-4 sm:grid-cols-3">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0">
-            <CardTitle className="text-sm font-medium">Today&apos;s Tasks</CardTitle>
-            <ListTodo className="size-4 text-primary" />
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-semibold">{todayTasks.length}</p>
-            <p className="text-xs text-muted-foreground">Due today</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0">
-            <CardTitle className="text-sm font-medium">Recent Tasks</CardTitle>
-            <TrendingUp className="size-4 text-primary" />
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-semibold">{items.length}</p>
-            <p className="text-xs text-muted-foreground">Loaded from your workspace</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0">
-            <CardTitle className="text-sm font-medium">Task Counts</CardTitle>
-            <CheckCircle2 className="size-4 text-primary" />
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-semibold">
-              {counts.todo + counts.inProgress}
-            </p>
-            <p className="text-xs text-muted-foreground">
-              Open · {counts.completed} completed
-            </p>
-          </CardContent>
-        </Card>
-      </div>
+
+      {/* 2. Dashboard Statistics & Cards */}
+      {statsQuery.isLoading ? (
+        <DashboardSkeleton />
+      ) : statsQuery.isError ? (
+        <Alert variant="destructive" className="space-y-3">
+          <p className="text-sm">Failed to load dashboard statistics.</p>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => void statsQuery.refetch()}
+          >
+            <RefreshCw className="mr-1.5 size-3.5" />
+            Retry
+          </Button>
+        </Alert>
+      ) : statsQuery.data ? (
+        <>
+          {/* 7 Productivity Metric Cards */}
+          <DashboardCards stats={statsQuery.data} />
+
+          {/* 4 Analytics Charts */}
+          <DashboardCharts stats={statsQuery.data} />
+        </>
+      ) : null}
+
+      {/* 3. AI Insights Section */}
+      <DashboardInsights />
+
+      {/* 4. Recent Workspace Activity */}
       <section className="space-y-4">
         <PageHeader
           level="h2"
@@ -99,17 +91,34 @@ function DashboardPage() {
             message={tasks.error.message}
             onRetry={() => void tasks.refetch()}
           />
-        ) : items.length === 0 ? (
+        ) : recentTasks.length === 0 ? (
           <TaskEmptyState />
         ) : (
-          <TaskList tasks={items.slice(0, 5)} />
+          <TaskList tasks={recentTasks} />
         )}
       </section>
 
+      {/* Dialogs */}
       <WeeklyReviewDialog
         open={weeklyReviewOpen}
         onOpenChange={setWeeklyReviewOpen}
       />
+    </div>
+  );
+}
+
+function DashboardSkeleton() {
+  return (
+    <div className="space-y-6">
+      <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-7">
+        {Array.from({ length: 7 }).map((_, idx) => (
+          <Skeleton key={idx} className="h-28 w-full rounded-xl" />
+        ))}
+      </div>
+      <div className="grid gap-6 md:grid-cols-2">
+        <Skeleton className="h-72 w-full rounded-xl" />
+        <Skeleton className="h-72 w-full rounded-xl" />
+      </div>
     </div>
   );
 }

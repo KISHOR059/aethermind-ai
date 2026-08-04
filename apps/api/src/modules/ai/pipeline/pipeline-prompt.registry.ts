@@ -6,11 +6,13 @@ import type {
 } from "../context/context.types.js";
 import {
   dailyPlannerResponseSchema,
+  productivityInsightsResponseSchema,
   smartRescheduleResponseSchema,
   taskBreakdownResponseSchema,
   taskPrioritizationResponseSchema,
   weeklyReviewResponseSchema,
   type DailyPlannerResponse,
+  type ProductivityInsightsResponse,
   type SmartRescheduleResponse,
   type TaskBreakdownResponse,
   type TaskPrioritizationResponse,
@@ -55,6 +57,10 @@ export type PipelinePromptRegistry = {
   readonly "weekly-review": PipelinePromptDefinition<
     DailyPlannerContext,
     WeeklyReviewResponse
+  >;
+  readonly "productivity-insights": PipelinePromptDefinition<
+    DailyPlannerContext,
+    ProductivityInsightsResponse
   >;
 };
 
@@ -139,6 +145,16 @@ export const pipelinePromptRegistry: PipelinePromptRegistry = {
         userName: `${context.user.firstName} ${context.user.lastName}`,
       }),
     schema: weeklyReviewResponseSchema,
+  },
+  "productivity-insights": {
+    buildPrompt: (context: DailyPlannerContext, promptBuilder: PromptBuilder) =>
+      promptBuilder.buildProductivityInsightsPrompt({
+        tasks: JSON.stringify(context.tasks),
+        today: context.time.date,
+        weekday: context.time.dayOfWeek,
+        userName: `${context.user.firstName} ${context.user.lastName}`,
+      }),
+    schema: productivityInsightsResponseSchema,
   },
 };
 

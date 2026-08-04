@@ -36,6 +36,15 @@ export type {
   WeeklyReviewResponse,
   WeeklyStatistics,
 } from "./weekly-review.schema.js";
+export {
+  productivityInsightsResponseSchema,
+  productivityInsightsStatisticsSchema,
+} from "./productivity-insights.schema.js";
+export type {
+  ProductivityInsightsResponse,
+  ProductivityInsightsStatistics,
+} from "./productivity-insights.schema.js";
+
 
 
 

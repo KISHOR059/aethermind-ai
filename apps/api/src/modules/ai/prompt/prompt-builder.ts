@@ -10,6 +10,7 @@ import type { SummaryPromptVariables } from "./templates/summarize.template.js";
 import type { TaskBreakdownPromptVariables } from "./templates/task-breakdown.template.js";
 import type { SmartReschedulePromptVariables } from "./templates/smart-reschedule.template.js";
 import type { WeeklyReviewPromptVariables } from "./templates/weekly-review.template.js";
+import type { ProductivityInsightsPromptVariables } from "./templates/productivity-insights.template.js";
 
 export class PromptBuilder {
   public constructor(
@@ -48,6 +49,12 @@ export class PromptBuilder {
     variables: WeeklyReviewPromptVariables,
   ): BuiltPrompt {
     return this.build(this.registry["weekly-review"], variables);
+  }
+
+  public buildProductivityInsightsPrompt(
+    variables: ProductivityInsightsPromptVariables,
+  ): BuiltPrompt {
+    return this.build(this.registry["productivity-insights"], variables);
   }
 
   private build<TVariables extends object>(
@@ -89,5 +96,11 @@ export const buildSmartReschedulePrompt = (
 export const buildWeeklyReviewPrompt = (
   variables: WeeklyReviewPromptVariables,
 ): BuiltPrompt => defaultPromptBuilder.buildWeeklyReviewPrompt(variables);
+
+export const buildProductivityInsightsPrompt = (
+  variables: ProductivityInsightsPromptVariables,
+): BuiltPrompt =>
+  defaultPromptBuilder.buildProductivityInsightsPrompt(variables);
+
 
 

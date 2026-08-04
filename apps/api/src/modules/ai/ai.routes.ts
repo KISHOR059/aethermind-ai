@@ -33,5 +33,10 @@ aiRouter.post(
   requireAuth,
   asyncHandler(aiController.weeklyReview),
 );
+aiRouter.post(
+  "/productivity-insights",
+  requireAuth,
+  asyncHandler(aiController.productivityInsights),
+);
 
 export default aiRouter;

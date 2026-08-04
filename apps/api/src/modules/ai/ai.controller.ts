@@ -95,6 +95,23 @@ export class AiController {
       "Weekly review generated successfully",
     );
   };
+
+  public productivityInsights = async (
+    request: Request,
+    response: Response,
+  ): Promise<void> => {
+    if (!request.user) {
+      throw new UnauthorizedError("Authenticated user is required");
+    }
+
+    const result = await this.aiService.productivityInsights(request.user.id);
+
+    successResponse(
+      response,
+      result,
+      "Productivity insights generated successfully",
+    );
+  };
 }
 
 

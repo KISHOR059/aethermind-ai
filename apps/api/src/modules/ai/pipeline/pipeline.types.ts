@@ -1,6 +1,7 @@
 import type { UsageMetadata } from "../providers/types.js";
 import type {
   DailyPlannerResponse,
+  ProductivityInsightsResponse,
   SmartRescheduleResponse,
   TaskBreakdownResponse,
   TaskPrioritizationResponse,
@@ -14,7 +15,8 @@ export type PipelinePromptId =
   | "prioritize"
   | "smart-reschedule"
   | "reschedule"
-  | "weekly-review";
+  | "weekly-review"
+  | "productivity-insights";
 
 export type PipelineResultMap = {
   readonly "daily-planner": DailyPlannerResponse;
@@ -24,6 +26,7 @@ export type PipelineResultMap = {
   readonly "smart-reschedule": SmartRescheduleResponse;
   readonly reschedule: SmartRescheduleResponse;
   readonly "weekly-review": WeeklyReviewResponse;
+  readonly "productivity-insights": ProductivityInsightsResponse;
 };
 
 export type AIExecutionRequest<TPrompt extends PipelinePromptId = PipelinePromptId> = {

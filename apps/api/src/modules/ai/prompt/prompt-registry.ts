@@ -11,6 +11,8 @@ import { smartRescheduleTemplate } from "./templates/smart-reschedule.template.j
 import type { SmartReschedulePromptVariables } from "./templates/smart-reschedule.template.js";
 import { weeklyReviewTemplate } from "./templates/weekly-review.template.js";
 import type { WeeklyReviewPromptVariables } from "./templates/weekly-review.template.js";
+import { productivityInsightsTemplate } from "./templates/productivity-insights.template.js";
+import type { ProductivityInsightsPromptVariables } from "./templates/productivity-insights.template.js";
 
 export type PromptRegistry = {
   readonly "daily-plan": PromptDefinition<DailyPlanPromptVariables>;
@@ -21,6 +23,7 @@ export type PromptRegistry = {
   readonly "smart-reschedule": PromptDefinition<SmartReschedulePromptVariables>;
   readonly reschedule: PromptDefinition<SmartReschedulePromptVariables>;
   readonly "weekly-review": PromptDefinition<WeeklyReviewPromptVariables>;
+  readonly "productivity-insights": PromptDefinition<ProductivityInsightsPromptVariables>;
 };
 
 export const promptRegistry = {
@@ -79,6 +82,13 @@ export const promptRegistry = {
     name: "Weekly Reviewer",
     description: "Builds a prompt fragment set for AI-powered weekly review.",
     template: weeklyReviewTemplate,
+  },
+  "productivity-insights": {
+    id: "productivity-insights",
+    version: "1.0.0",
+    name: "Productivity Insights Analyst",
+    description: "Builds a prompt fragment set for AI productivity insights.",
+    template: productivityInsightsTemplate,
   },
 } satisfies PromptRegistry;
 

@@ -2,6 +2,7 @@ import type { AIPipeline } from "./pipeline/ai-pipeline.js";
 import type { AIExecutionResult } from "./pipeline/pipeline.types.js";
 import type {
   DailyPlannerResponse,
+  ProductivityInsightsResponse,
   SmartRescheduleResponse,
   TaskBreakdownResponse,
   TaskPrioritizationResponse,
@@ -88,6 +89,15 @@ export class AiService {
   ): Promise<AIExecutionResult<WeeklyReviewResponse>> {
     return this.aiPipeline.execute({
       prompt: "weekly-review",
+      userId,
+    });
+  }
+
+  public productivityInsights(
+    userId: string,
+  ): Promise<AIExecutionResult<ProductivityInsightsResponse>> {
+    return this.aiPipeline.execute({
+      prompt: "productivity-insights",
       userId,
     });
   }
