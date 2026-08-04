@@ -21,6 +21,7 @@ import {
   type WeeklyReviewResponse,
 } from "../parser/schemas/index.js";
 import type { PromptBuilder } from "../prompt/prompt-builder.js";
+import { formatTaskContextForPrompt } from "../prompt/prompt-utils.js";
 import type { BuiltPrompt } from "../prompt/prompt.types.js";
 
 export type PipelinePromptDefinition<TContext, TResponse> = {
@@ -29,6 +30,13 @@ export type PipelinePromptDefinition<TContext, TResponse> = {
     promptBuilder: PromptBuilder,
   ) => BuiltPrompt;
   readonly schema: z.ZodType<TResponse>;
+  readonly options?: {
+    readonly temperature?: number;
+    readonly topP?: number;
+    readonly maxOutputTokens?: number;
+    readonly numCtx?: number;
+  };
+  readonly ttlMs?: number;
 };
 
 export type PipelinePromptRegistry = {
@@ -74,11 +82,18 @@ export const pipelinePromptRegistry: PipelinePromptRegistry = {
   "daily-planner": {
     buildPrompt: (context: DailyPlannerContext, promptBuilder: PromptBuilder) =>
       promptBuilder.buildDailyPlannerPrompt({
-        tasks: JSON.stringify(context.tasks),
+        tasks: formatTaskContextForPrompt(context.tasks, { mode: "active" }),
         today: context.time.date,
         userName: context.user.firstName + " " + context.user.lastName,
       }),
     schema: dailyPlannerResponseSchema,
+    options: {
+      temperature: 0.1,
+      topP: 0.9,
+      maxOutputTokens: 600,
+      numCtx: 4096,
+    },
+    ttlMs: 120_000, // 2 minutes
   },
   "task-breakdown": {
     buildPrompt: (context: TaskBreakdownContext, promptBuilder: PromptBuilder) =>
@@ -101,66 +116,115 @@ export const pipelinePromptRegistry: PipelinePromptRegistry = {
         weekday: context.time.dayOfWeek,
       }),
     schema: taskBreakdownResponseSchema,
+    options: {
+      temperature: 0.1,
+      topP: 0.9,
+      maxOutputTokens: 500,
+      numCtx: 4096,
+    },
+    ttlMs: 600_000, // 10 minutes per task ID
   },
   "task-prioritization": {
     buildPrompt: (context: DailyPlannerContext, promptBuilder: PromptBuilder) =>
       promptBuilder.buildPrioritizationPrompt({
-        tasks: JSON.stringify(context.tasks),
+        tasks: formatTaskContextForPrompt(context.tasks, { mode: "active" }),
         today: context.time.date,
         weekday: context.time.dayOfWeek,
         userName: `${context.user.firstName} ${context.user.lastName}`,
       }),
     schema: taskPrioritizationResponseSchema,
+    options: {
+      temperature: 0.1,
+      topP: 0.9,
+      maxOutputTokens: 800,
+      numCtx: 4096,
+    },
+    ttlMs: 120_000, // 2 minutes
   },
   prioritize: {
     buildPrompt: (context: DailyPlannerContext, promptBuilder: PromptBuilder) =>
       promptBuilder.buildPrioritizationPrompt({
-        tasks: JSON.stringify(context.tasks),
+        tasks: formatTaskContextForPrompt(context.tasks, { mode: "active" }),
         today: context.time.date,
         weekday: context.time.dayOfWeek,
         userName: `${context.user.firstName} ${context.user.lastName}`,
       }),
     schema: taskPrioritizationResponseSchema,
+    options: {
+      temperature: 0.1,
+      topP: 0.9,
+      maxOutputTokens: 800,
+      numCtx: 4096,
+    },
+    ttlMs: 120_000, // 2 minutes
   },
   "smart-reschedule": {
     buildPrompt: (context: DailyPlannerContext, promptBuilder: PromptBuilder) =>
       promptBuilder.buildSmartReschedulePrompt({
-        tasks: JSON.stringify(context.tasks),
+        tasks: formatTaskContextForPrompt(context.tasks, { mode: "active" }),
         today: context.time.date,
         weekday: context.time.dayOfWeek,
         userName: `${context.user.firstName} ${context.user.lastName}`,
       }),
     schema: smartRescheduleResponseSchema,
+    options: {
+      temperature: 0.1,
+      topP: 0.9,
+      maxOutputTokens: 800,
+      numCtx: 4096,
+    },
+    ttlMs: 120_000, // 2 minutes
   },
   reschedule: {
     buildPrompt: (context: DailyPlannerContext, promptBuilder: PromptBuilder) =>
       promptBuilder.buildSmartReschedulePrompt({
-        tasks: JSON.stringify(context.tasks),
+        tasks: formatTaskContextForPrompt(context.tasks, { mode: "active" }),
         today: context.time.date,
         weekday: context.time.dayOfWeek,
         userName: `${context.user.firstName} ${context.user.lastName}`,
       }),
     schema: smartRescheduleResponseSchema,
+    options: {
+      temperature: 0.1,
+      topP: 0.9,
+      maxOutputTokens: 800,
+      numCtx: 4096,
+    },
+    ttlMs: 120_000, // 2 minutes
   },
   "weekly-review": {
     buildPrompt: (context: DailyPlannerContext, promptBuilder: PromptBuilder) =>
       promptBuilder.buildWeeklyReviewPrompt({
-        tasks: JSON.stringify(context.tasks),
+        tasks: formatTaskContextForPrompt(context.tasks, { mode: "all" }),
         today: context.time.date,
         weekday: context.time.dayOfWeek,
         userName: `${context.user.firstName} ${context.user.lastName}`,
       }),
     schema: weeklyReviewResponseSchema,
+    options: {
+      temperature: 0.1,
+      topP: 0.9,
+      maxOutputTokens: 800,
+      numCtx: 4096,
+    },
+    ttlMs: 300_000, // 5 minutes
   },
   "productivity-insights": {
     buildPrompt: (context: DailyPlannerContext, promptBuilder: PromptBuilder) =>
       promptBuilder.buildProductivityInsightsPrompt({
-        tasks: JSON.stringify(context.tasks),
+        tasks: formatTaskContextForPrompt(context.tasks, { mode: "all" }),
         today: context.time.date,
         weekday: context.time.dayOfWeek,
         userName: `${context.user.firstName} ${context.user.lastName}`,
       }),
     schema: productivityInsightsResponseSchema,
+    options: {
+      temperature: 0.1,
+      topP: 0.9,
+      maxOutputTokens: 600,
+      numCtx: 4096,
+    },
+    ttlMs: 300_000, // 5 minutes
   },
   "assistant-chat": {
     buildPrompt: (context: DailyPlannerContext, promptBuilder: PromptBuilder) =>
@@ -168,12 +232,16 @@ export const pipelinePromptRegistry: PipelinePromptRegistry = {
         userName: `${context.user.firstName} ${context.user.lastName}`,
         today: context.time.date,
         weekday: context.time.dayOfWeek,
-        tasks: JSON.stringify(context.tasks),
+        tasks: formatTaskContextForPrompt(context.tasks, { mode: "active" }),
         conversationHistory: context.conversationHistory ?? "No prior history.",
         userMessage: context.userMessage ?? "",
       }),
     schema: assistantChatResponseSchema,
+    options: {
+      temperature: 0.2,
+      topP: 0.9,
+      maxOutputTokens: 800,
+      numCtx: 4096,
+    },
   },
 };
-
-

@@ -7,13 +7,12 @@ import type { PromptBuilder } from "../prompt/prompt-builder.js";
 import type { BuiltPrompt } from "../prompt/prompt.types.js";
 import { AIResponseError } from "../../../utils/app-error.js";
 import type { AIProvider } from "../providers/ai-provider.interface.js";
-import type { GenerateTextResponse } from "../providers/types.js";
+import { aiCacheService, AICacheService } from "../cache/ai-cache.js";
 import {
   pipelinePromptRegistry,
   type PipelinePromptRegistry,
 } from "./pipeline-prompt.registry.js";
 import type {
-  AIExecutionMetrics,
   AIExecutionRequest,
   AIExecutionResult,
   PipelinePromptId,
@@ -26,20 +25,26 @@ export type AIPipelineDependencies = {
   readonly aiProvider: AIProvider;
   readonly responseParser: ResponseParser;
   readonly promptRegistry?: PipelinePromptRegistry;
+  readonly aiCache?: AICacheService;
 };
 
 export class AIPipeline {
   private readonly promptRegistry: PipelinePromptRegistry;
+  private readonly aiCache: AICacheService;
 
   public constructor(private readonly dependencies: AIPipelineDependencies) {
     this.promptRegistry =
       dependencies.promptRegistry ?? pipelinePromptRegistry;
+    this.aiCache = dependencies.aiCache ?? aiCacheService;
   }
 
   public async execute<TPrompt extends PipelinePromptId>(
     request: AIExecutionRequest<TPrompt>,
   ): Promise<AIExecutionResult<PipelineResultMap[TPrompt]>> {
     const startedAt = Date.now();
+
+    // Stage 1: Context Building
+    const tContextStart = Date.now();
     const rawContext =
       request.prompt === "task-breakdown" && request.taskId
         ? await this.dependencies.contextBuilder.buildTaskBreakdownContext(
@@ -57,14 +62,48 @@ export class AIPipeline {
         ? { conversationHistory: request.conversationHistory }
         : {}),
     };
+    const contextTimeMs = Date.now() - tContextStart;
 
+    // Check Cache
     const promptDefinition = this.promptRegistry[request.prompt];
+    const cacheKey = this.aiCache.getCacheKey(request, context);
+    if (promptDefinition.ttlMs) {
+      const cachedResult = this.aiCache.get<PipelineResultMap[TPrompt]>(cacheKey);
+      if (cachedResult) {
+        const totalTimeMs = Date.now() - startedAt;
+        logger.info("AI Pipeline Cache Hit", {
+          promptId: request.prompt,
+          userId: request.userId,
+          contextTimeMs,
+          totalTimeMs,
+        });
+        return {
+          data: cachedResult.data,
+          metrics: {
+            ...cachedResult.metrics,
+            executionTime: totalTimeMs,
+            stageTimings: {
+              contextTimeMs,
+              promptTimeMs: 0,
+              llmTimeMs: 0,
+              parseTimeMs: 0,
+              totalTimeMs,
+              cached: true,
+            },
+          },
+        };
+      }
+    }
+
+    // Stage 2: Prompt Building
+    const tPromptStart = Date.now();
     const builtPrompt = (promptDefinition.buildPrompt as (
       ctx: typeof context,
       pb: PromptBuilder,
     ) => BuiltPrompt)(context, this.dependencies.promptBuilder);
 
     const serializedInput = serializePrompt(builtPrompt.fragments);
+    const promptTimeMs = Date.now() - tPromptStart;
 
     logger.info("Executing AI Pipeline", {
       promptId: request.prompt,
@@ -72,6 +111,8 @@ export class AIPipeline {
       userMessage: request.userMessage,
       hasConversationHistory: Boolean(request.conversationHistory),
       serializedPromptLength: serializedInput.length,
+      contextTimeMs,
+      promptTimeMs,
     });
 
     logger.debug("Final Prompt Sent to Provider", {
@@ -80,14 +121,25 @@ export class AIPipeline {
     });
 
     try {
+      // Stage 3: LLM Inference (AI Provider)
+      const tLlmStart = Date.now();
       const providerResponse = await this.dependencies.aiProvider.generateText({
         input: serializedInput,
+        temperature: promptDefinition.options?.temperature ?? 0.1,
+        topP: promptDefinition.options?.topP ?? 0.9,
+        maxOutputTokens: promptDefinition.options?.maxOutputTokens ?? 768,
+        numCtx: promptDefinition.options?.numCtx ?? 4096,
       });
+      const llmTimeMs = Date.now() - tLlmStart;
+
       logger.info("AI Provider Raw Response Received", {
         promptId: request.prompt,
-        rawResponse: providerResponse.text,
+        rawResponseLength: providerResponse.text.length,
+        llmTimeMs,
       });
 
+      // Stage 4: Response Parsing
+      const tParseStart = Date.now();
       let finalResponse = providerResponse;
       let data: PipelineResultMap[TPrompt];
 
@@ -115,16 +167,16 @@ export class AIPipeline {
           try {
             finalResponse = await this.dependencies.aiProvider.generateText({
               input: retryInput,
-            });
-            logger.debug("AI response on retry before parsing", {
-              rawResponse: finalResponse.text,
+              temperature: 0.1,
+              topP: 0.9,
+              maxOutputTokens: promptDefinition.options?.maxOutputTokens ?? 768,
+              numCtx: promptDefinition.options?.numCtx ?? 4096,
             });
 
             data = this.dependencies.responseParser.parse(
               finalResponse.text,
               promptDefinition.schema as z.ZodType<PipelineResultMap[TPrompt]>,
             );
-            logger.debug("AI response parsed JSON on retry", { parsedJson: data });
           } catch (retryError) {
             if (retryError instanceof AIParseError) {
               logger.error("AI response parsing failed after retry", {
@@ -134,10 +186,6 @@ export class AIPipeline {
                   message: retryError.message,
                   code: retryError.code,
                 },
-                schemaValidationError:
-                  retryError.code === "SCHEMA_VALIDATION_FAILED"
-                    ? retryError.message
-                    : undefined,
                 missingOrInvalidFields: retryError.issues.map((issue) => ({
                   path: issue.path,
                   message: issue.message,
@@ -156,10 +204,6 @@ export class AIPipeline {
               message: error.message,
               code: error.code,
             },
-            schemaValidationError:
-              error.code === "SCHEMA_VALIDATION_FAILED"
-                ? error.message
-                : undefined,
             missingOrInvalidFields: error.issues.map((issue) => ({
               path: issue.path,
               message: issue.message,
@@ -172,14 +216,43 @@ export class AIPipeline {
         }
       }
 
-      return {
+      const parseTimeMs = Date.now() - tParseStart;
+      const totalTimeMs = Date.now() - startedAt;
+
+      logger.info("AI Pipeline Timing Breakdown", {
+        promptId: request.prompt,
+        userId: request.userId,
+        contextTimeMs,
+        promptTimeMs,
+        llmTimeMs,
+        parseTimeMs,
+        totalTimeMs,
+      });
+
+      const result: AIExecutionResult<PipelineResultMap[TPrompt]> = {
         data,
-        metrics: createMetrics(
-          startedAt,
-          finalResponse,
-          builtPrompt.version,
-        ),
+        metrics: {
+          executionTime: totalTimeMs,
+          provider: finalResponse.model.provider,
+          model: finalResponse.model.model,
+          tokenUsage: finalResponse.usage ?? null,
+          promptVersion: builtPrompt.version,
+          stageTimings: {
+            contextTimeMs,
+            promptTimeMs,
+            llmTimeMs,
+            parseTimeMs,
+            totalTimeMs,
+            cached: false,
+          },
+        },
       };
+
+      if (promptDefinition.ttlMs) {
+        this.aiCache.set(cacheKey, result, promptDefinition.ttlMs);
+      }
+
+      return result;
     } catch (error) {
       if (error instanceof AIResponseError) {
         throw error;
@@ -203,18 +276,4 @@ function serializePrompt(
         fragment.role.toUpperCase() + ":\n" + fragment.content,
     )
     .join("\n\n");
-}
-
-function createMetrics(
-  startedAt: number,
-  providerResponse: GenerateTextResponse,
-  promptVersion: string,
-): AIExecutionMetrics {
-  return {
-    executionTime: Date.now() - startedAt,
-    provider: providerResponse.model.provider,
-    model: providerResponse.model.model,
-    tokenUsage: providerResponse.usage ?? null,
-    promptVersion,
-  };
 }

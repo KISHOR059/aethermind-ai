@@ -46,6 +46,14 @@ export type AIExecutionMetrics = {
   readonly model: string;
   readonly tokenUsage: UsageMetadata | null;
   readonly promptVersion: string;
+  readonly stageTimings?: {
+    readonly contextTimeMs: number;
+    readonly promptTimeMs: number;
+    readonly llmTimeMs: number;
+    readonly parseTimeMs: number;
+    readonly totalTimeMs: number;
+    readonly cached?: boolean;
+  };
 };
 
 export type AIExecutionResult<T> = {

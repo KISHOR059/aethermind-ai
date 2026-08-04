@@ -22,7 +22,9 @@ export type GenerateTextRequest = {
   input: string;
   model?: string;
   temperature?: number;
+  topP?: number;
   maxOutputTokens?: number;
+  numCtx?: number;
 };
 
 export type GenerateTextResponse = {

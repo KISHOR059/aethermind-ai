@@ -67,12 +67,11 @@ export class OllamaProvider implements AIProvider {
       stream: false,
       format: "json",
       options: {
-        ...(request.temperature === undefined
-          ? {}
-          : { temperature: request.temperature }),
-        ...(request.maxOutputTokens === undefined
-          ? {}
-          : { num_predict: request.maxOutputTokens }),
+        temperature: request.temperature ?? 0.1,
+        top_p: request.topP ?? 0.9,
+        num_predict: request.maxOutputTokens ?? 768,
+        num_ctx: request.numCtx ?? 4096,
+        mirostat: 0,
       },
     };
 

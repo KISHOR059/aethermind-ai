@@ -9,6 +9,7 @@ export {
   buildAssistantChatPrompt,
   PromptBuilder,
 } from "./prompt-builder.js";
+export { formatTaskContextForPrompt } from "./prompt-utils.js";
 export { promptRegistry } from "./prompt-registry.js";
 export { SYSTEM_PROMPTS } from "./system-prompts.js";
 export type {
