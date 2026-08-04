@@ -92,7 +92,13 @@ export function ChatWindow({
         {messages.length > 0 && (
           <SuggestionChips onSelectSuggestion={onSendMessage} disabled={isSending} />
         )}
-        <ChatInput onSendMessage={onSendMessage} disabled={isSending} />
+        <ChatInput
+          onSendMessage={onSendMessage}
+          disabled={isSending}
+          lastAssistantMessage={
+            messages.filter((m) => m.role === "assistant").pop()?.content
+          }
+        />
       </div>
     </div>
   );
