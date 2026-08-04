@@ -35,6 +35,15 @@ export type TaskListData = {
   pagination: { page: number; limit: number; total: number; totalPages: number };
 };
 
-export type CreateTaskInput = { title: string; description?: string; priority: TaskPriority; dueDate?: string };
-export type UpdateTaskInput = Partial<Pick<Task, "title" | "description" | "status" | "priority" | "dueDate">>;
+export type CreateTaskInput = {
+  title: string;
+  description?: string;
+  priority: TaskPriority;
+  dueDate?: string;
+  startDate?: string;
+  estimatedMinutes?: number;
+  tags?: string[];
+};
+export type UpdateTaskInput = Partial<Pick<Task, "title" | "description" | "status" | "priority" | "dueDate" | "estimatedMinutes">>;
+
 

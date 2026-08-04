@@ -25,3 +25,22 @@ export type PlanDayResult = {
   data: DailyPlan;
   metrics: AIExecutionMetrics;
 };
+
+export type Subtask = {
+  title: string;
+  description?: string;
+  priority: "LOW" | "MEDIUM" | "HIGH" | "URGENT";
+  estimatedMinutes?: number;
+};
+
+export type TaskBreakdown = {
+  summary: string;
+  estimatedMinutes: number;
+  subtasks: Subtask[];
+};
+
+export type TaskBreakdownResult = {
+  data: TaskBreakdown;
+  metrics: AIExecutionMetrics;
+};
+

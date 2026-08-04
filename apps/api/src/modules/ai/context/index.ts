@@ -1,5 +1,6 @@
 export {
   buildDailyPlannerContext,
+  buildTaskBreakdownContext,
   ContextBuilder,
 } from "./context-builder.js";
 export {
@@ -20,6 +21,8 @@ export type {
   DailyPlannerContext,
   SettingsContext,
   SystemContext,
+  TargetTaskDetails,
+  TaskBreakdownContext,
   TaskContext,
   TaskSummary,
   TimeContext,

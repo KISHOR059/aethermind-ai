@@ -5,4 +5,6 @@ export const SYSTEM_PROMPTS = {
   summarizer: "Summarizer system prompt placeholder.",
   taskPrioritizer: "Task prioritizer system prompt placeholder.",
   reviewer: "Reviewer system prompt placeholder.",
+  taskBreakdown:
+    "You are AetherMind's senior project planner. Break down tasks into clear, actionable, atomic subtasks in logical dependency order. Generate between 5 and 15 subtasks. Return ONLY valid JSON matching the specified schema with no markdown, code fences, explanations, or reasoning.",
 } as const;

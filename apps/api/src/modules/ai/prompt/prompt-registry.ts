@@ -5,11 +5,14 @@ import { prioritizeTemplate } from "./templates/prioritize.template.js";
 import type { PrioritizationPromptVariables } from "./templates/prioritize.template.js";
 import { summarizeTemplate } from "./templates/summarize.template.js";
 import type { SummaryPromptVariables } from "./templates/summarize.template.js";
+import { taskBreakdownTemplate } from "./templates/task-breakdown.template.js";
+import type { TaskBreakdownPromptVariables } from "./templates/task-breakdown.template.js";
 
 export type PromptRegistry = {
   readonly "daily-plan": PromptDefinition<DailyPlanPromptVariables>;
   readonly prioritize: PromptDefinition<PrioritizationPromptVariables>;
   readonly summarize: PromptDefinition<SummaryPromptVariables>;
+  readonly "task-breakdown": PromptDefinition<TaskBreakdownPromptVariables>;
 };
 
 export const promptRegistry = {
@@ -33,5 +36,12 @@ export const promptRegistry = {
     name: "Task Summarizer",
     description: "Builds a prompt fragment set for task summarization.",
     template: summarizeTemplate,
+  },
+  "task-breakdown": {
+    id: "task-breakdown",
+    version: "1.0.0",
+    name: "Task Breakdown Planner",
+    description: "Builds a prompt fragment set for AI task breakdown into subtasks.",
+    template: taskBreakdownTemplate,
   },
 } satisfies PromptRegistry;

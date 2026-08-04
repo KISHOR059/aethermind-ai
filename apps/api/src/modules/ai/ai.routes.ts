@@ -13,5 +13,10 @@ aiRouter.post(
   requireAuth,
   asyncHandler(aiController.planDay),
 );
+aiRouter.post(
+  "/tasks/:taskId/breakdown",
+  requireAuth,
+  asyncHandler(aiController.breakDownTask),
+);
 
 export default aiRouter;

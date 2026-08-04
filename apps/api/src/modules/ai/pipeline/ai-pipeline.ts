@@ -1,8 +1,10 @@
+import type { z } from "zod";
 import type { ContextBuilder } from "../context/context-builder.js";
 import { logger } from "../../../lib/logger.js";
 import { AIParseError } from "../parser/response.types.js";
 import type { ResponseParser } from "../parser/response-parser.js";
 import type { PromptBuilder } from "../prompt/prompt-builder.js";
+import type { BuiltPrompt } from "../prompt/prompt.types.js";
 import { AIResponseError } from "../../../utils/app-error.js";
 import type { AIProvider } from "../providers/ai-provider.interface.js";
 import type { GenerateTextResponse } from "../providers/types.js";
@@ -39,14 +41,19 @@ export class AIPipeline {
   ): Promise<AIExecutionResult<PipelineResultMap[TPrompt]>> {
     const startedAt = Date.now();
     const context =
-      await this.dependencies.contextBuilder.buildDailyPlannerContext(
-        request.userId,
-      );
+      request.prompt === "task-breakdown" && request.taskId
+        ? await this.dependencies.contextBuilder.buildTaskBreakdownContext(
+            request.userId,
+            request.taskId,
+          )
+        : await this.dependencies.contextBuilder.buildDailyPlannerContext(
+            request.userId,
+          );
     const promptDefinition = this.promptRegistry[request.prompt];
-    const builtPrompt = promptDefinition.buildPrompt(
-      context,
-      this.dependencies.promptBuilder,
-    );
+    const builtPrompt = (promptDefinition.buildPrompt as (
+      ctx: typeof context,
+      pb: PromptBuilder,
+    ) => BuiltPrompt)(context, this.dependencies.promptBuilder);
 
     try {
       const providerResponse = await this.dependencies.aiProvider.generateText({
@@ -62,7 +69,7 @@ export class AIPipeline {
       try {
         data = this.dependencies.responseParser.parse(
           providerResponse.text,
-          promptDefinition.schema,
+          promptDefinition.schema as z.ZodType<PipelineResultMap[TPrompt]>,
         );
         logger.debug("AI response parsed JSON", { parsedJson: data });
       } catch (error) {
@@ -90,7 +97,7 @@ export class AIPipeline {
 
             data = this.dependencies.responseParser.parse(
               finalResponse.text,
-              promptDefinition.schema,
+              promptDefinition.schema as z.ZodType<PipelineResultMap[TPrompt]>,
             );
             logger.debug("AI response parsed JSON on retry", { parsedJson: data });
           } catch (retryError) {

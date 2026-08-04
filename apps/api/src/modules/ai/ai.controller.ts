@@ -30,4 +30,20 @@ export class AiController {
 
     successResponse(response, result, "Daily plan generated successfully");
   };
+
+  public breakDownTask = async (
+    request: Request,
+    response: Response,
+  ): Promise<void> => {
+    if (!request.user) {
+      throw new UnauthorizedError("Authenticated user is required");
+    }
+
+    const taskId = request.params.taskId as string;
+    const result = await this.aiService.breakDownTask(taskId, request.user.id);
+
+    successResponse(response, result, "Task breakdown generated successfully");
+  };
 }
+
+

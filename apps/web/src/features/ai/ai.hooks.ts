@@ -4,6 +4,7 @@ import { aiService } from "./ai.service";
 
 export const aiKeys = {
   planDay: ["ai", "plan-day"] as const,
+  taskBreakdown: (taskId: string) => ["ai", "task-breakdown", taskId] as const,
 };
 
 export function usePlanDay() {
@@ -15,3 +16,14 @@ export function usePlanDay() {
     gcTime: 5 * 60_000,
   });
 }
+
+export function useTaskBreakdown(taskId: string) {
+  return useQuery({
+    queryKey: aiKeys.taskBreakdown(taskId),
+    queryFn: () => aiService.breakDownTask(taskId),
+    enabled: false,
+    staleTime: 5 * 60_000,
+    gcTime: 5 * 60_000,
+  });
+}
+

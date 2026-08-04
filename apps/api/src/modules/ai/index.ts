@@ -34,8 +34,15 @@ export const aiController = new AiController(aiService);
 
 export { AiController } from "./ai.controller.js";
 export { AiService } from "./ai.service.js";
-export { buildDailyPlannerContext } from "./context/index.js";
+export {
+  buildDailyPlannerContext,
+  buildTaskBreakdownContext,
+} from "./context/index.js";
 export { createAIProvider } from "./providers/provider.factory.js";
-export { buildDailyPlannerPrompt } from "./prompt/index.js";
+export {
+  buildDailyPlannerPrompt,
+  buildTaskBreakdownPrompt,
+} from "./prompt/index.js";
 export { AIPipeline } from "./pipeline/index.js";
 export { parseResponse } from "./parser/index.js";
+

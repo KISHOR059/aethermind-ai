@@ -59,3 +59,23 @@ export type DailyPlannerContext = {
   readonly time: TimeContext;
   readonly system: SystemContext;
 };
+
+export type TargetTaskDetails = {
+  readonly id: string;
+  readonly title: string;
+  readonly description?: string;
+  readonly priority: TaskPriority;
+  readonly status: TaskStatus;
+  readonly dueDate?: Date;
+  readonly estimatedMinutes?: number;
+  readonly existingSubtasks: readonly string[];
+};
+
+export type TaskBreakdownContext = {
+  readonly targetTask: TargetTaskDetails;
+  readonly user: UserContext;
+  readonly settings: SettingsContext;
+  readonly time: TimeContext;
+  readonly system: SystemContext;
+};
+
