@@ -1,5 +1,6 @@
 import type { UsageMetadata } from "../providers/types.js";
 import type {
+  AssistantChatResponse,
   DailyPlannerResponse,
   ProductivityInsightsResponse,
   SmartRescheduleResponse,
@@ -16,7 +17,8 @@ export type PipelinePromptId =
   | "smart-reschedule"
   | "reschedule"
   | "weekly-review"
-  | "productivity-insights";
+  | "productivity-insights"
+  | "assistant-chat";
 
 export type PipelineResultMap = {
   readonly "daily-planner": DailyPlannerResponse;
@@ -27,12 +29,15 @@ export type PipelineResultMap = {
   readonly reschedule: SmartRescheduleResponse;
   readonly "weekly-review": WeeklyReviewResponse;
   readonly "productivity-insights": ProductivityInsightsResponse;
+  readonly "assistant-chat": AssistantChatResponse;
 };
 
 export type AIExecutionRequest<TPrompt extends PipelinePromptId = PipelinePromptId> = {
   readonly prompt: TPrompt;
   readonly userId: string;
   readonly taskId?: string;
+  readonly userMessage?: string;
+  readonly conversationHistory?: string;
 };
 
 export type AIExecutionMetrics = {

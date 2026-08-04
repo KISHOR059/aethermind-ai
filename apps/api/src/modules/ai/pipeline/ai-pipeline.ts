@@ -40,7 +40,7 @@ export class AIPipeline {
     request: AIExecutionRequest<TPrompt>,
   ): Promise<AIExecutionResult<PipelineResultMap[TPrompt]>> {
     const startedAt = Date.now();
-    const context =
+    const rawContext =
       request.prompt === "task-breakdown" && request.taskId
         ? await this.dependencies.contextBuilder.buildTaskBreakdownContext(
             request.userId,
@@ -49,17 +49,42 @@ export class AIPipeline {
         : await this.dependencies.contextBuilder.buildDailyPlannerContext(
             request.userId,
           );
+
+    const context = {
+      ...rawContext,
+      ...(request.userMessage !== undefined ? { userMessage: request.userMessage } : {}),
+      ...(request.conversationHistory !== undefined
+        ? { conversationHistory: request.conversationHistory }
+        : {}),
+    };
+
     const promptDefinition = this.promptRegistry[request.prompt];
     const builtPrompt = (promptDefinition.buildPrompt as (
       ctx: typeof context,
       pb: PromptBuilder,
     ) => BuiltPrompt)(context, this.dependencies.promptBuilder);
 
+    const serializedInput = serializePrompt(builtPrompt.fragments);
+
+    logger.info("Executing AI Pipeline", {
+      promptId: request.prompt,
+      userId: request.userId,
+      userMessage: request.userMessage,
+      hasConversationHistory: Boolean(request.conversationHistory),
+      serializedPromptLength: serializedInput.length,
+    });
+
+    logger.debug("Final Prompt Sent to Provider", {
+      promptId: request.prompt,
+      finalPrompt: serializedInput,
+    });
+
     try {
       const providerResponse = await this.dependencies.aiProvider.generateText({
-        input: serializePrompt(builtPrompt.fragments),
+        input: serializedInput,
       });
-      logger.debug("AI response before parsing", {
+      logger.info("AI Provider Raw Response Received", {
+        promptId: request.prompt,
         rawResponse: providerResponse.text,
       });
 

@@ -15,6 +15,8 @@ import type {
   UsageMetadata,
 } from "./types.js";
 
+import { logger } from "../../../lib/logger.js";
+
 type OllamaResponse = {
   model?: unknown;
   response?: unknown;
@@ -59,24 +61,33 @@ export class OllamaProvider implements AIProvider {
       env.OLLAMA_REQUEST_TIMEOUT_MS,
     );
 
+    const payload = {
+      model,
+      prompt: request.input,
+      stream: false,
+      format: "json",
+      options: {
+        ...(request.temperature === undefined
+          ? {}
+          : { temperature: request.temperature }),
+        ...(request.maxOutputTokens === undefined
+          ? {}
+          : { num_predict: request.maxOutputTokens }),
+      },
+    };
+
+    logger.info("Ollama API Request Payload", {
+      model: payload.model,
+      format: payload.format,
+      promptLength: payload.prompt.length,
+      options: payload.options,
+    });
+
     try {
       const response = await fetch(`${this.baseUrl}/api/generate`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          model,
-          prompt: request.input,
-          stream: false,
-          format: "json",
-          options: {
-            ...(request.temperature === undefined
-              ? {}
-              : { temperature: request.temperature }),
-            ...(request.maxOutputTokens === undefined
-              ? {}
-              : { num_predict: request.maxOutputTokens }),
-          },
-        }),
+        body: JSON.stringify(payload),
         signal: controller.signal,
       });
 

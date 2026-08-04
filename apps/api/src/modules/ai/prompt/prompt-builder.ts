@@ -11,6 +11,7 @@ import type { TaskBreakdownPromptVariables } from "./templates/task-breakdown.te
 import type { SmartReschedulePromptVariables } from "./templates/smart-reschedule.template.js";
 import type { WeeklyReviewPromptVariables } from "./templates/weekly-review.template.js";
 import type { ProductivityInsightsPromptVariables } from "./templates/productivity-insights.template.js";
+import type { AssistantChatPromptVariables } from "./templates/assistant-chat.template.js";
 
 export class PromptBuilder {
   public constructor(
@@ -57,6 +58,12 @@ export class PromptBuilder {
     return this.build(this.registry["productivity-insights"], variables);
   }
 
+  public buildAssistantChatPrompt(
+    variables: AssistantChatPromptVariables,
+  ): BuiltPrompt {
+    return this.build(this.registry["assistant-chat"], variables);
+  }
+
   private build<TVariables extends object>(
     definition: PromptDefinition<TVariables>,
     variables: TVariables,
@@ -101,6 +108,10 @@ export const buildProductivityInsightsPrompt = (
   variables: ProductivityInsightsPromptVariables,
 ): BuiltPrompt =>
   defaultPromptBuilder.buildProductivityInsightsPrompt(variables);
+
+export const buildAssistantChatPrompt = (
+  variables: AssistantChatPromptVariables,
+): BuiltPrompt => defaultPromptBuilder.buildAssistantChatPrompt(variables);
 
 
 

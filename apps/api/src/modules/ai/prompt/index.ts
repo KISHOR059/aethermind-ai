@@ -6,6 +6,7 @@ export {
   buildSmartReschedulePrompt,
   buildWeeklyReviewPrompt,
   buildProductivityInsightsPrompt,
+  buildAssistantChatPrompt,
   PromptBuilder,
 } from "./prompt-builder.js";
 export { promptRegistry } from "./prompt-registry.js";
@@ -25,6 +26,7 @@ export type { TaskBreakdownPromptVariables } from "./templates/task-breakdown.te
 export type { SmartReschedulePromptVariables } from "./templates/smart-reschedule.template.js";
 export type { WeeklyReviewPromptVariables } from "./templates/weekly-review.template.js";
 export type { ProductivityInsightsPromptVariables } from "./templates/productivity-insights.template.js";
+export type { AssistantChatPromptVariables } from "./templates/assistant-chat.template.js";
 
 
 

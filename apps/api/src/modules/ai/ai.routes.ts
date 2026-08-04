@@ -3,6 +3,7 @@ import type { Router as RouterType } from "express";
 
 import { requireAuth } from "../auth/auth.middleware.js";
 import { asyncHandler } from "../../utils/async-handler.js";
+import { assistantController } from "../assistant/index.js";
 import { aiController } from "./index.js";
 
 const aiRouter: RouterType = Router();
@@ -37,6 +38,11 @@ aiRouter.post(
   "/productivity-insights",
   requireAuth,
   asyncHandler(aiController.productivityInsights),
+);
+aiRouter.post(
+  "/chat",
+  requireAuth,
+  asyncHandler(assistantController.chat),
 );
 
 export default aiRouter;

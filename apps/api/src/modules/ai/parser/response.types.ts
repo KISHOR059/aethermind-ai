@@ -1,6 +1,7 @@
 export type AIParseErrorCode =
   | "INVALID_JSON"
-  | "SCHEMA_VALIDATION_FAILED";
+  | "SCHEMA_VALIDATION_FAILED"
+  | "EMPTY_REPLY";
 
 export type AIParseIssue = {
   readonly path: readonly (string | number)[];

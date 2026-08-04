@@ -11,6 +11,8 @@ import {
   taskBreakdownResponseSchema,
   taskPrioritizationResponseSchema,
   weeklyReviewResponseSchema,
+  assistantChatResponseSchema,
+  type AssistantChatResponse,
   type DailyPlannerResponse,
   type ProductivityInsightsResponse,
   type SmartRescheduleResponse,
@@ -61,6 +63,10 @@ export type PipelinePromptRegistry = {
   readonly "productivity-insights": PipelinePromptDefinition<
     DailyPlannerContext,
     ProductivityInsightsResponse
+  >;
+  readonly "assistant-chat": PipelinePromptDefinition<
+    DailyPlannerContext,
+    AssistantChatResponse
   >;
 };
 
@@ -155,6 +161,18 @@ export const pipelinePromptRegistry: PipelinePromptRegistry = {
         userName: `${context.user.firstName} ${context.user.lastName}`,
       }),
     schema: productivityInsightsResponseSchema,
+  },
+  "assistant-chat": {
+    buildPrompt: (context: DailyPlannerContext, promptBuilder: PromptBuilder) =>
+      promptBuilder.buildAssistantChatPrompt({
+        userName: `${context.user.firstName} ${context.user.lastName}`,
+        today: context.time.date,
+        weekday: context.time.dayOfWeek,
+        tasks: JSON.stringify(context.tasks),
+        conversationHistory: context.conversationHistory ?? "No prior history.",
+        userMessage: context.userMessage ?? "",
+      }),
+    schema: assistantChatResponseSchema,
   },
 };
 

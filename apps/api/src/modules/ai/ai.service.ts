@@ -1,6 +1,7 @@
 import type { AIPipeline } from "./pipeline/ai-pipeline.js";
 import type { AIExecutionResult } from "./pipeline/pipeline.types.js";
 import type {
+  AssistantChatResponse,
   DailyPlannerResponse,
   ProductivityInsightsResponse,
   SmartRescheduleResponse,
@@ -99,6 +100,19 @@ export class AiService {
     return this.aiPipeline.execute({
       prompt: "productivity-insights",
       userId,
+    });
+  }
+
+  public chat(
+    userId: string,
+    userMessage: string,
+    conversationHistory?: string,
+  ): Promise<AIExecutionResult<AssistantChatResponse>> {
+    return this.aiPipeline.execute({
+      prompt: "assistant-chat",
+      userId,
+      userMessage,
+      conversationHistory,
     });
   }
 }

@@ -44,6 +44,9 @@ export type {
   ProductivityInsightsResponse,
   ProductivityInsightsStatistics,
 } from "./productivity-insights.schema.js";
+export { assistantChatResponseSchema } from "./assistant-chat.schema.js";
+export type { AssistantChatResponse } from "./assistant-chat.schema.js";
+
 
 
 

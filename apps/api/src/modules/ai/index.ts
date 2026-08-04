@@ -28,7 +28,7 @@ const aiPipeline = new AIPipeline({
   responseParser,
 });
 
-const aiService = new AiService(aiPipeline, aiProvider);
+export const aiService = new AiService(aiPipeline, aiProvider);
 
 export const aiController = new AiController(aiService);
 

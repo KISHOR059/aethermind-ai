@@ -13,6 +13,8 @@ import { weeklyReviewTemplate } from "./templates/weekly-review.template.js";
 import type { WeeklyReviewPromptVariables } from "./templates/weekly-review.template.js";
 import { productivityInsightsTemplate } from "./templates/productivity-insights.template.js";
 import type { ProductivityInsightsPromptVariables } from "./templates/productivity-insights.template.js";
+import { assistantChatTemplate } from "./templates/assistant-chat.template.js";
+import type { AssistantChatPromptVariables } from "./templates/assistant-chat.template.js";
 
 export type PromptRegistry = {
   readonly "daily-plan": PromptDefinition<DailyPlanPromptVariables>;
@@ -24,6 +26,7 @@ export type PromptRegistry = {
   readonly reschedule: PromptDefinition<SmartReschedulePromptVariables>;
   readonly "weekly-review": PromptDefinition<WeeklyReviewPromptVariables>;
   readonly "productivity-insights": PromptDefinition<ProductivityInsightsPromptVariables>;
+  readonly "assistant-chat": PromptDefinition<AssistantChatPromptVariables>;
 };
 
 export const promptRegistry = {
@@ -89,6 +92,13 @@ export const promptRegistry = {
     name: "Productivity Insights Analyst",
     description: "Builds a prompt fragment set for AI productivity insights.",
     template: productivityInsightsTemplate,
+  },
+  "assistant-chat": {
+    id: "assistant-chat",
+    version: "1.0.0",
+    name: "AI Productivity Assistant Chat",
+    description: "Builds a prompt fragment set for AI productivity assistant chat.",
+    template: assistantChatTemplate,
   },
 } satisfies PromptRegistry;
 

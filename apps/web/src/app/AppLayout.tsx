@@ -1,4 +1,5 @@
 import {
+  Bot,
   CheckSquare,
   LayoutDashboard,
   Menu,
@@ -31,6 +32,7 @@ import { useAuth } from "@/features/auth/hooks/auth.context";
 const navigationItems = [
   { label: "Dashboard", icon: LayoutDashboard, to: "/dashboard" },
   { label: "Tasks", icon: CheckSquare, to: "/tasks" },
+  { label: "AI Assistant", icon: Bot, to: "/assistant" },
   { label: "Settings", icon: Settings, to: "/settings" },
 ];
 

@@ -58,6 +58,8 @@ export type DailyPlannerContext = {
   readonly settings: SettingsContext;
   readonly time: TimeContext;
   readonly system: SystemContext;
+  readonly userMessage?: string;
+  readonly conversationHistory?: string;
 };
 
 export type TargetTaskDetails = {
