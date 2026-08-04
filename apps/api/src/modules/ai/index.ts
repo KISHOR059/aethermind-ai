@@ -44,6 +44,7 @@ export {
   buildPrioritizationPrompt,
   buildTaskBreakdownPrompt,
   buildSmartReschedulePrompt,
+  buildWeeklyReviewPrompt,
 } from "./prompt/index.js";
 export { AIPipeline } from "./pipeline/index.js";
 export { parseResponse } from "./parser/index.js";

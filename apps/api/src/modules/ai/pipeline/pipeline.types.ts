@@ -4,6 +4,7 @@ import type {
   SmartRescheduleResponse,
   TaskBreakdownResponse,
   TaskPrioritizationResponse,
+  WeeklyReviewResponse,
 } from "../parser/schemas/index.js";
 
 export type PipelinePromptId =
@@ -12,7 +13,8 @@ export type PipelinePromptId =
   | "task-prioritization"
   | "prioritize"
   | "smart-reschedule"
-  | "reschedule";
+  | "reschedule"
+  | "weekly-review";
 
 export type PipelineResultMap = {
   readonly "daily-planner": DailyPlannerResponse;
@@ -21,6 +23,7 @@ export type PipelineResultMap = {
   readonly prioritize: TaskPrioritizationResponse;
   readonly "smart-reschedule": SmartRescheduleResponse;
   readonly reschedule: SmartRescheduleResponse;
+  readonly "weekly-review": WeeklyReviewResponse;
 };
 
 export type AIExecutionRequest<TPrompt extends PipelinePromptId = PipelinePromptId> = {

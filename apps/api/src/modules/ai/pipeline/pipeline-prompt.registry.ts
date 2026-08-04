@@ -9,10 +9,12 @@ import {
   smartRescheduleResponseSchema,
   taskBreakdownResponseSchema,
   taskPrioritizationResponseSchema,
+  weeklyReviewResponseSchema,
   type DailyPlannerResponse,
   type SmartRescheduleResponse,
   type TaskBreakdownResponse,
   type TaskPrioritizationResponse,
+  type WeeklyReviewResponse,
 } from "../parser/schemas/index.js";
 import type { PromptBuilder } from "../prompt/prompt-builder.js";
 import type { BuiltPrompt } from "../prompt/prompt.types.js";
@@ -49,6 +51,10 @@ export type PipelinePromptRegistry = {
   readonly reschedule: PipelinePromptDefinition<
     DailyPlannerContext,
     SmartRescheduleResponse
+  >;
+  readonly "weekly-review": PipelinePromptDefinition<
+    DailyPlannerContext,
+    WeeklyReviewResponse
   >;
 };
 
@@ -123,6 +129,16 @@ export const pipelinePromptRegistry: PipelinePromptRegistry = {
         userName: `${context.user.firstName} ${context.user.lastName}`,
       }),
     schema: smartRescheduleResponseSchema,
+  },
+  "weekly-review": {
+    buildPrompt: (context: DailyPlannerContext, promptBuilder: PromptBuilder) =>
+      promptBuilder.buildWeeklyReviewPrompt({
+        tasks: JSON.stringify(context.tasks),
+        today: context.time.date,
+        weekday: context.time.dayOfWeek,
+        userName: `${context.user.firstName} ${context.user.lastName}`,
+      }),
+    schema: weeklyReviewResponseSchema,
   },
 };
 

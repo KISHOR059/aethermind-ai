@@ -1,9 +1,10 @@
 import { useState } from "react";
-import { CalendarClock, Sparkles } from "lucide-react";
+import { BarChart3, CalendarClock, Sparkles } from "lucide-react";
 
 import PlanMyDayDialog from "@/features/ai/PlanMyDayDialog";
 import TaskPrioritizationDialog from "@/features/ai/TaskPrioritizationDialog";
 import SmartRescheduleDialog from "@/features/ai/SmartRescheduleDialog";
+import WeeklyReviewDialog from "@/features/ai/WeeklyReviewDialog";
 import CreateTaskDialog from "@/features/tasks/CreateTaskDialog";
 import {
   TaskEmptyState,
@@ -20,6 +21,7 @@ function TasksPage() {
   const [search, setSearch] = useState("");
   const [prioritizationOpen, setPrioritizationOpen] = useState(false);
   const [rescheduleOpen, setRescheduleOpen] = useState(false);
+  const [weeklyReviewOpen, setWeeklyReviewOpen] = useState(false);
 
   const tasks = useTasks({
     page: 1,
@@ -37,6 +39,14 @@ function TasksPage() {
         description="Plan and prioritize your work."
         actions={
           <div className="flex flex-wrap items-center gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setWeeklyReviewOpen(true)}
+              className="gap-2"
+            >
+              <BarChart3 className="size-4 text-primary" />
+              Weekly Review
+            </Button>
             <Button
               variant="outline"
               onClick={() => setRescheduleOpen(true)}
@@ -84,6 +94,10 @@ function TasksPage() {
       <SmartRescheduleDialog
         open={rescheduleOpen}
         onOpenChange={setRescheduleOpen}
+      />
+      <WeeklyReviewDialog
+        open={weeklyReviewOpen}
+        onOpenChange={setWeeklyReviewOpen}
       />
     </div>
   );

@@ -4,6 +4,7 @@ export {
   buildSummaryPrompt,
   buildTaskBreakdownPrompt,
   buildSmartReschedulePrompt,
+  buildWeeklyReviewPrompt,
   PromptBuilder,
 } from "./prompt-builder.js";
 export { promptRegistry } from "./prompt-registry.js";
@@ -21,5 +22,7 @@ export type { TaskPrioritizationPromptVariables } from "./templates/task-priorit
 export type { SummaryPromptVariables } from "./templates/summarize.template.js";
 export type { TaskBreakdownPromptVariables } from "./templates/task-breakdown.template.js";
 export type { SmartReschedulePromptVariables } from "./templates/smart-reschedule.template.js";
+export type { WeeklyReviewPromptVariables } from "./templates/weekly-review.template.js";
+
 
 

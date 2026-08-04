@@ -9,6 +9,8 @@ import { taskBreakdownTemplate } from "./templates/task-breakdown.template.js";
 import type { TaskBreakdownPromptVariables } from "./templates/task-breakdown.template.js";
 import { smartRescheduleTemplate } from "./templates/smart-reschedule.template.js";
 import type { SmartReschedulePromptVariables } from "./templates/smart-reschedule.template.js";
+import { weeklyReviewTemplate } from "./templates/weekly-review.template.js";
+import type { WeeklyReviewPromptVariables } from "./templates/weekly-review.template.js";
 
 export type PromptRegistry = {
   readonly "daily-plan": PromptDefinition<DailyPlanPromptVariables>;
@@ -18,6 +20,7 @@ export type PromptRegistry = {
   readonly "task-breakdown": PromptDefinition<TaskBreakdownPromptVariables>;
   readonly "smart-reschedule": PromptDefinition<SmartReschedulePromptVariables>;
   readonly reschedule: PromptDefinition<SmartReschedulePromptVariables>;
+  readonly "weekly-review": PromptDefinition<WeeklyReviewPromptVariables>;
 };
 
 export const promptRegistry = {
@@ -69,6 +72,13 @@ export const promptRegistry = {
     name: "Smart Rescheduler",
     description: "Builds a prompt fragment set for smart task rescheduling.",
     template: smartRescheduleTemplate,
+  },
+  "weekly-review": {
+    id: "weekly-review",
+    version: "1.0.0",
+    name: "Weekly Reviewer",
+    description: "Builds a prompt fragment set for AI-powered weekly review.",
+    template: weeklyReviewTemplate,
   },
 } satisfies PromptRegistry;
 

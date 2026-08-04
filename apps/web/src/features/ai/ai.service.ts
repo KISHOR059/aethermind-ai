@@ -6,6 +6,7 @@ import type {
   SmartRescheduleResult,
   TaskBreakdownResult,
   TaskPrioritizationResult,
+  WeeklyReviewResult,
 } from "./ai.types";
 
 /**
@@ -20,9 +21,9 @@ import type {
  * - /ai/tasks/:taskId/breakdown
  * - /ai/prioritize
  * - /ai/reschedule
+ * - /ai/weekly-review
  * - /ai/summarize
  * - /ai/chat
- * - /ai/weekly-review
  */
 export const AI_REQUEST_TIMEOUT_MS = 120_000;
 
@@ -68,6 +69,18 @@ export const aiService = {
   smartReschedule: async () => {
     const response = await apiClient.post<ApiSuccess<SmartRescheduleResult>>(
       "/ai/reschedule",
+      {},
+      {
+        timeout: AI_REQUEST_TIMEOUT_MS,
+      },
+    );
+
+    return response.data.data;
+  },
+
+  weeklyReview: async () => {
+    const response = await apiClient.post<ApiSuccess<WeeklyReviewResult>>(
+      "/ai/weekly-review",
       {},
       {
         timeout: AI_REQUEST_TIMEOUT_MS,

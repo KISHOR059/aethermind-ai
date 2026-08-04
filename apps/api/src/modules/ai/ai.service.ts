@@ -5,6 +5,7 @@ import type {
   SmartRescheduleResponse,
   TaskBreakdownResponse,
   TaskPrioritizationResponse,
+  WeeklyReviewResponse,
 } from "./parser/schemas/index.js";
 import type { AIProvider } from "./providers/ai-provider.interface.js";
 import type { ProviderStatus } from "./providers/types.js";
@@ -78,6 +79,15 @@ export class AiService {
   ): Promise<AIExecutionResult<SmartRescheduleResponse>> {
     return this.aiPipeline.execute({
       prompt: "smart-reschedule",
+      userId,
+    });
+  }
+
+  public weeklyReview(
+    userId: string,
+  ): Promise<AIExecutionResult<WeeklyReviewResponse>> {
+    return this.aiPipeline.execute({
+      prompt: "weekly-review",
       userId,
     });
   }

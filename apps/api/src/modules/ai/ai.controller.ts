@@ -78,7 +78,25 @@ export class AiController {
       "Smart reschedule generated successfully",
     );
   };
+
+  public weeklyReview = async (
+    request: Request,
+    response: Response,
+  ): Promise<void> => {
+    if (!request.user) {
+      throw new UnauthorizedError("Authenticated user is required");
+    }
+
+    const result = await this.aiService.weeklyReview(request.user.id);
+
+    successResponse(
+      response,
+      result,
+      "Weekly review generated successfully",
+    );
+  };
 }
+
 
 
 

@@ -28,6 +28,15 @@ export type {
   RescheduledItem,
   MovedTask,
 } from "./smart-reschedule.schema.js";
+export {
+  weeklyReviewResponseSchema,
+  weeklyStatisticsSchema,
+} from "./weekly-review.schema.js";
+export type {
+  WeeklyReviewResponse,
+  WeeklyStatistics,
+} from "./weekly-review.schema.js";
+
 
 
 

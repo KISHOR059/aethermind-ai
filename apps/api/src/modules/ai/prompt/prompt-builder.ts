@@ -9,6 +9,7 @@ import type { TaskPrioritizationPromptVariables } from "./templates/task-priorit
 import type { SummaryPromptVariables } from "./templates/summarize.template.js";
 import type { TaskBreakdownPromptVariables } from "./templates/task-breakdown.template.js";
 import type { SmartReschedulePromptVariables } from "./templates/smart-reschedule.template.js";
+import type { WeeklyReviewPromptVariables } from "./templates/weekly-review.template.js";
 
 export class PromptBuilder {
   public constructor(
@@ -41,6 +42,12 @@ export class PromptBuilder {
     variables: SmartReschedulePromptVariables,
   ): BuiltPrompt {
     return this.build(this.registry["smart-reschedule"], variables);
+  }
+
+  public buildWeeklyReviewPrompt(
+    variables: WeeklyReviewPromptVariables,
+  ): BuiltPrompt {
+    return this.build(this.registry["weekly-review"], variables);
   }
 
   private build<TVariables extends object>(
@@ -78,4 +85,9 @@ export const buildTaskBreakdownPrompt = (
 export const buildSmartReschedulePrompt = (
   variables: SmartReschedulePromptVariables,
 ): BuiltPrompt => defaultPromptBuilder.buildSmartReschedulePrompt(variables);
+
+export const buildWeeklyReviewPrompt = (
+  variables: WeeklyReviewPromptVariables,
+): BuiltPrompt => defaultPromptBuilder.buildWeeklyReviewPrompt(variables);
+
 

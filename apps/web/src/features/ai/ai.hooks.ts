@@ -7,6 +7,7 @@ export const aiKeys = {
   taskBreakdown: (taskId: string) => ["ai", "task-breakdown", taskId] as const,
   prioritizeTasks: ["ai", "prioritize"] as const,
   smartReschedule: ["ai", "reschedule"] as const,
+  weeklyReview: ["ai", "weekly-review"] as const,
 };
 
 export function usePlanDay() {
@@ -48,6 +49,17 @@ export function useSmartReschedule() {
     gcTime: 5 * 60_000,
   });
 }
+
+export function useWeeklyReview() {
+  return useQuery({
+    queryKey: aiKeys.weeklyReview,
+    queryFn: aiService.weeklyReview,
+    enabled: false,
+    staleTime: 10 * 60_000,
+    gcTime: 10 * 60_000,
+  });
+}
+
 
 
 

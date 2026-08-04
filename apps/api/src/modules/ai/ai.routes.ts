@@ -28,5 +28,10 @@ aiRouter.post(
   requireAuth,
   asyncHandler(aiController.smartReschedule),
 );
+aiRouter.post(
+  "/weekly-review",
+  requireAuth,
+  asyncHandler(aiController.weeklyReview),
+);
 
 export default aiRouter;

@@ -92,5 +92,28 @@ export type SmartRescheduleResult = {
   metrics: AIExecutionMetrics;
 };
 
+export type WeeklyStatistics = {
+  completedTasks: number;
+  pendingTasks: number;
+  overdueTasks: number;
+  completionRate: number;
+  estimatedMinutesWorked: number;
+};
+
+export type WeeklyReview = {
+  summary: string;
+  achievements: string[];
+  insights: string[];
+  recommendations: string[];
+  statistics: WeeklyStatistics;
+  productivityScore: number;
+};
+
+export type WeeklyReviewResult = {
+  data: WeeklyReview;
+  metrics: AIExecutionMetrics;
+};
+
+
 
 
