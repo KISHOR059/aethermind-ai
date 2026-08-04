@@ -61,7 +61,25 @@ export class AiController {
       "Task prioritization generated successfully",
     );
   };
+
+  public smartReschedule = async (
+    request: Request,
+    response: Response,
+  ): Promise<void> => {
+    if (!request.user) {
+      throw new UnauthorizedError("Authenticated user is required");
+    }
+
+    const result = await this.aiService.smartReschedule(request.user.id);
+
+    successResponse(
+      response,
+      result,
+      "Smart reschedule generated successfully",
+    );
+  };
 }
+
 
 
 

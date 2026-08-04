@@ -7,6 +7,8 @@ import { summarizeTemplate } from "./templates/summarize.template.js";
 import type { SummaryPromptVariables } from "./templates/summarize.template.js";
 import { taskBreakdownTemplate } from "./templates/task-breakdown.template.js";
 import type { TaskBreakdownPromptVariables } from "./templates/task-breakdown.template.js";
+import { smartRescheduleTemplate } from "./templates/smart-reschedule.template.js";
+import type { SmartReschedulePromptVariables } from "./templates/smart-reschedule.template.js";
 
 export type PromptRegistry = {
   readonly "daily-plan": PromptDefinition<DailyPlanPromptVariables>;
@@ -14,6 +16,8 @@ export type PromptRegistry = {
   readonly "task-prioritization": PromptDefinition<TaskPrioritizationPromptVariables>;
   readonly summarize: PromptDefinition<SummaryPromptVariables>;
   readonly "task-breakdown": PromptDefinition<TaskBreakdownPromptVariables>;
+  readonly "smart-reschedule": PromptDefinition<SmartReschedulePromptVariables>;
+  readonly reschedule: PromptDefinition<SmartReschedulePromptVariables>;
 };
 
 export const promptRegistry = {
@@ -51,6 +55,20 @@ export const promptRegistry = {
     name: "Task Breakdown Planner",
     description: "Builds a prompt fragment set for AI task breakdown into subtasks.",
     template: taskBreakdownTemplate,
+  },
+  "smart-reschedule": {
+    id: "smart-reschedule",
+    version: "1.0.0",
+    name: "Smart Rescheduler",
+    description: "Builds a prompt fragment set for smart task rescheduling.",
+    template: smartRescheduleTemplate,
+  },
+  reschedule: {
+    id: "reschedule",
+    version: "1.0.0",
+    name: "Smart Rescheduler",
+    description: "Builds a prompt fragment set for smart task rescheduling.",
+    template: smartRescheduleTemplate,
   },
 } satisfies PromptRegistry;
 

@@ -6,9 +6,11 @@ import type {
 } from "../context/context.types.js";
 import {
   dailyPlannerResponseSchema,
+  smartRescheduleResponseSchema,
   taskBreakdownResponseSchema,
   taskPrioritizationResponseSchema,
   type DailyPlannerResponse,
+  type SmartRescheduleResponse,
   type TaskBreakdownResponse,
   type TaskPrioritizationResponse,
 } from "../parser/schemas/index.js";
@@ -39,6 +41,14 @@ export type PipelinePromptRegistry = {
   readonly prioritize: PipelinePromptDefinition<
     DailyPlannerContext,
     TaskPrioritizationResponse
+  >;
+  readonly "smart-reschedule": PipelinePromptDefinition<
+    DailyPlannerContext,
+    SmartRescheduleResponse
+  >;
+  readonly reschedule: PipelinePromptDefinition<
+    DailyPlannerContext,
+    SmartRescheduleResponse
   >;
 };
 
@@ -93,6 +103,26 @@ export const pipelinePromptRegistry: PipelinePromptRegistry = {
         userName: `${context.user.firstName} ${context.user.lastName}`,
       }),
     schema: taskPrioritizationResponseSchema,
+  },
+  "smart-reschedule": {
+    buildPrompt: (context: DailyPlannerContext, promptBuilder: PromptBuilder) =>
+      promptBuilder.buildSmartReschedulePrompt({
+        tasks: JSON.stringify(context.tasks),
+        today: context.time.date,
+        weekday: context.time.dayOfWeek,
+        userName: `${context.user.firstName} ${context.user.lastName}`,
+      }),
+    schema: smartRescheduleResponseSchema,
+  },
+  reschedule: {
+    buildPrompt: (context: DailyPlannerContext, promptBuilder: PromptBuilder) =>
+      promptBuilder.buildSmartReschedulePrompt({
+        tasks: JSON.stringify(context.tasks),
+        today: context.time.date,
+        weekday: context.time.dayOfWeek,
+        userName: `${context.user.firstName} ${context.user.lastName}`,
+      }),
+    schema: smartRescheduleResponseSchema,
   },
 };
 

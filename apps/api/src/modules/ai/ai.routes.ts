@@ -23,5 +23,10 @@ aiRouter.post(
   requireAuth,
   asyncHandler(aiController.prioritizeTasks),
 );
+aiRouter.post(
+  "/reschedule",
+  requireAuth,
+  asyncHandler(aiController.smartReschedule),
+);
 
 export default aiRouter;

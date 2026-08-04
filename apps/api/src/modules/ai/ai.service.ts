@@ -2,6 +2,7 @@ import type { AIPipeline } from "./pipeline/ai-pipeline.js";
 import type { AIExecutionResult } from "./pipeline/pipeline.types.js";
 import type {
   DailyPlannerResponse,
+  SmartRescheduleResponse,
   TaskBreakdownResponse,
   TaskPrioritizationResponse,
 } from "./parser/schemas/index.js";
@@ -68,6 +69,15 @@ export class AiService {
   ): Promise<AIExecutionResult<TaskPrioritizationResponse>> {
     return this.aiPipeline.execute({
       prompt: "task-prioritization",
+      userId,
+    });
+  }
+
+  public smartReschedule(
+    userId: string,
+  ): Promise<AIExecutionResult<SmartRescheduleResponse>> {
+    return this.aiPipeline.execute({
+      prompt: "smart-reschedule",
       userId,
     });
   }

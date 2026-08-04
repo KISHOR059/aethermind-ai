@@ -6,6 +6,7 @@ export const aiKeys = {
   planDay: ["ai", "plan-day"] as const,
   taskBreakdown: (taskId: string) => ["ai", "task-breakdown", taskId] as const,
   prioritizeTasks: ["ai", "prioritize"] as const,
+  smartReschedule: ["ai", "reschedule"] as const,
 };
 
 export function usePlanDay() {
@@ -37,5 +38,16 @@ export function usePrioritizeTasks() {
     gcTime: 5 * 60_000,
   });
 }
+
+export function useSmartReschedule() {
+  return useQuery({
+    queryKey: aiKeys.smartReschedule,
+    queryFn: aiService.smartReschedule,
+    enabled: false,
+    staleTime: 5 * 60_000,
+    gcTime: 5 * 60_000,
+  });
+}
+
 
 

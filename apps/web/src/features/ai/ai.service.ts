@@ -3,6 +3,7 @@ import apiClient from "@/shared/lib/api-client";
 
 import type {
   PlanDayResult,
+  SmartRescheduleResult,
   TaskBreakdownResult,
   TaskPrioritizationResult,
 } from "./ai.types";
@@ -18,6 +19,7 @@ import type {
  * - /ai/plan-day
  * - /ai/tasks/:taskId/breakdown
  * - /ai/prioritize
+ * - /ai/reschedule
  * - /ai/summarize
  * - /ai/chat
  * - /ai/weekly-review
@@ -54,6 +56,18 @@ export const aiService = {
       ApiSuccess<TaskPrioritizationResult>
     >(
       "/ai/prioritize",
+      {},
+      {
+        timeout: AI_REQUEST_TIMEOUT_MS,
+      },
+    );
+
+    return response.data.data;
+  },
+
+  smartReschedule: async () => {
+    const response = await apiClient.post<ApiSuccess<SmartRescheduleResult>>(
+      "/ai/reschedule",
       {},
       {
         timeout: AI_REQUEST_TIMEOUT_MS,

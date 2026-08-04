@@ -18,5 +18,16 @@ export type {
   TaskPrioritizationResponse,
   PrioritizedTask,
 } from "./task-prioritization.schema.js";
+export {
+  smartRescheduleResponseSchema,
+  rescheduledItemSchema,
+  movedTaskSchema,
+} from "./smart-reschedule.schema.js";
+export type {
+  SmartRescheduleResponse,
+  RescheduledItem,
+  MovedTask,
+} from "./smart-reschedule.schema.js";
+
 
 

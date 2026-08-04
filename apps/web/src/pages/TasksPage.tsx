@@ -1,8 +1,9 @@
 import { useState } from "react";
-import { Sparkles } from "lucide-react";
+import { CalendarClock, Sparkles } from "lucide-react";
 
 import PlanMyDayDialog from "@/features/ai/PlanMyDayDialog";
 import TaskPrioritizationDialog from "@/features/ai/TaskPrioritizationDialog";
+import SmartRescheduleDialog from "@/features/ai/SmartRescheduleDialog";
 import CreateTaskDialog from "@/features/tasks/CreateTaskDialog";
 import {
   TaskEmptyState,
@@ -18,6 +19,7 @@ import PageHeader from "@/shared/components/PageHeader";
 function TasksPage() {
   const [search, setSearch] = useState("");
   const [prioritizationOpen, setPrioritizationOpen] = useState(false);
+  const [rescheduleOpen, setRescheduleOpen] = useState(false);
 
   const tasks = useTasks({
     page: 1,
@@ -35,6 +37,14 @@ function TasksPage() {
         description="Plan and prioritize your work."
         actions={
           <div className="flex flex-wrap items-center gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setRescheduleOpen(true)}
+              className="gap-2"
+            >
+              <CalendarClock className="size-4 text-primary" />
+              Smart Reschedule
+            </Button>
             <Button
               variant="outline"
               onClick={() => setPrioritizationOpen(true)}
@@ -70,6 +80,10 @@ function TasksPage() {
       <TaskPrioritizationDialog
         open={prioritizationOpen}
         onOpenChange={setPrioritizationOpen}
+      />
+      <SmartRescheduleDialog
+        open={rescheduleOpen}
+        onOpenChange={setRescheduleOpen}
       />
     </div>
   );

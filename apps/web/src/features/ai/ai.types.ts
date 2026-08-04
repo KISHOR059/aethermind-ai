@@ -64,4 +64,33 @@ export type TaskPrioritizationResult = {
   metrics: AIExecutionMetrics;
 };
 
+export type RescheduledItem = {
+  taskId: string;
+  title: string;
+  time: string;
+  estimatedMinutes: number;
+  reason: string;
+};
+
+export type MovedTask = {
+  taskId: string;
+  oldDate: string;
+  newDate: string;
+  reason: string;
+};
+
+export type SmartReschedule = {
+  summary: string;
+  schedule: RescheduledItem[];
+  movedTasks: MovedTask[];
+  recommendations: string[];
+  productivityScore: number;
+};
+
+export type SmartRescheduleResult = {
+  data: SmartReschedule;
+  metrics: AIExecutionMetrics;
+};
+
+
 
