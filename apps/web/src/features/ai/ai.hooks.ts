@@ -5,6 +5,7 @@ import { aiService } from "./ai.service";
 export const aiKeys = {
   planDay: ["ai", "plan-day"] as const,
   taskBreakdown: (taskId: string) => ["ai", "task-breakdown", taskId] as const,
+  prioritizeTasks: ["ai", "prioritize"] as const,
 };
 
 export function usePlanDay() {
@@ -26,4 +27,15 @@ export function useTaskBreakdown(taskId: string) {
     gcTime: 5 * 60_000,
   });
 }
+
+export function usePrioritizeTasks() {
+  return useQuery({
+    queryKey: aiKeys.prioritizeTasks,
+    queryFn: aiService.prioritizeTasks,
+    enabled: false,
+    staleTime: 5 * 60_000,
+    gcTime: 5 * 60_000,
+  });
+}
+
 

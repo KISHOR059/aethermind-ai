@@ -2,13 +2,20 @@ import type { UsageMetadata } from "../providers/types.js";
 import type {
   DailyPlannerResponse,
   TaskBreakdownResponse,
+  TaskPrioritizationResponse,
 } from "../parser/schemas/index.js";
 
-export type PipelinePromptId = "daily-planner" | "task-breakdown";
+export type PipelinePromptId =
+  | "daily-planner"
+  | "task-breakdown"
+  | "task-prioritization"
+  | "prioritize";
 
 export type PipelineResultMap = {
   readonly "daily-planner": DailyPlannerResponse;
   readonly "task-breakdown": TaskBreakdownResponse;
+  readonly "task-prioritization": TaskPrioritizationResponse;
+  readonly prioritize: TaskPrioritizationResponse;
 };
 
 export type AIExecutionRequest<TPrompt extends PipelinePromptId = PipelinePromptId> = {

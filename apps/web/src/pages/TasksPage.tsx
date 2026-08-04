@@ -1,6 +1,8 @@
 import { useState } from "react";
+import { Sparkles } from "lucide-react";
 
 import PlanMyDayDialog from "@/features/ai/PlanMyDayDialog";
+import TaskPrioritizationDialog from "@/features/ai/TaskPrioritizationDialog";
 import CreateTaskDialog from "@/features/tasks/CreateTaskDialog";
 import {
   TaskEmptyState,
@@ -9,11 +11,14 @@ import {
 } from "@/features/tasks/TaskStates";
 import TaskList from "@/features/tasks/TaskList";
 import { useTasks } from "@/features/tasks/task.hooks";
+import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input";
 import PageHeader from "@/shared/components/PageHeader";
 
 function TasksPage() {
   const [search, setSearch] = useState("");
+  const [prioritizationOpen, setPrioritizationOpen] = useState(false);
+
   const tasks = useTasks({
     page: 1,
     limit: 20,
@@ -30,6 +35,14 @@ function TasksPage() {
         description="Plan and prioritize your work."
         actions={
           <div className="flex flex-wrap items-center gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setPrioritizationOpen(true)}
+              className="gap-2"
+            >
+              <Sparkles className="size-4 text-primary animate-pulse" />
+              Prioritize Tasks
+            </Button>
             <PlanMyDayDialog />
             <CreateTaskDialog />
           </div>
@@ -53,6 +66,11 @@ function TasksPage() {
       ) : (
         <TaskList tasks={tasks.data.items} />
       )}
+
+      <TaskPrioritizationDialog
+        open={prioritizationOpen}
+        onOpenChange={setPrioritizationOpen}
+      />
     </div>
   );
 }

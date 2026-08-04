@@ -7,8 +7,10 @@ import type {
 import {
   dailyPlannerResponseSchema,
   taskBreakdownResponseSchema,
+  taskPrioritizationResponseSchema,
   type DailyPlannerResponse,
   type TaskBreakdownResponse,
+  type TaskPrioritizationResponse,
 } from "../parser/schemas/index.js";
 import type { PromptBuilder } from "../prompt/prompt-builder.js";
 import type { BuiltPrompt } from "../prompt/prompt.types.js";
@@ -29,6 +31,14 @@ export type PipelinePromptRegistry = {
   readonly "task-breakdown": PipelinePromptDefinition<
     TaskBreakdownContext,
     TaskBreakdownResponse
+  >;
+  readonly "task-prioritization": PipelinePromptDefinition<
+    DailyPlannerContext,
+    TaskPrioritizationResponse
+  >;
+  readonly prioritize: PipelinePromptDefinition<
+    DailyPlannerContext,
+    TaskPrioritizationResponse
   >;
 };
 
@@ -64,5 +74,26 @@ export const pipelinePromptRegistry: PipelinePromptRegistry = {
       }),
     schema: taskBreakdownResponseSchema,
   },
+  "task-prioritization": {
+    buildPrompt: (context: DailyPlannerContext, promptBuilder: PromptBuilder) =>
+      promptBuilder.buildPrioritizationPrompt({
+        tasks: JSON.stringify(context.tasks),
+        today: context.time.date,
+        weekday: context.time.dayOfWeek,
+        userName: `${context.user.firstName} ${context.user.lastName}`,
+      }),
+    schema: taskPrioritizationResponseSchema,
+  },
+  prioritize: {
+    buildPrompt: (context: DailyPlannerContext, promptBuilder: PromptBuilder) =>
+      promptBuilder.buildPrioritizationPrompt({
+        tasks: JSON.stringify(context.tasks),
+        today: context.time.date,
+        weekday: context.time.dayOfWeek,
+        userName: `${context.user.firstName} ${context.user.lastName}`,
+      }),
+    schema: taskPrioritizationResponseSchema,
+  },
 };
+
 

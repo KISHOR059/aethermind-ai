@@ -3,6 +3,7 @@ import type { AIExecutionResult } from "./pipeline/pipeline.types.js";
 import type {
   DailyPlannerResponse,
   TaskBreakdownResponse,
+  TaskPrioritizationResponse,
 } from "./parser/schemas/index.js";
 import type { AIProvider } from "./providers/ai-provider.interface.js";
 import type { ProviderStatus } from "./providers/types.js";
@@ -59,6 +60,15 @@ export class AiService {
       prompt: "task-breakdown",
       userId,
       taskId,
+    });
+  }
+
+  public prioritizeTasks(
+    userId: string,
+  ): Promise<AIExecutionResult<TaskPrioritizationResponse>> {
+    return this.aiPipeline.execute({
+      prompt: "task-prioritization",
+      userId,
     });
   }
 }

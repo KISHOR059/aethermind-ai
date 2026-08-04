@@ -1,7 +1,11 @@
 import type { ApiSuccess } from "@/shared/types/api";
 import apiClient from "@/shared/lib/api-client";
 
-import type { PlanDayResult, TaskBreakdownResult } from "./ai.types";
+import type {
+  PlanDayResult,
+  TaskBreakdownResult,
+  TaskPrioritizationResult,
+} from "./ai.types";
 
 /**
  * Extended timeout (120 seconds) for AI endpoints.
@@ -13,8 +17,8 @@ import type { PlanDayResult, TaskBreakdownResult } from "./ai.types";
  * Exported for easy reuse across present and future AI endpoints:
  * - /ai/plan-day
  * - /ai/tasks/:taskId/breakdown
- * - /ai/summarize
  * - /ai/prioritize
+ * - /ai/summarize
  * - /ai/chat
  * - /ai/weekly-review
  */
@@ -36,6 +40,20 @@ export const aiService = {
   breakDownTask: async (taskId: string) => {
     const response = await apiClient.post<ApiSuccess<TaskBreakdownResult>>(
       `/ai/tasks/${taskId}/breakdown`,
+      {},
+      {
+        timeout: AI_REQUEST_TIMEOUT_MS,
+      },
+    );
+
+    return response.data.data;
+  },
+
+  prioritizeTasks: async () => {
+    const response = await apiClient.post<
+      ApiSuccess<TaskPrioritizationResult>
+    >(
+      "/ai/prioritize",
       {},
       {
         timeout: AI_REQUEST_TIMEOUT_MS,

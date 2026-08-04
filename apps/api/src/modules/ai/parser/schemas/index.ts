@@ -10,4 +10,13 @@ export type {
   TaskBreakdownResponse,
   TaskBreakdownSubtask,
 } from "./task-breakdown.schema.js";
+export {
+  taskPrioritizationResponseSchema,
+  prioritizedTaskSchema,
+} from "./task-prioritization.schema.js";
+export type {
+  TaskPrioritizationResponse,
+  PrioritizedTask,
+} from "./task-prioritization.schema.js";
+
 

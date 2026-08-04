@@ -44,6 +44,24 @@ export class AiController {
 
     successResponse(response, result, "Task breakdown generated successfully");
   };
+
+  public prioritizeTasks = async (
+    request: Request,
+    response: Response,
+  ): Promise<void> => {
+    if (!request.user) {
+      throw new UnauthorizedError("Authenticated user is required");
+    }
+
+    const result = await this.aiService.prioritizeTasks(request.user.id);
+
+    successResponse(
+      response,
+      result,
+      "Task prioritization generated successfully",
+    );
+  };
 }
+
 
 

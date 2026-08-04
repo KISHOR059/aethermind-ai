@@ -18,5 +18,10 @@ aiRouter.post(
   requireAuth,
   asyncHandler(aiController.breakDownTask),
 );
+aiRouter.post(
+  "/prioritize",
+  requireAuth,
+  asyncHandler(aiController.prioritizeTasks),
+);
 
 export default aiRouter;

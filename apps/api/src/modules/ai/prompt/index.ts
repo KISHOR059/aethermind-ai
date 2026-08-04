@@ -16,7 +16,7 @@ export type {
   PromptTemplate,
 } from "./prompt.types.js";
 export type { DailyPlanPromptVariables } from "./templates/daily-plan.template.js";
-export type { PrioritizationPromptVariables } from "./templates/prioritize.template.js";
+export type { TaskPrioritizationPromptVariables } from "./templates/task-prioritization.template.js";
 export type { SummaryPromptVariables } from "./templates/summarize.template.js";
 export type { TaskBreakdownPromptVariables } from "./templates/task-breakdown.template.js";
 

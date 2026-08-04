@@ -1,8 +1,8 @@
 import type { PromptDefinition } from "./prompt.types.js";
 import { dailyPlanTemplate } from "./templates/daily-plan.template.js";
 import type { DailyPlanPromptVariables } from "./templates/daily-plan.template.js";
-import { prioritizeTemplate } from "./templates/prioritize.template.js";
-import type { PrioritizationPromptVariables } from "./templates/prioritize.template.js";
+import { taskPrioritizationTemplate } from "./templates/task-prioritization.template.js";
+import type { TaskPrioritizationPromptVariables } from "./templates/task-prioritization.template.js";
 import { summarizeTemplate } from "./templates/summarize.template.js";
 import type { SummaryPromptVariables } from "./templates/summarize.template.js";
 import { taskBreakdownTemplate } from "./templates/task-breakdown.template.js";
@@ -10,7 +10,8 @@ import type { TaskBreakdownPromptVariables } from "./templates/task-breakdown.te
 
 export type PromptRegistry = {
   readonly "daily-plan": PromptDefinition<DailyPlanPromptVariables>;
-  readonly prioritize: PromptDefinition<PrioritizationPromptVariables>;
+  readonly prioritize: PromptDefinition<TaskPrioritizationPromptVariables>;
+  readonly "task-prioritization": PromptDefinition<TaskPrioritizationPromptVariables>;
   readonly summarize: PromptDefinition<SummaryPromptVariables>;
   readonly "task-breakdown": PromptDefinition<TaskBreakdownPromptVariables>;
 };
@@ -28,7 +29,14 @@ export const promptRegistry = {
     version: "1.0.0",
     name: "Task Prioritizer",
     description: "Builds a prompt fragment set for task prioritization.",
-    template: prioritizeTemplate,
+    template: taskPrioritizationTemplate,
+  },
+  "task-prioritization": {
+    id: "task-prioritization",
+    version: "1.0.0",
+    name: "Task Prioritizer",
+    description: "Builds a prompt fragment set for task prioritization.",
+    template: taskPrioritizationTemplate,
   },
   summarize: {
     id: "summarize",
@@ -45,3 +53,4 @@ export const promptRegistry = {
     template: taskBreakdownTemplate,
   },
 } satisfies PromptRegistry;
+

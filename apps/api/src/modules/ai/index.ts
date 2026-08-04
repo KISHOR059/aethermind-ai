@@ -41,6 +41,7 @@ export {
 export { createAIProvider } from "./providers/provider.factory.js";
 export {
   buildDailyPlannerPrompt,
+  buildPrioritizationPrompt,
   buildTaskBreakdownPrompt,
 } from "./prompt/index.js";
 export { AIPipeline } from "./pipeline/index.js";

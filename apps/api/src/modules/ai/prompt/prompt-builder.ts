@@ -5,7 +5,7 @@ import type {
 } from "./prompt.types.js";
 import type { PromptRegistry } from "./prompt-registry.js";
 import type { DailyPlanPromptVariables } from "./templates/daily-plan.template.js";
-import type { PrioritizationPromptVariables } from "./templates/prioritize.template.js";
+import type { TaskPrioritizationPromptVariables } from "./templates/task-prioritization.template.js";
 import type { SummaryPromptVariables } from "./templates/summarize.template.js";
 import type { TaskBreakdownPromptVariables } from "./templates/task-breakdown.template.js";
 
@@ -25,9 +25,9 @@ export class PromptBuilder {
   }
 
   public buildPrioritizationPrompt(
-    variables: PrioritizationPromptVariables,
+    variables: TaskPrioritizationPromptVariables,
   ): BuiltPrompt {
-    return this.build(this.registry.prioritize, variables);
+    return this.build(this.registry["task-prioritization"], variables);
   }
 
   public buildTaskBreakdownPrompt(
@@ -61,8 +61,9 @@ export const buildSummaryPrompt = (
 ): BuiltPrompt => defaultPromptBuilder.buildSummaryPrompt(variables);
 
 export const buildPrioritizationPrompt = (
-  variables: PrioritizationPromptVariables,
+  variables: TaskPrioritizationPromptVariables,
 ): BuiltPrompt => defaultPromptBuilder.buildPrioritizationPrompt(variables);
+
 
 export const buildTaskBreakdownPrompt = (
   variables: TaskBreakdownPromptVariables,

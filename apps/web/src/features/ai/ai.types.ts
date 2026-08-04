@@ -44,3 +44,24 @@ export type TaskBreakdownResult = {
   metrics: AIExecutionMetrics;
 };
 
+export type PrioritizedTask = {
+  taskId: string;
+  title: string;
+  recommendedPriority: number;
+  reason: string;
+  urgency: "LOW" | "MEDIUM" | "HIGH" | "URGENT";
+  estimatedFocusMinutes: number;
+};
+
+export type TaskPrioritization = {
+  summary: string;
+  prioritizedTasks: PrioritizedTask[];
+  recommendations: string[];
+};
+
+export type TaskPrioritizationResult = {
+  data: TaskPrioritization;
+  metrics: AIExecutionMetrics;
+};
+
+
