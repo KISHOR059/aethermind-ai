@@ -1,4 +1,4 @@
-import { TaskModel } from "../tasks/task.model.js";
+import { TaskModel, TaskStatus } from "../tasks/task.model.js";
 
 export type PriorityDistribution = {
   LOW: number;
@@ -20,10 +20,16 @@ export type DailyProductivityItem = {
 };
 
 export type DashboardStatistics = {
+  totalTasks: number;
+  createdTasks: number;
   completedTasks: number;
   pendingTasks: number;
+  inProgressTasks: number;
   overdueTasks: number;
-  createdTasks: number;
+  highPriorityTasks: number;
+  tasksDueToday: number;
+  tasksDueThisWeek: number;
+  tasksFinishedToday: number;
   completionRate: number;
   averageTasksPerDay: number;
   averageEstimatedMinutes: number;
@@ -39,6 +45,7 @@ export type DashboardStatistics = {
   statusDistribution: {
     completed: number;
     pending: number;
+    inProgress: number;
     overdue: number;
   };
   dailyProductivity: DailyProductivityItem[];
@@ -54,9 +61,43 @@ export class DashboardService {
       .exec();
 
     const now = new Date();
+
+    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const endOfToday = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate(),
+      23,
+      59,
+      59,
+      999,
+    );
+
+    const dayOfWeek = now.getDay();
+    const distToMon = (dayOfWeek + 6) % 7;
+    const startOfWeek = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate() - distToMon,
+    );
+    const endOfWeek = new Date(
+      startOfWeek.getFullYear(),
+      startOfWeek.getMonth(),
+      startOfWeek.getDate() + 6,
+      23,
+      59,
+      59,
+      999,
+    );
+
     let completedTasks = 0;
     let pendingTasks = 0;
+    let inProgressTasks = 0;
     let overdueTasks = 0;
+    let highPriorityTasks = 0;
+    let tasksDueToday = 0;
+    let tasksDueThisWeek = 0;
+    let tasksFinishedToday = 0;
     let totalEstimatedMinutes = 0;
     let completedMinutes = 0;
 
@@ -84,29 +125,54 @@ export class DashboardService {
         priorityDistribution[task.priority as keyof PriorityDistribution]++;
       }
 
+      if (task.priority === "HIGH" || task.priority === "URGENT") {
+        highPriorityTasks++;
+      }
+
       const est = task.estimatedMinutes ?? 0;
       totalEstimatedMinutes += est;
 
-      if (task.status === "COMPLETED") {
+      const taskDueDate = task.dueDate ? new Date(task.dueDate) : null;
+
+      if (task.status === TaskStatus.COMPLETED) {
         completedTasks++;
         completedMinutes += est;
 
-        const updatedDate = task.updatedAt
+        const compDate = task.completedAt
+          ? new Date(task.completedAt)
+          : task.updatedAt
           ? new Date(task.updatedAt)
           : new Date();
-        const dateStr = updatedDate.toISOString().slice(0, 10);
+        const dateStr = compDate.toISOString().slice(0, 10);
         completionDatesSet.add(dateStr);
 
-        const weekdayName = updatedDate.toLocaleDateString("en-US", {
+        if (compDate >= startOfToday && compDate <= endOfToday) {
+          tasksFinishedToday++;
+        }
+
+        const weekdayName = compDate.toLocaleDateString("en-US", {
           weekday: "long",
         });
         if (weekdayName in dayOfWeekCounts) {
           dayOfWeekCounts[weekdayName]++;
         }
       } else {
-        pendingTasks++;
-        if (task.dueDate && new Date(task.dueDate) < now) {
-          overdueTasks++;
+        if (task.status === TaskStatus.IN_PROGRESS) {
+          inProgressTasks++;
+        } else {
+          pendingTasks++;
+        }
+
+        if (taskDueDate) {
+          if (taskDueDate < now) {
+            overdueTasks++;
+          }
+          if (taskDueDate >= startOfToday && taskDueDate <= endOfToday) {
+            tasksDueToday++;
+          }
+          if (taskDueDate >= startOfWeek && taskDueDate <= endOfWeek) {
+            tasksDueThisWeek++;
+          }
         }
       }
     }
@@ -157,8 +223,8 @@ export class DashboardService {
       }
     }
 
-    let mostProductiveDay = "Tuesday";
-    let maxDayCount = -1;
+    let mostProductiveDay = "N/A";
+    let maxDayCount = 0;
     for (const [day, count] of Object.entries(dayOfWeekCounts)) {
       if (count > maxDayCount) {
         maxDayCount = count;
@@ -166,32 +232,54 @@ export class DashboardService {
       }
     }
 
-    // Weekly completion trend (last 7 days mapping)
-    const dayLabels = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-    const weeklyTrend: WeeklyTrendItem[] = dayLabels.map((day) => ({
-      day,
-      completed: Math.max(1, Math.floor(completedTasks / 7)),
-      pending: Math.max(0, Math.floor(pendingTasks / 7)),
-    }));
+    // Weekly completion trend (last 7 days mapping with real database values)
+    const weeklyTrend: WeeklyTrendItem[] = [];
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date(now);
+      d.setDate(d.getDate() - i);
+      const dayName = d.toLocaleDateString("en-US", { weekday: "short" });
+      const dateStr = d.toISOString().slice(0, 10);
 
-    const baseScore =
-      completionRate * 0.6 +
-      Math.min(currentStreak * 5, 20) +
-      (overdueTasks === 0 ? 20 : Math.max(0, 20 - overdueTasks * 4));
-    const productivityScore = Math.min(100, Math.max(0, Math.round(baseScore)));
+      const completedOnDay = tasks.filter((t) => {
+        if (t.status !== TaskStatus.COMPLETED) return false;
+        const cDate = t.completedAt ? new Date(t.completedAt) : new Date(t.updatedAt);
+        return cDate.toISOString().slice(0, 10) === dateStr;
+      }).length;
+
+      const pendingOnDay = tasks.filter((t) => {
+        if (t.status === TaskStatus.COMPLETED) return false;
+        const crDate = t.createdAt ? new Date(t.createdAt) : new Date();
+        return crDate.toISOString().slice(0, 10) <= dateStr;
+      }).length;
+
+      weeklyTrend.push({
+        day: dayName,
+        completed: completedOnDay,
+        pending: pendingOnDay,
+      });
+    }
+
+    let productivityScore = 0;
+    if (totalTasks > 0) {
+      const baseScore =
+        completionRate * 0.5 +
+        Math.min(currentStreak * 5, 25) +
+        (overdueTasks === 0 ? 25 : Math.max(0, 25 - overdueTasks * 5));
+      productivityScore = Math.min(100, Math.max(0, Math.round(baseScore)));
+    }
 
     const dailyProductivity: DailyProductivityItem[] = [];
     for (let i = 6; i >= 0; i--) {
-      const d = new Date();
+      const d = new Date(now);
       d.setDate(d.getDate() - i);
       const dateLabel = d.toLocaleDateString("en-US", { weekday: "short" });
       const fullDateStr = d.toISOString().slice(0, 10);
-      const dayCompleted = tasks.filter(
-        (t) =>
-          t.status === "COMPLETED" &&
-          t.updatedAt &&
-          new Date(t.updatedAt).toISOString().slice(0, 10) === fullDateStr,
-      );
+      const dayCompleted = tasks.filter((t) => {
+        if (t.status !== TaskStatus.COMPLETED) return false;
+        const cDate = t.completedAt ? new Date(t.completedAt) : new Date(t.updatedAt);
+        return cDate.toISOString().slice(0, 10) === fullDateStr;
+      });
+
       dailyProductivity.push({
         date: dateLabel,
         count: dayCompleted.length,
@@ -203,10 +291,16 @@ export class DashboardService {
     }
 
     return {
+      totalTasks,
+      createdTasks: totalTasks,
       completedTasks,
       pendingTasks,
+      inProgressTasks,
       overdueTasks,
-      createdTasks: totalTasks,
+      highPriorityTasks,
+      tasksDueToday,
+      tasksDueThisWeek,
+      tasksFinishedToday,
       completionRate,
       averageTasksPerDay: Math.round((completedTasks / 7) * 10) / 10,
       averageEstimatedMinutes,
@@ -222,9 +316,11 @@ export class DashboardService {
       statusDistribution: {
         completed: completedTasks,
         pending: pendingTasks,
+        inProgress: inProgressTasks,
         overdue: overdueTasks,
       },
       dailyProductivity,
     };
   }
 }
+

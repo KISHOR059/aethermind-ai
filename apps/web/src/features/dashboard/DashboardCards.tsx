@@ -1,12 +1,16 @@
 import {
   AlertCircle,
+  Brain,
   CheckCircle2,
-  Clock,
+  CircleDashed,
+  Clock3,
   Flame,
   Hourglass,
-  Percent,
+  LayoutDashboard,
   Sparkles,
+  Target,
   TrendingUp,
+  TriangleAlert,
   Zap,
 } from "lucide-react";
 
@@ -25,147 +29,168 @@ export interface DashboardCardsProps {
 }
 
 export function DashboardCards({ stats }: DashboardCardsProps) {
+  const scoreBadge =
+    stats.productivityScore >= 80 ? (
+      <Badge variant="outline" className="text-[10px] bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20 gap-1 font-semibold">
+        <Zap className="size-3 text-amber-500 fill-amber-500" /> Peak Focus
+      </Badge>
+    ) : stats.productivityScore >= 60 ? (
+      <Badge variant="outline" className="text-[10px] bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20 gap-1 font-semibold">
+        <TrendingUp className="size-3 text-blue-500" /> Good Momentum
+      </Badge>
+    ) : (
+      <Badge variant="outline" className="text-[10px] bg-primary/10 text-primary border-primary/20 gap-1 font-semibold">
+        <Sparkles className="size-3 text-primary" /> Building Habits
+      </Badge>
+    );
+
   return (
-    <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-7">
-      {/* 1. Productivity Score */}
-      <Card className="relative overflow-hidden border-primary/20 bg-gradient-to-br from-primary/5 to-transparent h-full flex flex-col justify-between">
+    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7">
+      {/* 1. Total Tasks */}
+      <Card className="relative overflow-hidden rounded-xl border-border/60 bg-card hover:border-primary/30 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-sm flex flex-col justify-between">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-            Score
+            Total Tasks
           </CardTitle>
-          <Zap className="size-4 text-amber-500 fill-amber-500 animate-pulse" />
+          <div className="size-7 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-500">
+            <LayoutDashboard className="size-4" />
+          </div>
         </CardHeader>
         <CardContent>
-          <div className="flex items-baseline justify-between">
-            <p className="text-2xl font-bold tracking-tight text-primary">
-              {stats.productivityScore}
-            </p>
-            <span className="text-[10px] text-muted-foreground">/ 100</span>
-          </div>
-          <Badge
-            variant="outline"
-            className="mt-1.5 text-[10px] bg-primary/10 text-primary border-primary/20 gap-1"
-          >
-            {stats.productivityScore >= 80 ? (
-              <>
-                <Zap className="size-3 text-amber-500" /> Peak Focus
-              </>
-            ) : stats.productivityScore >= 60 ? (
-              <>
-                <TrendingUp className="size-3 text-blue-500" /> Good Momentum
-              </>
-            ) : (
-              <>
-                <Sparkles className="size-3 text-emerald-500" /> Building Habits
-              </>
-            )}
-          </Badge>
+          <p className="text-3xl font-extrabold tracking-tight text-foreground">
+            {stats.totalTasks}
+          </p>
+          <p className="text-[11px] text-muted-foreground mt-1.5 flex items-center gap-1">
+            <Sparkles className="size-3 text-blue-500" />
+            {stats.tasksDueThisWeek} due this week
+          </p>
         </CardContent>
       </Card>
 
-      {/* 2. Tasks Completed */}
-      <Card className="h-full flex flex-col justify-between">
+      {/* 2. Completed Tasks */}
+      <Card className="relative overflow-hidden rounded-xl border-border/60 bg-card hover:border-emerald-500/30 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-sm flex flex-col justify-between">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
             Completed
           </CardTitle>
-          <CheckCircle2 className="size-4 text-emerald-500" />
+          <div className="size-7 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-500">
+            <CheckCircle2 className="size-4" />
+          </div>
         </CardHeader>
         <CardContent>
-          <p className="text-2xl font-bold tracking-tight text-emerald-600 dark:text-emerald-400">
+          <p className="text-3xl font-extrabold tracking-tight text-emerald-600 dark:text-emerald-400">
             {stats.completedTasks}
           </p>
-          <p className="text-[11px] text-muted-foreground mt-1">
-            Out of {stats.createdTasks} total tasks
+          <p className="text-[11px] text-muted-foreground mt-1.5 flex items-center gap-1">
+            <TrendingUp className="size-3 text-emerald-500" />
+            {stats.tasksFinishedToday} finished today
           </p>
         </CardContent>
       </Card>
 
       {/* 3. Pending Tasks */}
-      <Card className="h-full flex flex-col justify-between">
+      <Card className="relative overflow-hidden rounded-xl border-border/60 bg-card hover:border-amber-500/30 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-sm flex flex-col justify-between">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
             Pending
           </CardTitle>
-          <Hourglass className="size-4 text-amber-500" />
+          <div className="size-7 rounded-lg bg-amber-500/10 flex items-center justify-center text-amber-500">
+            <CircleDashed className="size-4" />
+          </div>
         </CardHeader>
         <CardContent>
-          <p className="text-2xl font-bold tracking-tight text-amber-600 dark:text-amber-400">
+          <p className="text-3xl font-extrabold tracking-tight text-amber-600 dark:text-amber-400">
             {stats.pendingTasks}
           </p>
-          <p className="text-[11px] text-muted-foreground mt-1">
-            In queue & in progress
+          <p className="text-[11px] text-muted-foreground mt-1.5 flex items-center gap-1">
+            <Clock3 className="size-3 text-amber-500" />
+            {stats.tasksDueToday} due today
           </p>
         </CardContent>
       </Card>
 
-      {/* 4. Overdue Tasks */}
-      <Card className="h-full flex flex-col justify-between">
+      {/* 4. In Progress */}
+      <Card className="relative overflow-hidden rounded-xl border-border/60 bg-card hover:border-indigo-500/30 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-sm flex flex-col justify-between">
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+            In Progress
+          </CardTitle>
+          <div className="size-7 rounded-lg bg-indigo-500/10 flex items-center justify-center text-indigo-500">
+            <Hourglass className="size-4" />
+          </div>
+        </CardHeader>
+        <CardContent>
+          <p className="text-3xl font-extrabold tracking-tight text-indigo-600 dark:text-indigo-400">
+            {stats.inProgressTasks}
+          </p>
+          <p className="text-[11px] text-muted-foreground mt-1.5 flex items-center gap-1">
+            <Brain className="size-3 text-indigo-500" />
+            Active focus queue
+          </p>
+        </CardContent>
+      </Card>
+
+      {/* 5. Overdue Tasks */}
+      <Card className="relative overflow-hidden rounded-xl border-border/60 bg-card hover:border-rose-500/30 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-sm flex flex-col justify-between">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
             Overdue
           </CardTitle>
-          <AlertCircle className="size-4 text-rose-500" />
+          <div className="size-7 rounded-lg bg-rose-500/10 flex items-center justify-center text-rose-500">
+            <TriangleAlert className="size-4" />
+          </div>
         </CardHeader>
         <CardContent>
-          <p className="text-2xl font-bold tracking-tight text-rose-600 dark:text-rose-400">
+          <p className="text-3xl font-extrabold tracking-tight text-rose-600 dark:text-rose-400">
             {stats.overdueTasks}
           </p>
-          <p className="text-[11px] text-muted-foreground mt-1">
-            Requires immediate action
+          <p className="text-[11px] text-muted-foreground mt-1.5 flex items-center gap-1">
+            <AlertCircle className="size-3 text-rose-500" />
+            {stats.overdueTasks > 0 ? "Action required" : "Clean queue!"}
           </p>
         </CardContent>
       </Card>
 
-      {/* 5. Completion Rate */}
-      <Card className="h-full flex flex-col justify-between">
+      {/* 6. Completion Rate */}
+      <Card className="relative overflow-hidden rounded-xl border-border/60 bg-card hover:border-cyan-500/30 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-sm flex flex-col justify-between">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
             Completion Rate
           </CardTitle>
-          <Percent className="size-4 text-blue-500" />
+          <div className="size-7 rounded-lg bg-cyan-500/10 flex items-center justify-center text-cyan-500">
+            <Target className="size-4" />
+          </div>
         </CardHeader>
         <CardContent className="space-y-1.5">
-          <p className="text-2xl font-bold tracking-tight text-foreground">
+          <p className="text-3xl font-extrabold tracking-tight text-foreground">
             {stats.completionRate}%
           </p>
-          <Progress value={stats.completionRate} className="h-1.5" />
+          <Progress value={stats.completionRate} className="h-1.5 bg-muted" />
         </CardContent>
       </Card>
 
-      {/* 6. Current Streak */}
-      <Card className="h-full flex flex-col justify-between">
+      {/* 7. Productivity Score */}
+      <Card className="relative overflow-hidden rounded-xl border-primary/30 bg-gradient-to-br from-primary/10 via-card to-card hover:border-primary/50 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-sm flex flex-col justify-between">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-            Current Streak
+            Productivity Score
           </CardTitle>
-          <Flame className="size-4 text-orange-500 fill-orange-500" />
+          <Zap className="size-4 text-amber-500 fill-amber-500 animate-pulse" />
         </CardHeader>
         <CardContent>
-          <p className="text-2xl font-bold tracking-tight text-orange-600 dark:text-orange-400">
-            {stats.currentStreak} <span className="text-xs font-normal">days</span>
-          </p>
-          <p className="text-[11px] text-muted-foreground mt-1">
-            Best: {stats.longestStreak} days
-          </p>
-        </CardContent>
-      </Card>
-
-      {/* 7. Estimated Hours Worked */}
-      <Card className="h-full flex flex-col justify-between">
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-            Focus Time
-          </CardTitle>
-          <Clock className="size-4 text-purple-500" />
-        </CardHeader>
-        <CardContent>
-          <p className="text-2xl font-bold tracking-tight text-purple-600 dark:text-purple-400">
-            {stats.estimatedHoursWorked} <span className="text-xs font-normal">hrs</span>
-          </p>
-          <p className="text-[11px] text-muted-foreground mt-1">
-            {stats.completedMinutes} total mins
-          </p>
+          <div className="flex items-baseline justify-between">
+            <p className="text-3xl font-extrabold tracking-tight text-primary">
+              {stats.productivityScore}
+            </p>
+            <span className="text-[10px] font-semibold text-muted-foreground">/ 100</span>
+          </div>
+          <div className="mt-1.5 flex items-center justify-between">
+            {scoreBadge}
+            <span className="text-[10px] text-muted-foreground flex items-center gap-0.5 font-medium">
+              <Flame className="size-3 text-orange-500 fill-orange-500" />
+              {stats.currentStreak}d streak
+            </span>
+          </div>
         </CardContent>
       </Card>
     </div>

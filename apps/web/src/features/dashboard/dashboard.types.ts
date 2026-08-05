@@ -20,10 +20,16 @@ export type DailyProductivityItem = {
 };
 
 export type DashboardStatistics = {
+  totalTasks: number;
+  createdTasks: number;
   completedTasks: number;
   pendingTasks: number;
+  inProgressTasks: number;
   overdueTasks: number;
-  createdTasks: number;
+  highPriorityTasks: number;
+  tasksDueToday: number;
+  tasksDueThisWeek: number;
+  tasksFinishedToday: number;
   completionRate: number;
   averageTasksPerDay: number;
   averageEstimatedMinutes: number;
@@ -39,6 +45,7 @@ export type DashboardStatistics = {
   statusDistribution: {
     completed: number;
     pending: number;
+    inProgress: number;
     overdue: number;
   };
   dailyProductivity: DailyProductivityItem[];

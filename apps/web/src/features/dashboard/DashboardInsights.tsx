@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import {
   AlertCircle,
   AlertTriangle,
+  Brain,
   CheckCircle2,
   Lightbulb,
   Loader2,
@@ -30,26 +31,32 @@ export function DashboardInsights() {
   const insightsQuery = useProductivityInsights();
 
   return (
-    <Card className="border-primary/20">
+    <Card className="rounded-xl border-primary/30 bg-gradient-to-br from-card via-card to-primary/5 shadow-xs">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-        <div>
-          <CardTitle className="text-lg font-semibold flex items-center gap-2">
-            <Sparkles className="size-5 text-primary animate-pulse" />
-            AI Productivity Insights
-          </CardTitle>
-          <CardDescription className="text-xs">
-            Deep learning analysis of your work habits, strengths, and recommendations
-          </CardDescription>
+        <div className="flex items-center gap-3">
+          <div className="size-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary shrink-0 border border-primary/20">
+            <Brain className="size-5 text-primary" />
+          </div>
+          <div>
+            <CardTitle className="text-base font-bold flex items-center gap-2">
+              AI Productivity Insights
+              <Sparkles className="size-4 text-amber-500 fill-amber-500 animate-pulse" />
+            </CardTitle>
+            <CardDescription className="text-xs">
+              Deep analysis of your work habits, strengths, bottlenecks, and recommendations
+            </CardDescription>
+          </div>
         </div>
         <Button
           onClick={() => void insightsQuery.refetch()}
           disabled={insightsQuery.isFetching}
-          className="gap-2"
+          className="gap-2 text-xs font-semibold shadow-xs"
+          size="sm"
         >
           {insightsQuery.isFetching ? (
-            <Loader2 className="size-4 animate-spin" />
+            <Loader2 className="size-3.5 animate-spin" />
           ) : (
-            <Sparkles className="size-4 text-amber-300" />
+            <Sparkles className="size-3.5 text-amber-300" />
           )}
           Analyze Productivity
         </Button>
@@ -112,7 +119,7 @@ function InsightsLoadingState() {
       <div className="relative flex items-center justify-center">
         <div className="absolute size-16 animate-ping rounded-full bg-primary/10" />
         <div className="relative flex size-14 items-center justify-center rounded-full bg-primary/10 text-primary">
-          <Sparkles className="size-7 animate-pulse text-primary" />
+          <Brain className="size-7 animate-pulse text-primary" />
         </div>
       </div>
 
@@ -140,14 +147,14 @@ function InsightsLoadingState() {
 function InsightsErrorState({ onRetry }: { onRetry: () => void }) {
   return (
     <Alert variant="destructive" className="space-y-3 my-2">
-      <div className="flex items-center gap-2 font-medium">
+      <div className="flex items-center gap-2 font-medium text-sm">
         <AlertCircle className="size-4" />
         Failed to generate productivity insights
       </div>
-      <p className="text-sm">
+      <p className="text-xs">
         The AI model was unable to complete the analysis. Please verify local LLM service status and try again.
       </p>
-      <Button variant="outline" size="sm" onClick={onRetry}>
+      <Button variant="outline" size="sm" onClick={onRetry} className="text-xs">
         <RefreshCw className="mr-1.5 size-3.5" />
         Try again
       </Button>
@@ -157,16 +164,16 @@ function InsightsErrorState({ onRetry }: { onRetry: () => void }) {
 
 function InsightsEmptyState({ onGenerate }: { onGenerate: () => void }) {
   return (
-    <div className="py-8 text-center space-y-3 border border-dashed rounded-lg bg-muted/20">
-      <Sparkles className="mx-auto size-8 text-muted-foreground" />
+    <div className="py-8 text-center space-y-3 border border-dashed rounded-xl bg-muted/20">
+      <Sparkles className="mx-auto size-8 text-primary/70" />
       <div className="space-y-1">
-        <p className="text-sm font-medium">Discover your AI Productivity Insights</p>
+        <p className="text-sm font-semibold">Discover your AI Productivity Insights</p>
         <p className="text-xs text-muted-foreground max-w-md mx-auto">
-          Click below to let AI analyze your 30-day work habits, strengths, bottlenecks, and recommendations.
+          Click below to let AI analyze your work habits, strengths, bottlenecks, and personalized recommendations.
         </p>
       </div>
-      <Button variant="outline" size="sm" onClick={onGenerate}>
-        <Sparkles className="mr-1.5 size-4 text-primary" />
+      <Button variant="outline" size="sm" onClick={onGenerate} className="gap-1.5 text-xs">
+        <Sparkles className="size-3.5 text-primary" />
         Analyze Productivity Now
       </Button>
     </div>
@@ -185,7 +192,7 @@ function InsightsSuccessState({
   return (
     <div className="space-y-6">
       {/* Header Banner */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-3.5 rounded-lg bg-muted/40 border">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-3.5 rounded-xl bg-muted/40 border">
         <div className="space-y-1">
           <p className="text-sm text-foreground font-medium leading-relaxed">
             {insights.summary}
@@ -207,7 +214,7 @@ function InsightsSuccessState({
       <div className="grid gap-4 md:grid-cols-2">
         {/* 1. Strengths */}
         {insights.strengths.length > 0 && (
-          <div className="space-y-2 p-3.5 rounded-lg border bg-card">
+          <div className="space-y-2 p-3.5 rounded-xl border bg-card shadow-2xs">
             <h5 className="text-xs font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
               <CheckCircle2 className="size-4" />
               Key Strengths
@@ -225,7 +232,7 @@ function InsightsSuccessState({
 
         {/* 2. Weaknesses */}
         {insights.weaknesses.length > 0 && (
-          <div className="space-y-2 p-3.5 rounded-lg border bg-card">
+          <div className="space-y-2 p-3.5 rounded-xl border bg-card shadow-2xs">
             <h5 className="text-xs font-bold uppercase tracking-wider text-rose-600 dark:text-rose-400 flex items-center gap-1.5">
               <AlertTriangle className="size-4" />
               Weaknesses & Bottlenecks
@@ -243,7 +250,7 @@ function InsightsSuccessState({
 
         {/* 3. Patterns */}
         {insights.patterns.length > 0 && (
-          <div className="space-y-2 p-3.5 rounded-lg border bg-card">
+          <div className="space-y-2 p-3.5 rounded-xl border bg-card shadow-2xs">
             <h5 className="text-xs font-bold uppercase tracking-wider text-blue-600 dark:text-blue-400 flex items-center gap-1.5">
               <Sparkles className="size-4" />
               Work Patterns & Habits
@@ -261,7 +268,7 @@ function InsightsSuccessState({
 
         {/* 4. Recommendations */}
         {insights.recommendations.length > 0 && (
-          <div className="space-y-2 p-3.5 rounded-lg border bg-card">
+          <div className="space-y-2 p-3.5 rounded-xl border bg-card shadow-2xs">
             <h5 className="text-xs font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400 flex items-center gap-1.5">
               <Lightbulb className="size-4" />
               Recommendations

@@ -1,12 +1,12 @@
-import { useState } from "react";
-import { BarChart3, RefreshCw } from "lucide-react";
+import { AlertCircle, RefreshCw } from "lucide-react";
 
 import { useDashboardStats } from "@/features/dashboard/dashboard.hooks";
 import DashboardCards from "@/features/dashboard/DashboardCards";
 import DashboardCharts from "@/features/dashboard/DashboardCharts";
 import DashboardInsights from "@/features/dashboard/DashboardInsights";
+import QuickActions from "@/features/dashboard/QuickActions";
+import DashboardEmptyState from "@/features/dashboard/DashboardEmptyState";
 import CreateTaskDialog from "@/features/tasks/CreateTaskDialog";
-import WeeklyReviewDialog from "@/features/ai/WeeklyReviewDialog";
 import {
   TaskEmptyState,
   TaskErrorState,
@@ -21,14 +21,13 @@ import PageHeader from "@/shared/components/PageHeader";
 import { useAuth } from "@/features/auth/hooks/auth.context";
 
 function DashboardPage() {
-  const [weeklyReviewOpen, setWeeklyReviewOpen] = useState(false);
   const { user } = useAuth();
   const statsQuery = useDashboardStats();
   const tasks = useTasks(defaultTaskParams);
   const recentTasks = tasks.data?.items.slice(0, 5) ?? [];
 
   return (
-    <div className="space-y-8">
+    <div className="max-w-screen-2xl mx-auto space-y-6 pb-8">
       {/* 1. Page Header */}
       <PageHeader
         eyebrow="Overview"
@@ -36,25 +35,23 @@ function DashboardPage() {
         description="A focused view of your productivity analytics, performance trends, and AI insights."
         actions={
           <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              onClick={() => setWeeklyReviewOpen(true)}
-              className="gap-2"
-            >
-              <BarChart3 className="size-4 text-primary" />
-              Weekly Review
-            </Button>
             <CreateTaskDialog />
           </div>
         }
       />
 
-      {/* 2. Dashboard Statistics & Cards */}
+      {/* 2. Quick Actions Bar */}
+      <QuickActions recentTasks={recentTasks} />
+
+      {/* 3. Main Dashboard Content */}
       {statsQuery.isLoading ? (
         <DashboardSkeleton />
       ) : statsQuery.isError ? (
         <Alert variant="destructive" className="space-y-3">
-          <p className="text-sm">Failed to load dashboard statistics.</p>
+          <div className="flex items-center gap-2 font-medium">
+            <AlertCircle className="size-4" />
+            Failed to load dashboard statistics.
+          </div>
           <Button
             variant="outline"
             size="sm"
@@ -65,24 +62,28 @@ function DashboardPage() {
           </Button>
         </Alert>
       ) : statsQuery.data ? (
-        <>
-          {/* 7 Productivity Metric Cards */}
-          <DashboardCards stats={statsQuery.data} />
+        statsQuery.data.totalTasks === 0 ? (
+          <DashboardEmptyState />
+        ) : (
+          <>
+            {/* 7 Productivity Metric Cards */}
+            <DashboardCards stats={statsQuery.data} />
 
-          {/* 4 Analytics Charts */}
-          <DashboardCharts stats={statsQuery.data} />
-        </>
+            {/* 4 Analytics Charts */}
+            <DashboardCharts stats={statsQuery.data} />
+
+            {/* AI Insights Section */}
+            <DashboardInsights />
+          </>
+        )
       ) : null}
 
-      {/* 3. AI Insights Section */}
-      <DashboardInsights />
-
       {/* 4. Recent Workspace Activity */}
-      <section className="space-y-4">
+      <section className="space-y-4 pt-2">
         <PageHeader
           level="h2"
           title="Recent Tasks"
-          description="Your most recently created tasks."
+          description="Your most recently created tasks across the workspace."
         />
         {tasks.isLoading ? (
           <TaskLoadingState />
@@ -97,12 +98,6 @@ function DashboardPage() {
           <TaskList tasks={recentTasks} />
         )}
       </section>
-
-      {/* Dialogs */}
-      <WeeklyReviewDialog
-        open={weeklyReviewOpen}
-        onOpenChange={setWeeklyReviewOpen}
-      />
     </div>
   );
 }
@@ -110,14 +105,16 @@ function DashboardPage() {
 function DashboardSkeleton() {
   return (
     <div className="space-y-6">
-      <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-7">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7">
         {Array.from({ length: 7 }).map((_, idx) => (
-          <Skeleton key={idx} className="h-28 w-full rounded-xl" />
+          <Skeleton key={idx} className="h-32 w-full rounded-xl" />
         ))}
       </div>
       <div className="grid gap-6 md:grid-cols-2">
-        <Skeleton className="h-72 w-full rounded-xl" />
-        <Skeleton className="h-72 w-full rounded-xl" />
+        <Skeleton className="h-80 w-full rounded-xl" />
+        <Skeleton className="h-80 w-full rounded-xl" />
+        <Skeleton className="h-80 w-full rounded-xl" />
+        <Skeleton className="h-80 w-full rounded-xl" />
       </div>
     </div>
   );
