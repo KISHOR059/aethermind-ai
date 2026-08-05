@@ -28,17 +28,16 @@ function formatDueDate(value?: string) {
   if (!value) return null;
   const date = new Date(value);
   const now = new Date();
-  const isToday = date.toDateString() === now.toDateString();
-  if (isToday) return "Today";
+  if (date.toDateString() === now.toDateString()) return "Today";
   return new Intl.DateTimeFormat(undefined, { month: "short", day: "numeric" }).format(date);
 }
 
-export interface TaskCardProps {
+export interface TaskRowProps {
   task: Task;
   onSelect?: (task: Task) => void;
 }
 
-export function TaskCard({ task, onSelect }: TaskCardProps) {
+export function TaskRow({ task, onSelect }: TaskRowProps) {
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [breakdownOpen, setBreakdownOpen] = useState(false);
   const updateTask = useUpdateTask();
@@ -65,41 +64,67 @@ export function TaskCard({ task, onSelect }: TaskCardProps) {
   return (
     <div
       onClick={() => onSelect?.(task)}
-      className="group relative flex flex-col justify-between rounded-2xl border border-border/60 bg-card/80 backdrop-blur-md p-4 shadow-sm hover:shadow-md hover:border-primary/40 hover:-translate-y-0.5 transition-all duration-200 cursor-pointer space-y-3"
+      className="group relative flex items-center justify-between rounded-xl border border-border/60 bg-card/80 backdrop-blur-md px-4 py-3 shadow-2xs hover:shadow-sm hover:border-primary/40 hover:-translate-y-0.5 transition-all duration-200 cursor-pointer gap-4"
     >
-      {/* Top Header */}
-      <div className="flex items-start justify-between gap-3">
-        <div className="flex items-start gap-2.5 flex-1 min-w-0">
-          <button
-            onClick={handleToggleComplete}
-            aria-label={isCompleted ? "Mark incomplete" : "Mark complete"}
-            className="mt-0.5 shrink-0 text-muted-foreground hover:text-emerald-500 transition-colors"
+      {/* Left: Checkbox & Title/Desc */}
+      <div className="flex items-center gap-3 min-w-0 flex-1">
+        <button
+          onClick={handleToggleComplete}
+          aria-label={isCompleted ? "Mark incomplete" : "Mark complete"}
+          className="shrink-0 text-muted-foreground hover:text-emerald-500 transition-colors"
+        >
+          {isCompleted ? (
+            <CheckCircle2 className="size-5 text-emerald-500 fill-emerald-500/20" />
+          ) : (
+            <Circle className="size-5 hover:scale-110 transition-transform" />
+          )}
+        </button>
+
+        <div className="min-w-0 flex-1">
+          <p
+            className={`text-sm font-bold tracking-tight text-foreground truncate group-hover:text-primary transition-colors ${
+              isCompleted ? "line-through text-muted-foreground" : ""
+            }`}
           >
-            {isCompleted ? (
-              <CheckCircle2 className="size-5 text-emerald-500 fill-emerald-500/20" />
-            ) : (
-              <Circle className="size-5 hover:scale-110 transition-transform" />
-            )}
-          </button>
+            {task.title}
+          </p>
+          {task.description && (
+            <p className="text-xs text-muted-foreground truncate max-w-md">
+              {task.description}
+            </p>
+          )}
+        </div>
+      </div>
 
-          <div className="space-y-1 min-w-0 flex-1">
-            <h4
-              className={`text-sm font-bold tracking-tight text-foreground truncate group-hover:text-primary transition-colors ${
-                isCompleted ? "line-through text-muted-foreground" : ""
-              }`}
-            >
-              {task.title}
-            </h4>
-
-            {task.description && (
-              <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
-                {task.description}
-              </p>
-            )}
-          </div>
+      {/* Right: Badges & Metadata */}
+      <div className="flex items-center gap-3 shrink-0">
+        <div className="hidden sm:flex items-center gap-1.5">
+          <TaskPriorityBadge priority={task.priority} />
+          <TaskStatusBadge status={task.status} />
         </div>
 
-        {/* Menu Dropdown */}
+        {formattedDate && (
+          <span className="hidden md:flex items-center gap-1 text-xs text-muted-foreground font-medium">
+            <CalendarDays className="size-3.5 text-primary" />
+            {formattedDate}
+          </span>
+        )}
+
+        {/* AI Action Trigger */}
+        <Button
+          variant="ghost"
+          size="icon-sm"
+          className="h-7 w-7 text-purple-500 hover:text-purple-600 hover:bg-purple-500/10 rounded-full"
+          title="Break Down with AI"
+          onClick={(e) => {
+            e.stopPropagation();
+            setBreakdownOpen(true);
+          }}
+        >
+          <Sparkles className="size-3.5" />
+        </Button>
+
+        {/* More Actions Menu */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
             <Button
@@ -132,36 +157,6 @@ export function TaskCard({ task, onSelect }: TaskCardProps) {
         </DropdownMenu>
       </div>
 
-      {/* Badges and Metadata Footer */}
-      <div className="pt-2 border-t border-border/40 flex flex-wrap items-center justify-between gap-2 text-xs">
-        <div className="flex items-center gap-1.5 flex-wrap">
-          <TaskStatusBadge status={task.status} />
-          <TaskPriorityBadge priority={task.priority} />
-        </div>
-
-        <div className="flex items-center gap-2 text-muted-foreground text-[11px] font-medium">
-          {formattedDate && (
-            <span className="flex items-center gap-1">
-              <CalendarDays className="size-3 text-primary" />
-              {formattedDate}
-            </span>
-          )}
-
-          <Button
-            variant="ghost"
-            size="icon-sm"
-            className="h-6 w-6 text-purple-500 hover:text-purple-600 hover:bg-purple-500/10 rounded-full"
-            title="Break Down with AI"
-            onClick={(e) => {
-              e.stopPropagation();
-              setBreakdownOpen(true);
-            }}
-          >
-            <Sparkles className="size-3.5" />
-          </Button>
-        </div>
-      </div>
-
       {/* Dialogs */}
       <ConfirmDialog
         open={confirmDelete}
@@ -189,4 +184,4 @@ export function TaskCard({ task, onSelect }: TaskCardProps) {
   );
 }
 
-export default TaskCard;
+export default TaskRow;
