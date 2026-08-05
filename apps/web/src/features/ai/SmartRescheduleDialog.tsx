@@ -40,7 +40,7 @@ import { ScrollArea } from "@/shared/components/ui/scroll-area";
 import ConfirmDialog from "@/shared/components/ConfirmDialog";
 import { notify } from "@/shared/lib/notifications";
 import { taskService } from "@/features/tasks/task.service";
-import { taskKeys } from "@/features/tasks/task.hooks";
+import { invalidateWorkspaceTaskQueries } from "@/shared/lib/query.utils";
 
 export interface SmartRescheduleDialogProps {
   open: boolean;
@@ -226,7 +226,7 @@ function RescheduleSuccessState({
         );
       }
 
-      await queryClient.invalidateQueries({ queryKey: taskKeys.all });
+      await invalidateWorkspaceTaskQueries(queryClient);
       notify.success(
         `Applied revised schedule successfully! ${reschedule.movedTasks.length > 0 ? `Rescheduled ${reschedule.movedTasks.length} task(s).` : ""}`,
       );

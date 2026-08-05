@@ -33,7 +33,7 @@ import { Progress } from "@/shared/components/ui/progress";
 import { ScrollArea } from "@/shared/components/ui/scroll-area";
 import { notify } from "@/shared/lib/notifications";
 import { taskService } from "@/features/tasks/task.service";
-import { taskKeys } from "@/features/tasks/task.hooks";
+import { invalidateWorkspaceTaskQueries } from "@/shared/lib/query.utils";
 import TaskPriorityBadge from "@/features/tasks/TaskPriorityBadge";
 
 export interface TaskBreakdownDialogProps {
@@ -259,7 +259,7 @@ function BreakdownSuccessState({
         ),
       );
 
-      await queryClient.invalidateQueries({ queryKey: taskKeys.all });
+      await invalidateWorkspaceTaskQueries(queryClient);
       notify.success(
         `Saved ${selectedSubtasks.length} subtask${selectedSubtasks.length > 1 ? "s" : ""} as tasks`,
       );

@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { aiService } from "./ai.service";
 
 export const aiKeys = {
+  all: ["ai"] as const,
   planDay: ["ai", "plan-day"] as const,
   taskBreakdown: (taskId: string) => ["ai", "task-breakdown", taskId] as const,
   prioritizeTasks: ["ai", "prioritize"] as const,
@@ -15,8 +16,10 @@ export function usePlanDay() {
     queryKey: aiKeys.planDay,
     queryFn: aiService.planDay,
     enabled: false,
-    staleTime: 5 * 60_000,
+    staleTime: 0,
     gcTime: 5 * 60_000,
+    refetchOnWindowFocus: true,
+    refetchOnReconnect: true,
   });
 }
 
@@ -25,8 +28,10 @@ export function useTaskBreakdown(taskId: string) {
     queryKey: aiKeys.taskBreakdown(taskId),
     queryFn: () => aiService.breakDownTask(taskId),
     enabled: false,
-    staleTime: 5 * 60_000,
+    staleTime: 0,
     gcTime: 5 * 60_000,
+    refetchOnWindowFocus: true,
+    refetchOnReconnect: true,
   });
 }
 
@@ -35,8 +40,10 @@ export function usePrioritizeTasks() {
     queryKey: aiKeys.prioritizeTasks,
     queryFn: aiService.prioritizeTasks,
     enabled: false,
-    staleTime: 5 * 60_000,
+    staleTime: 0,
     gcTime: 5 * 60_000,
+    refetchOnWindowFocus: true,
+    refetchOnReconnect: true,
   });
 }
 
@@ -45,8 +52,10 @@ export function useSmartReschedule() {
     queryKey: aiKeys.smartReschedule,
     queryFn: aiService.smartReschedule,
     enabled: false,
-    staleTime: 5 * 60_000,
+    staleTime: 0,
     gcTime: 5 * 60_000,
+    refetchOnWindowFocus: true,
+    refetchOnReconnect: true,
   });
 }
 
@@ -55,11 +64,9 @@ export function useWeeklyReview() {
     queryKey: aiKeys.weeklyReview,
     queryFn: aiService.weeklyReview,
     enabled: false,
-    staleTime: 10 * 60_000,
-    gcTime: 10 * 60_000,
+    staleTime: 0,
+    gcTime: 5 * 60_000,
+    refetchOnWindowFocus: true,
+    refetchOnReconnect: true,
   });
 }
-
-
-
-

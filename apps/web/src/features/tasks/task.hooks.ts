@@ -2,6 +2,7 @@ import { useMutation, useQueries, useQuery, useQueryClient } from "@tanstack/rea
 
 import { taskService } from "./task.service";
 import type { CreateTaskInput, Task, TaskListData, TaskListParams, UpdateTaskInput } from "./task.types";
+import { invalidateWorkspaceTaskQueries } from "@/shared/lib/query.utils";
 
 export const taskKeys = {
   all: ["tasks"] as const,
@@ -11,7 +12,15 @@ export const taskKeys = {
 export const defaultTaskParams: TaskListParams = { page: 1, limit: 20, sortBy: "createdAt", sortOrder: "desc" };
 
 export function useTasks(params: TaskListParams = defaultTaskParams) {
-  return useQuery({ queryKey: taskKeys.list(params), queryFn: ({ signal }) => taskService.list(params, signal) });
+  return useQuery({
+    queryKey: taskKeys.list(params),
+    queryFn: ({ signal }) => taskService.list(params, signal),
+    staleTime: 0,
+    gcTime: 5 * 60_000,
+    refetchOnWindowFocus: true,
+    refetchOnReconnect: true,
+    placeholderData: (previousData) => previousData,
+  });
 }
 
 export function useTaskCounts() {
@@ -19,6 +28,9 @@ export function useTaskCounts() {
     queries: (["TODO", "IN_PROGRESS", "COMPLETED"] as const).map((status) => ({
       queryKey: taskKeys.list({ ...defaultTaskParams, status }),
       queryFn: () => taskService.list({ ...defaultTaskParams, status, limit: 1 }),
+      staleTime: 0,
+      refetchOnWindowFocus: true,
+      refetchOnReconnect: true,
     })),
   });
 
@@ -52,7 +64,7 @@ export function useCreateTask() {
       return { snapshots };
     },
     onError: (_error, _input, context) => context?.snapshots.forEach(([key, data]) => queryClient.setQueryData(key, data)),
-    onSettled: () => queryClient.invalidateQueries({ queryKey: taskKeys.all }),
+    onSettled: () => void invalidateWorkspaceTaskQueries(queryClient),
   });
 }
 
@@ -66,7 +78,7 @@ export function useUpdateTask() {
       return { snapshots };
     },
     onError: (_error, _input, context) => context?.snapshots.forEach(([key, data]) => queryClient.setQueryData(key, data)),
-    onSettled: () => queryClient.invalidateQueries({ queryKey: taskKeys.all }),
+    onSettled: () => void invalidateWorkspaceTaskQueries(queryClient),
   });
 }
 
@@ -80,6 +92,6 @@ export function useDeleteTask() {
       return { snapshots };
     },
     onError: (_error, _input, context) => context?.snapshots.forEach(([key, data]) => queryClient.setQueryData(key, data)),
-    onSettled: () => queryClient.invalidateQueries({ queryKey: taskKeys.all }),
+    onSettled: () => void invalidateWorkspaceTaskQueries(queryClient),
   });
 }

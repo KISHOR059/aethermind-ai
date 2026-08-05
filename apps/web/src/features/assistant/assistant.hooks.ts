@@ -1,7 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { assistantService } from "./assistant.service";
+import { invalidateWorkspaceTaskQueries } from "@/shared/lib/query.utils";
 
 export const assistantKeys = {
+  all: ["assistant"] as const,
   conversations: ["assistant", "conversations"] as const,
   messages: (id: string) => ["assistant", "messages", id] as const,
 };
@@ -10,6 +12,8 @@ export function useConversations() {
   return useQuery({
     queryKey: assistantKeys.conversations,
     queryFn: assistantService.getConversations,
+    staleTime: 0,
+    refetchOnWindowFocus: true,
   });
 }
 
@@ -18,6 +22,8 @@ export function useConversationMessages(conversationId?: string) {
     queryKey: assistantKeys.messages(conversationId ?? ""),
     queryFn: () => assistantService.getMessages(conversationId!),
     enabled: Boolean(conversationId),
+    staleTime: 0,
+    refetchOnWindowFocus: true,
   });
 }
 
@@ -64,6 +70,7 @@ export function useSendMessage() {
           queryKey: assistantKeys.messages(data.conversation._id),
         });
       }
+      void invalidateWorkspaceTaskQueries(queryClient);
     },
   });
 }

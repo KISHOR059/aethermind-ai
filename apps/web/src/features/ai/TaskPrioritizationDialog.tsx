@@ -42,7 +42,7 @@ import { ScrollArea } from "@/shared/components/ui/scroll-area";
 import ConfirmDialog from "@/shared/components/ConfirmDialog";
 import { notify } from "@/shared/lib/notifications";
 import { taskService } from "@/features/tasks/task.service";
-import { taskKeys } from "@/features/tasks/task.hooks";
+import { invalidateWorkspaceTaskQueries } from "@/shared/lib/query.utils";
 
 export interface TaskPrioritizationDialogProps {
   open: boolean;
@@ -286,7 +286,7 @@ function PrioritizationSuccessState({
         ),
       );
 
-      await queryClient.invalidateQueries({ queryKey: taskKeys.all });
+      await invalidateWorkspaceTaskQueries(queryClient);
       notify.success(
         `Updated priority for ${prioritization.prioritizedTasks.length} task${prioritization.prioritizedTasks.length > 1 ? "s" : ""}`,
       );
