@@ -1,4 +1,4 @@
-import { TaskModel } from "./task.model.js";
+import { TaskModel, TaskStatus } from "./task.model.js";
 import { MongooseQueryBuilder } from "../../shared/query/index.js";
 import type {
   CreateTaskData,
@@ -17,15 +17,28 @@ export class TaskRepository implements ITaskRepository {
     const builder = new MongooseQueryBuilder(TaskModel, {
       owner: ownerId,
       deletedAt: null,
-    })
-      .filters(query.filters)
+    });
+
+    const filters = { ...query.filters };
+
+    if (filters.overdue) {
+      const overdueFilter = {
+        dueDate: { $lt: new Date() },
+        status: { $ne: TaskStatus.COMPLETED },
+      } as const;
+      delete filters.overdue;
+      builder.filters(overdueFilter);
+    }
+
+    const queryBuilder = builder
+      .filters(filters)
       .search(["title", "description", "tags"], query.search)
       .sort(query.sort)
       .paginate(query.pagination);
 
     const [items, total] = await Promise.all([
-      builder.exec(),
-      builder.count(),
+      queryBuilder.exec(),
+      queryBuilder.count(),
     ]);
 
     return { items, total };

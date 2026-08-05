@@ -7,15 +7,15 @@ import {
   X,
 } from "lucide-react";
 
-import type { TaskPriority, TaskStatus } from "./task.types";
+import type { TaskPriority, TaskStatusFilter } from "./task.types";
 import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input";
 
 export interface TaskToolbarProps {
   search: string;
   onSearchChange: (search: string) => void;
-  statusFilter: TaskStatus | "ALL";
-  onStatusChange: (status: TaskStatus | "ALL") => void;
+  statusFilter: TaskStatusFilter;
+  onStatusChange: (status: TaskStatusFilter) => void;
   priorityFilter: TaskPriority | "ALL";
   onPriorityChange: (priority: TaskPriority | "ALL") => void;
   sortBy: string;
@@ -78,6 +78,7 @@ export function TaskToolbar({
           <option value="TODO">Status: Todo</option>
           <option value="IN_PROGRESS">Status: In Progress</option>
           <option value="COMPLETED">Status: Completed</option>
+          <option value="OVERDUE">Status: Overdue</option>
         </select>
 
         {/* Priority Filter */}

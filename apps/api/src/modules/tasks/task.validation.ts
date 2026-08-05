@@ -37,6 +37,11 @@ export const taskListQuerySchema = z
     ...paginationQuerySchema.shape,
     status: z.enum(TaskStatus).optional(),
     priority: z.enum(TaskPriority).optional(),
+    overdue: z.preprocess((value) => {
+      if (value === "true" || value === true) return true;
+      if (value === "false" || value === false) return false;
+      return undefined;
+    }, z.boolean().optional()),
     search: z.string().optional(),
     sortBy: z.string().optional(),
     sortOrder: z.enum(["asc", "desc"]).optional(),
@@ -48,6 +53,7 @@ export const taskListQuerySchema = z
     filters: parseFilters({
       status: input.status,
       priority: input.priority,
+      overdue: input.overdue,
     }),
   }));
 

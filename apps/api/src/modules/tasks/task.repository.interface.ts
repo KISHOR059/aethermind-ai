@@ -18,6 +18,7 @@ export type UpdateTaskData = Partial<CreateTaskData>;
 export type TaskFilters = {
   status?: TaskStatus;
   priority?: TaskPriority;
+  overdue?: boolean;
 };
 
 export type TaskSortField =

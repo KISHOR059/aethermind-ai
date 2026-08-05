@@ -6,61 +6,61 @@ import {
   TriangleAlert,
 } from "lucide-react";
 
-import type { Task, TaskStatus } from "./task.types";
+import { Skeleton } from "@/shared/components/ui/skeleton";
+import type { TaskStatusFilter } from "./task.types";
 
 export interface TaskSummaryBarProps {
-  tasks: Task[];
-  activeStatusFilter?: TaskStatus | "ALL";
-  onStatusSelect: (status: TaskStatus | "ALL") => void;
+  counts: {
+    total: number;
+    todo: number;
+    inProgress: number;
+    completed: number;
+    overdue: number;
+  };
+  activeStatusFilter?: TaskStatusFilter;
+  onStatusSelect: (status: TaskStatusFilter) => void;
+  isLoading?: boolean;
 }
 
 export function TaskSummaryBar({
-  tasks,
+  counts,
   activeStatusFilter = "ALL",
   onStatusSelect,
+  isLoading = false,
 }: TaskSummaryBarProps) {
-  const total = tasks.length;
-  const completed = tasks.filter((t) => t.status === "COMPLETED").length;
-  const pending = tasks.filter((t) => t.status === "TODO").length;
-  const inProgress = tasks.filter((t) => t.status === "IN_PROGRESS").length;
-  const now = new Date();
-  const overdue = tasks.filter(
-    (t) => t.dueDate && new Date(t.dueDate) < now && t.status !== "COMPLETED",
-  ).length;
-
   const items = [
     {
       id: "ALL" as const,
       label: "Total Tasks",
-      count: total,
+      count: counts.total,
       icon: ClipboardList,
       color: "bg-slate-500/10 text-slate-600 dark:text-slate-400 border-slate-500/20",
     },
     {
-      id: "COMPLETED" as const,
-      label: "Completed",
-      count: completed,
-      icon: CircleCheckBig,
-      color: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20",
-    },
-    {
       id: "TODO" as const,
-      label: "Pending",
-      count: pending,
+      label: "Todo",
+      count: counts.todo,
       icon: Clock3,
       color: "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20",
     },
     {
       id: "IN_PROGRESS" as const,
       label: "In Progress",
-      count: inProgress,
+      count: counts.inProgress,
       icon: LoaderCircle,
       color: "bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20",
     },
     {
+      id: "COMPLETED" as const,
+      label: "Completed",
+      count: counts.completed,
+      icon: CircleCheckBig,
+      color: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20",
+    },
+    {
       id: "OVERDUE" as const,
       label: "Overdue",
-      count: overdue,
+      count: counts.overdue,
       icon: TriangleAlert,
       color: "bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20",
     },
@@ -70,14 +70,13 @@ export function TaskSummaryBar({
     <div className="grid gap-3 grid-cols-2 sm:grid-cols-3 md:grid-cols-5">
       {items.map((item) => {
         const Icon = item.icon;
-        const isActive =
-          activeStatusFilter === item.id ||
-          (item.id === "OVERDUE" && activeStatusFilter === "ALL" && overdue > 0);
+        const isActive = activeStatusFilter === item.id;
 
         return (
           <button
-            key={item.label}
-            onClick={() => onStatusSelect(item.id === "OVERDUE" ? "ALL" : item.id)}
+            key={item.id}
+            type="button"
+            onClick={() => onStatusSelect(item.id)}
             className={`group flex items-center justify-between rounded-xl border p-3 text-left transition-all duration-200 hover:-translate-y-0.5 shadow-2xs ${
               isActive
                 ? "border-primary/50 bg-primary/5 ring-1 ring-primary/20"
@@ -95,7 +94,11 @@ export function TaskSummaryBar({
                   {item.label}
                 </p>
                 <p className="text-lg font-extrabold tracking-tight text-foreground">
-                  {item.count}
+                  {isLoading ? (
+                    <Skeleton className="h-7 w-14 rounded-full" />
+                  ) : (
+                    item.count
+                  )}
                 </p>
               </div>
             </div>

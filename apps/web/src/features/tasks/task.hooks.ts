@@ -24,22 +24,57 @@ export function useTasks(params: TaskListParams = defaultTaskParams) {
 }
 
 export function useTaskCounts() {
-  const results = useQueries({
-    queries: (["TODO", "IN_PROGRESS", "COMPLETED"] as const).map((status) => ({
-      queryKey: taskKeys.list({ ...defaultTaskParams, status }),
-      queryFn: () => taskService.list({ ...defaultTaskParams, status, limit: 1 }),
-      staleTime: 0,
-      refetchOnWindowFocus: true,
-      refetchOnReconnect: true,
-    })),
+  const allTasksQuery = useQuery({
+    queryKey: taskKeys.list({ ...defaultTaskParams, page: 1, limit: 1 }),
+    queryFn: () => taskService.list({ ...defaultTaskParams, page: 1, limit: 1 }),
+    staleTime: 0,
+    refetchOnWindowFocus: true,
+    refetchOnReconnect: true,
   });
 
+  const countQueries = useQueries({
+    queries: [
+      {
+        queryKey: taskKeys.list({ ...defaultTaskParams, status: "TODO", page: 1, limit: 1 }),
+        queryFn: () => taskService.list({ ...defaultTaskParams, status: "TODO", page: 1, limit: 1 }),
+        staleTime: 0,
+        refetchOnWindowFocus: true,
+        refetchOnReconnect: true,
+      },
+      {
+        queryKey: taskKeys.list({ ...defaultTaskParams, status: "IN_PROGRESS", page: 1, limit: 1 }),
+        queryFn: () => taskService.list({ ...defaultTaskParams, status: "IN_PROGRESS", page: 1, limit: 1 }),
+        staleTime: 0,
+        refetchOnWindowFocus: true,
+        refetchOnReconnect: true,
+      },
+      {
+        queryKey: taskKeys.list({ ...defaultTaskParams, status: "COMPLETED", page: 1, limit: 1 }),
+        queryFn: () => taskService.list({ ...defaultTaskParams, status: "COMPLETED", page: 1, limit: 1 }),
+        staleTime: 0,
+        refetchOnWindowFocus: true,
+        refetchOnReconnect: true,
+      },
+      {
+        queryKey: taskKeys.list({ ...defaultTaskParams, overdue: true, page: 1, limit: 1 }),
+        queryFn: () => taskService.list({ ...defaultTaskParams, overdue: true, page: 1, limit: 1 }),
+        staleTime: 0,
+        refetchOnWindowFocus: true,
+        refetchOnReconnect: true,
+      },
+    ],
+  });
+
+  const [todoQuery, inProgressQuery, completedQuery, overdueQuery] = countQueries;
+
   return {
-    isLoading: results.some((result) => result.isLoading),
-    isError: results.some((result) => result.isError),
-    todo: results[0]?.data?.pagination.total ?? 0,
-    inProgress: results[1]?.data?.pagination.total ?? 0,
-    completed: results[2]?.data?.pagination.total ?? 0,
+    isLoading: allTasksQuery.isLoading || countQueries.some((result) => result.isLoading),
+    isError: allTasksQuery.isError || countQueries.some((result) => result.isError),
+    total: allTasksQuery.data?.pagination.total ?? 0,
+    todo: todoQuery?.data?.pagination.total ?? 0,
+    inProgress: inProgressQuery?.data?.pagination.total ?? 0,
+    completed: completedQuery?.data?.pagination.total ?? 0,
+    overdue: overdueQuery?.data?.pagination.total ?? 0,
   };
 }
 

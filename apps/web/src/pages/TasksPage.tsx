@@ -15,14 +15,14 @@ import {
   TaskLoadingState,
 } from "@/features/tasks/TaskStates";
 import TaskList from "@/features/tasks/TaskList";
-import { useTasks } from "@/features/tasks/task.hooks";
-import type { Task, TaskPriority, TaskStatus } from "@/features/tasks/task.types";
+import { useTaskCounts, useTasks } from "@/features/tasks/task.hooks";
+import type { Task, TaskPriority, TaskStatusFilter } from "@/features/tasks/task.types";
 import { Button } from "@/shared/components/ui/button";
 import PageHeader from "@/shared/components/PageHeader";
 
 function TasksPage() {
   const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState<TaskStatus | "ALL">("ALL");
+  const [statusFilter, setStatusFilter] = useState<TaskStatusFilter>("ALL");
   const [priorityFilter, setPriorityFilter] = useState<TaskPriority | "ALL">("ALL");
   const [sortBy, setSortBy] = useState<string>("createdAt");
   const [viewMode, setViewMode] = useState<"list" | "grid">("list");
@@ -37,19 +37,25 @@ function TasksPage() {
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
 
   // Query Backend Tasks
+  const taskCounts = useTaskCounts();
   const tasksQuery = useTasks({
     page: 1,
     limit: 50,
     search: search || undefined,
-    status: statusFilter !== "ALL" ? statusFilter : undefined,
+    status:
+      statusFilter !== "ALL" && statusFilter !== "OVERDUE"
+        ? statusFilter
+        : undefined,
+    overdue: statusFilter === "OVERDUE" ? true : undefined,
     priority: priorityFilter !== "ALL" ? priorityFilter : undefined,
-    sortBy: (["createdAt", "dueDate", "priority", "title"].includes(sortBy) ? sortBy : "createdAt") as "createdAt" | "dueDate" | "priority" | "title",
+    sortBy: (["createdAt", "dueDate", "priority", "title"].includes(sortBy)
+      ? sortBy
+      : "createdAt") as "createdAt" | "dueDate" | "priority" | "title",
     sortOrder: "desc",
   });
 
   const rawTasks = useMemo(() => tasksQuery.data?.items ?? [], [tasksQuery.data?.items]);
 
-  // Local Sort & Filter Safeguard
   const filteredTasks = useMemo(() => {
     let result = [...rawTasks];
 
@@ -62,8 +68,18 @@ function TasksPage() {
       );
     }
 
-    if (statusFilter !== "ALL") {
+    if (statusFilter !== "ALL" && statusFilter !== "OVERDUE") {
       result = result.filter((t) => t.status === statusFilter);
+    }
+
+    if (statusFilter === "OVERDUE") {
+      const now = new Date();
+      result = result.filter(
+        (t) =>
+          t.dueDate !== undefined &&
+          new Date(t.dueDate) < now &&
+          t.status !== "COMPLETED",
+      );
     }
 
     if (priorityFilter !== "ALL") {
@@ -138,9 +154,16 @@ function TasksPage() {
 
       {/* 2. Top Summary Bar */}
       <TaskSummaryBar
-        tasks={rawTasks}
+        counts={{
+          total: taskCounts.total,
+          todo: taskCounts.todo,
+          inProgress: taskCounts.inProgress,
+          completed: taskCounts.completed,
+          overdue: taskCounts.overdue,
+        }}
         activeStatusFilter={statusFilter}
         onStatusSelect={setStatusFilter}
+        isLoading={taskCounts.isLoading}
       />
 
       {/* 3. Sticky Top Toolbar */}

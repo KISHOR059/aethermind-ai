@@ -2,6 +2,7 @@ export const TASK_STATUSES = ["TODO", "IN_PROGRESS", "COMPLETED", "ARCHIVED"] as
 export const TASK_PRIORITIES = ["LOW", "MEDIUM", "HIGH", "URGENT"] as const;
 
 export type TaskStatus = (typeof TASK_STATUSES)[number];
+export type TaskStatusFilter = TaskStatus | "ALL" | "OVERDUE";
 export type TaskPriority = (typeof TASK_PRIORITIES)[number];
 
 export type Task = {
@@ -26,6 +27,7 @@ export type TaskListParams = {
   search?: string;
   status?: TaskStatus;
   priority?: TaskPriority;
+  overdue?: boolean;
   sortBy?: "createdAt" | "dueDate" | "title" | "priority" | "status";
   sortOrder?: "asc" | "desc";
 };
