@@ -53,7 +53,6 @@ export function showBrowserNotification(notification: Notification): void {
   try {
     const browserNotification = new window.Notification(notification.title, {
       body: notification.message,
-      icon: "/favicon.ico",
       tag: notification.id,
       requireInteraction: false,
     });

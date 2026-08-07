@@ -21,10 +21,10 @@ async function request<T>(promise: Promise<{ data: ApiSuccess<T> }>) {
 
 export const notificationService = {
   list: (params?: NotificationListParams, signal?: AbortSignal) =>
-    request(apiClient.get<ApiSuccess<NotificationListData>>("/notifications", { params, signal })),
+    request(apiClient.get<ApiSuccess<NotificationListData>>("/notifications", { params, signal, _silent: true })),
 
   unreadCount: (signal?: AbortSignal) =>
-    request(apiClient.get<ApiSuccess<UnreadCountData>>("/notifications/unread-count", { signal })),
+    request(apiClient.get<ApiSuccess<UnreadCountData>>("/notifications/unread-count", { signal, _silent: true })),
 
   markAsRead: (id: string) =>
     request(apiClient.patch<ApiSuccess<Notification>>(`/notifications/${id}/read`)),

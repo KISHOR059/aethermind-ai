@@ -63,12 +63,14 @@ export function NotificationItem({
   };
 
   return (
-    <div
+    <button
+      type="button"
       className={cn(
-        "group relative flex cursor-pointer gap-3 px-4 py-3 transition-colors hover:bg-muted/50",
+        "group relative flex w-full cursor-pointer items-start gap-3 px-4 py-3 text-left transition-colors hover:bg-muted/50 focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-ring",
         !notification.isRead && "bg-muted/30 hover:bg-muted/60",
       )}
       onClick={handleClick}
+      aria-label={`${notification.title}. ${notification.message}. ${timeAgo(notification.createdAt)}. ${notification.priority} priority`}
     >
       <div className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-lg bg-background ring-1 ring-border">
         <Icon className={cn("size-4", TYPE_STYLES[notification.type])} />
@@ -84,7 +86,8 @@ export function NotificationItem({
           >
             {notification.title}
           </p>
-          <span className={cn("ml-auto size-1.5 shrink-0 rounded-full", PRIORITY_DOT[notification.priority])} title={`${notification.priority} priority`} />
+          <span className={cn("ml-auto size-1.5 shrink-0 rounded-full", PRIORITY_DOT[notification.priority])} title={`${notification.priority} priority`} aria-hidden="true" />
+          <span className="sr-only">{notification.priority} priority</span>
         </div>
         <p className="mt-0.5 line-clamp-2 text-[13px] leading-snug text-muted-foreground">
           {notification.message}
@@ -92,7 +95,7 @@ export function NotificationItem({
         <p className="mt-1 text-xs text-muted-foreground/60">{timeAgo(notification.createdAt)}</p>
       </div>
 
-      <div className="absolute top-2 right-2 hidden items-center gap-0.5 rounded-md bg-background/90 p-0.5 shadow-sm ring-1 ring-border group-hover:flex">
+      <div className="mt-0.5 flex items-center gap-0.5 sm:opacity-0 sm:group-hover:opacity-100 sm:transition-opacity">
         {!notification.isRead && (
           <Button
             variant="ghost"
@@ -122,11 +125,11 @@ export function NotificationItem({
       </div>
 
       {!notification.isRead && (
-        <div className="absolute top-3 bottom-3 left-0 w-0.5 rounded-full bg-primary/70" />
+        <div className="absolute top-3 bottom-3 left-0 w-0.5 rounded-full bg-primary/70" aria-hidden="true" />
       )}
 
       <Separator className="absolute right-0 bottom-0 left-4" />
-    </div>
+    </button>
   );
 }
 

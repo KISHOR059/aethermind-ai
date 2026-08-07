@@ -44,6 +44,8 @@ export class ReminderScheduler {
     }
 
     logger.info("Reminder scheduler started");
+
+    void this.run();
   }
 
   stop(): void {

@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 
 import type { NotificationListData, NotificationListParams } from "./notification.types";
 import { notificationService } from "./notification.service";
@@ -87,6 +88,7 @@ export function useMarkAsRead() {
     },
     onError: (_error, _id, context) => {
       if (context?.snapshots) restoreNotificationCaches(queryClient, context.snapshots);
+      toast.error("Failed to mark notification as read");
     },
     onSettled: () => {
       void queryClient.invalidateQueries({ queryKey: notificationKeys.all });
@@ -112,6 +114,7 @@ export function useMarkAllAsRead() {
     },
     onError: (_error, _variables, context) => {
       if (context?.snapshots) restoreNotificationCaches(queryClient, context.snapshots);
+      toast.error("Failed to mark all as read");
     },
     onSettled: () => {
       void queryClient.invalidateQueries({ queryKey: notificationKeys.all });
@@ -148,6 +151,7 @@ export function useDeleteNotification() {
     },
     onError: (_error, _id, context) => {
       if (context?.snapshots) restoreNotificationCaches(queryClient, context.snapshots);
+      toast.error("Failed to delete notification");
     },
     onSettled: () => {
       void queryClient.invalidateQueries({ queryKey: notificationKeys.all });

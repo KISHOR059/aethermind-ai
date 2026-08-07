@@ -4,7 +4,7 @@ import { Button } from "@/shared/components/ui/button";
 import { useUnreadCount } from "./notification.hooks";
 
 type NotificationBellProps = {
-  onClick: () => void;
+  onClick?: () => void;
 };
 
 export function NotificationBell({ onClick }: NotificationBellProps) {

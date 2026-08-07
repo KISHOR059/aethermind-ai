@@ -5,6 +5,12 @@ import { env } from "@/shared/config/env";
 import { tokenStorage } from "@/shared/lib/token-storage";
 import type { ApiSuccess } from "@/shared/types/api";
 
+declare module "axios" {
+  interface AxiosRequestConfig {
+    _silent?: boolean;
+  }
+}
+
 type ApiErrorDetail = { code?: string; field?: string; message: string };
 type ApiErrorPayload = { success?: false; message?: string; errors?: ApiErrorDetail[] };
 
@@ -24,7 +30,7 @@ export class ApiError extends Error {
   }
 }
 
-type RequestConfig = InternalAxiosRequestConfig & { _skipAuthRefresh?: boolean; __retryCount?: number };
+type RequestConfig = InternalAxiosRequestConfig & { _skipAuthRefresh?: boolean; __retryCount?: number; _silent?: boolean };
 
 const baseURL = env.apiUrl;
 const refreshClient = axios.create({ baseURL, withCredentials: true, headers: { "Content-Type": "application/json" } });
@@ -93,7 +99,7 @@ async function refreshAccessToken() {
 
 apiClient.interceptors.request.use(
   (config) => {
-    beginRequest();
+    if (!config._silent) beginRequest();
     const token = getAccessToken();
     if (token) config.headers.Authorization = `Bearer ${token}`;
     return config;
@@ -106,11 +112,11 @@ apiClient.interceptors.request.use(
 
 apiClient.interceptors.response.use(
   (response) => {
-    endRequest();
+    if (!(response.config as RequestConfig)._silent) endRequest();
     return response;
   },
   async (error: AxiosError<ApiErrorPayload>) => {
-    endRequest();
+    if (!(error.config as RequestConfig)?._silent) endRequest();
     const config = error.config as RequestConfig | undefined;
 
     if (!config) return Promise.reject(normalizeError(error));

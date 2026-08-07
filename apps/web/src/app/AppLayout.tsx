@@ -27,7 +27,7 @@ import {
 import { Input } from "@/shared/components/ui/input";
 import { ScrollArea } from "@/shared/components/ui/scroll-area";
 import { Separator } from "@/shared/components/ui/separator";
-import { Sheet, SheetContent, SheetTrigger } from "@/shared/components/ui/sheet";
+import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/shared/components/ui/sheet";
 import { cn } from "@/shared/lib/cn";
 import { useAuth } from "@/features/auth/hooks/auth.context";
 
@@ -141,6 +141,7 @@ function AppLayout() {
               </Button>
             </SheetTrigger>
             <SheetContent className="p-0" side="left">
+              <SheetTitle className="sr-only">Navigation</SheetTitle>
               <Sidebar />
             </SheetContent>
           </Sheet>
@@ -150,7 +151,7 @@ function AppLayout() {
           </div>
           <div className="ml-auto flex items-center gap-2">
             <NotificationDrawer>
-              <NotificationBell onClick={() => {}} />
+              <NotificationBell />
             </NotificationDrawer>
             <ThemeToggle />
             <Separator orientation="vertical" className="h-6" />

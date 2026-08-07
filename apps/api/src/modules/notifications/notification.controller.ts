@@ -1,6 +1,6 @@
 import type { Request, Response } from "express";
 
-import { UnauthorizedError } from "../../utils/app-error.js";
+import { NotFoundError, UnauthorizedError } from "../../utils/app-error.js";
 import { paginatedResponse, successResponse } from "../../utils/response.js";
 import type { NotificationService } from "./notification.service.js";
 import type { NotificationListQueryOutput } from "./notification.validation.js";
@@ -52,7 +52,7 @@ export class NotificationController {
 
     const notificationId = request.params.id;
     if (typeof notificationId !== "string") {
-      throw new Error("Invalid notification ID");
+      throw new NotFoundError("Notification not found");
     }
 
     const notification = await this.service.markAsRead(request.user.id, notificationId);
@@ -87,7 +87,7 @@ export class NotificationController {
 
     const notificationId = request.params.id;
     if (typeof notificationId !== "string") {
-      throw new Error("Invalid notification ID");
+      throw new NotFoundError("Notification not found");
     }
 
     await this.service.delete(request.user.id, notificationId);

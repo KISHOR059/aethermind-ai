@@ -53,6 +53,7 @@ export function NotificationFilters({
             <button
               key={option.value}
               type="button"
+              aria-pressed={readFilter === option.value}
               className={cn(
                 "rounded-md px-2 py-1 text-xs font-medium transition-colors",
                 readFilter === option.value
@@ -92,6 +93,7 @@ function FilterChip({ label, active, onClick }: FilterChipProps) {
   return (
     <button
       type="button"
+      aria-pressed={active}
       className={cn(
         "rounded-full border px-2.5 py-1 text-xs font-medium transition-colors",
         active

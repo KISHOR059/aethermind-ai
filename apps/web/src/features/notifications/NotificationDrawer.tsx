@@ -5,6 +5,8 @@ import { Bell, CheckCheck, X } from "lucide-react";
 import { Button } from "@/shared/components/ui/button";
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/shared/components/ui/sheet";
 import { ScrollArea } from "@/shared/components/ui/scroll-area";
+import { AlertCircle } from "lucide-react";
+
 import { useNotifications, useUnreadCount, useMarkAsRead, useMarkAllAsRead, useDeleteNotification } from "./notification.hooks";
 import { NotificationItem } from "./NotificationItem";
 import { NotificationEmpty } from "./NotificationEmpty";
@@ -35,7 +37,7 @@ export function NotificationDrawer({
   return (
     <Sheet open={open} onOpenChange={handleOpenChange}>
       {children ? <SheetTrigger asChild>{children}</SheetTrigger> : null}
-      <SheetContent side="right" className="flex w-full flex-col gap-0 p-0 sm:max-w-sm">
+      <SheetContent side="right" showCloseButton={false} className="flex w-full flex-col gap-0 p-0 sm:max-w-sm">
         <NotificationDrawerHeader onClose={() => handleOpenChange(false)} />
         <NotificationFilters
           typeFilter={typeFilter}
@@ -109,6 +111,7 @@ function NotificationList({
   });
 
   const isLoading = query.isLoading;
+  const hasError = query.isError;
   const hasFilters = typeFilter !== "ALL" || readFilter !== "ALL";
   const items = query.data?.items ?? [];
 
@@ -140,6 +143,16 @@ function NotificationList({
     <ScrollArea className="flex-1">
       {isLoading ? (
         <NotificationSkeleton />
+      ) : hasError ? (
+        <div className="flex flex-col items-center justify-center gap-2 px-6 py-16 text-center">
+          <div className="flex size-12 items-center justify-center rounded-full bg-destructive/10">
+            <AlertCircle className="size-5 text-destructive" />
+          </div>
+          <p className="mt-1 text-sm font-medium">Failed to load notifications</p>
+          <p className="max-w-[220px] text-[13px] text-muted-foreground">
+            Please try again in a moment.
+          </p>
+        </div>
       ) : items.length === 0 ? (
         <NotificationEmpty hasFilters={hasFilters} />
       ) : (

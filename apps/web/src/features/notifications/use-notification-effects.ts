@@ -44,6 +44,13 @@ export function useNotificationEffects() {
 
         newNotifications.forEach((notification) => {
           lastCheckedIdsRef.current.add(notification.id);
+          if (lastCheckedIdsRef.current.size > 200) {
+            const iterator = lastCheckedIdsRef.current.values();
+            for (let i = 0; i < 50; i++) {
+              const { value } = iterator.next();
+              if (value) lastCheckedIdsRef.current.delete(value);
+            }
+          }
           showBrowserNotification(notification);
 
           const toastType = getToastType(notification);

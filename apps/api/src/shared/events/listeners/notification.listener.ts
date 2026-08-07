@@ -34,6 +34,13 @@ export function registerNotificationListener(
       });
     }),
     eventBus.subscribe("task.updated", (event) => {
+      const isCompletionOnly =
+        event.changedFields.length === 1 &&
+        event.changedFields[0] === "status" &&
+        event.task.status === "COMPLETED";
+
+      if (isCompletionOnly) return;
+
       void notificationService.create(event.task.ownerId, {
         title: "Task Updated",
         message: `Task "${event.task.title}" was updated`,
