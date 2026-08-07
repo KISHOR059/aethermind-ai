@@ -2,7 +2,13 @@ import app from "./app.js";
 import { env } from "./config/env.js";
 import { connectDatabase, disconnectDatabase } from "./database/mongodb.js";
 import { logger } from "./lib/logger.js";
+import { ReminderScheduler } from "./modules/notifications/reminder/index.js";
 import type { Server } from "node:http";
+
+const reminderScheduler = new ReminderScheduler({
+  intervalMs: 60 * 60 * 1000,
+  enabled: true,
+});
 
 async function bootstrap(): Promise<Server> {
   try {
@@ -14,6 +20,8 @@ async function bootstrap(): Promise<Server> {
     });
     process.exit(1);
   }
+
+  reminderScheduler.start();
 
   const server = app.listen(env.PORT, () => {
     logger.info(`AetherMind API listening on port ${env.PORT}`);
@@ -38,6 +46,8 @@ function gracefulShutdown(signal: string) {
 
   isShuttingDown = true;
   logger.info(`Received ${signal}; shutting down gracefully`);
+
+  reminderScheduler.stop();
 
   server.close((error) => {
     if (error) {

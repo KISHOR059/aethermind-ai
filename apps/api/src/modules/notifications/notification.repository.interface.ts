@@ -42,6 +42,12 @@ export interface INotificationRepository {
     data: CreateNotificationData,
   ): Promise<NotificationDocument>;
 
+  createIfNotExists(
+    userId: string,
+    data: CreateNotificationData,
+    dedupeKey: string,
+  ): Promise<NotificationDocument | null>;
+
   findMany(
     userId: string,
     query: NotificationListQuery,

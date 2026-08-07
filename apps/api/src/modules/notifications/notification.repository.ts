@@ -20,6 +20,21 @@ export class NotificationRepository implements INotificationRepository {
     });
   }
 
+  public async createIfNotExists(
+    userId: string,
+    data: CreateNotificationData,
+    dedupeKey: string,
+  ): Promise<NotificationDocument | null> {
+    const existing = await NotificationModel.findOne({
+      userId,
+      "metadata.reminderId": dedupeKey,
+    }).lean().exec();
+
+    if (existing) return null;
+
+    return this.create(userId, data);
+  }
+
   public async findMany(
     userId: string,
     query: NotificationListQuery,
