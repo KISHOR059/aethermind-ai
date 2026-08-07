@@ -16,6 +16,12 @@ export {
   useDeleteNotification,
   notificationKeys,
 } from "./notification.hooks";
+export { useNotificationEffects } from "./use-notification-effects";
+export {
+  requestNotificationPermission,
+  getNotificationPermission,
+  shouldShowBrowserNotification,
+} from "./browser-notifications";
 export {
   NOTIFICATION_TYPES,
   NOTIFICATION_PRIORITIES,

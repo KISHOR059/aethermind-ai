@@ -11,7 +11,7 @@ import { Suspense } from "react";
 import { NavLink, Outlet } from "react-router-dom";
 
 import ThemeToggle from "@/features/theme/ThemeToggle";
-import { NotificationBell, NotificationDrawer } from "@/features/notifications";
+import { NotificationBell, NotificationDrawer, useNotificationEffects } from "@/features/notifications";
 import RouteLoading from "@/app/RouteLoading";
 import { env } from "@/shared/config/env";
 import { Avatar, AvatarFallback } from "@/shared/components/ui/avatar";
@@ -124,6 +124,8 @@ function UserMenu() {
 }
 
 function AppLayout() {
+  useNotificationEffects();
+
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col">
       <aside className="fixed inset-y-0 left-0 z-20 hidden w-64 border-r bg-card lg:block">
