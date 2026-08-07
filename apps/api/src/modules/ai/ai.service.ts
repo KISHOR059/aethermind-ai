@@ -14,6 +14,12 @@ import type { ProviderStatus } from "./providers/types.js";
 import { TaskRepository } from "../tasks/task.repository.js";
 import type { ITaskRepository } from "../tasks/task.repository.interface.js";
 import { NotFoundError } from "../../utils/app-error.js";
+import { notificationService } from "../notifications/index.js";
+import {
+  NotificationType,
+  NotificationPriority,
+} from "../notifications/notification.types.js";
+import type { CreateNotificationData } from "../notifications/notification.repository.interface.js";
 
 export type AiHealth = {
   provider: string;
@@ -42,13 +48,28 @@ export class AiService {
     };
   }
 
-  public planDay(
+  public async planDay(
     userId: string,
   ): Promise<AIExecutionResult<DailyPlannerResponse>> {
-    return this.aiPipeline.execute({
+    const result = await this.aiPipeline.execute({
       prompt: "daily-planner",
       userId,
     });
+
+    this.notify(userId, {
+      title: "Daily Plan Generated",
+      message: `Your daily plan is ready with a productivity score of ${result.data.productivityScore}/100`,
+      type: NotificationType.AI,
+      priority: NotificationPriority.NORMAL,
+      actionUrl: "/tasks",
+      metadata: {
+        productivityScore: result.data.productivityScore,
+        scheduleItems: result.data.schedule.length,
+        priorityTasks: result.data.priorities.length,
+      },
+    });
+
+    return result;
   }
 
   public async breakDownTask(
@@ -60,60 +81,152 @@ export class AiService {
       throw new NotFoundError("Task not found");
     }
 
-    return this.aiPipeline.execute({
+    const result = await this.aiPipeline.execute({
       prompt: "task-breakdown",
       userId,
       taskId,
     });
+
+    this.notify(userId, {
+      title: "Task Breakdown Ready",
+      message: `Your task has been broken down into ${result.data.subtasks.length} subtasks`,
+      type: NotificationType.AI,
+      priority: NotificationPriority.NORMAL,
+      actionUrl: "/tasks",
+      metadata: {
+        taskId,
+        taskTitle: task.title,
+        subtaskCount: result.data.subtasks.length,
+        estimatedMinutes: result.data.estimatedMinutes,
+      },
+    });
+
+    return result;
   }
 
-  public prioritizeTasks(
+  public async prioritizeTasks(
     userId: string,
   ): Promise<AIExecutionResult<TaskPrioritizationResponse>> {
-    return this.aiPipeline.execute({
+    const result = await this.aiPipeline.execute({
       prompt: "task-prioritization",
       userId,
     });
+
+    this.notify(userId, {
+      title: "Task Prioritization Complete",
+      message: `${result.data.prioritizedTasks.length} tasks analyzed and prioritized`,
+      type: NotificationType.AI,
+      priority: NotificationPriority.NORMAL,
+      actionUrl: "/tasks",
+      metadata: {
+        taskCount: result.data.prioritizedTasks.length,
+        recommendationsCount: result.data.recommendations.length,
+      },
+    });
+
+    return result;
   }
 
-  public smartReschedule(
+  public async smartReschedule(
     userId: string,
   ): Promise<AIExecutionResult<SmartRescheduleResponse>> {
-    return this.aiPipeline.execute({
+    const result = await this.aiPipeline.execute({
       prompt: "smart-reschedule",
       userId,
     });
+
+    this.notify(userId, {
+      title: "Smart Reschedule Complete",
+      message: result.data.summary,
+      type: NotificationType.AI,
+      priority: NotificationPriority.NORMAL,
+      actionUrl: "/tasks",
+      metadata: {
+        movedTasks: result.data.movedTasks.length,
+        scheduleItems: result.data.schedule.length,
+        productivityScore: result.data.productivityScore,
+      },
+    });
+
+    return result;
   }
 
-  public weeklyReview(
+  public async weeklyReview(
     userId: string,
   ): Promise<AIExecutionResult<WeeklyReviewResponse>> {
-    return this.aiPipeline.execute({
+    const result = await this.aiPipeline.execute({
       prompt: "weekly-review",
       userId,
     });
+
+    this.notify(userId, {
+      title: "Weekly Review Generated",
+      message: `Your weekly productivity score: ${result.data.productivityScore}/100`,
+      type: NotificationType.AI,
+      priority: NotificationPriority.NORMAL,
+      actionUrl: "/dashboard",
+      metadata: {
+        productivityScore: result.data.productivityScore,
+        completionRate: result.data.statistics.completionRate,
+        completedTasks: result.data.statistics.completedTasks,
+        overdueTasks: result.data.statistics.overdueTasks,
+      },
+    });
+
+    return result;
   }
 
-  public productivityInsights(
+  public async productivityInsights(
     userId: string,
   ): Promise<AIExecutionResult<ProductivityInsightsResponse>> {
-    return this.aiPipeline.execute({
+    const result = await this.aiPipeline.execute({
       prompt: "productivity-insights",
       userId,
     });
+
+    this.notify(userId, {
+      title: "Productivity Insights Ready",
+      message: `AI analysis complete with productivity score: ${result.data.productivityScore}/100`,
+      type: NotificationType.AI,
+      priority: NotificationPriority.NORMAL,
+      actionUrl: "/dashboard",
+      metadata: {
+        productivityScore: result.data.productivityScore,
+        strengthsCount: result.data.strengths.length,
+        weaknessesCount: result.data.weaknesses.length,
+      },
+    });
+
+    return result;
   }
 
-  public chat(
+  public async chat(
     userId: string,
     userMessage: string,
     conversationHistory?: string,
   ): Promise<AIExecutionResult<AssistantChatResponse>> {
-    return this.aiPipeline.execute({
+    const result = await this.aiPipeline.execute({
       prompt: "assistant-chat",
       userId,
       userMessage,
       conversationHistory,
     });
+
+    if (result.data.suggestedActions.length > 0) {
+      this.notify(userId, {
+        title: "AI Assistant Suggestion",
+        message: result.data.suggestedActions[0],
+        type: NotificationType.AI,
+        priority: NotificationPriority.LOW,
+        actionUrl: "/assistant",
+        metadata: { suggestedActions: result.data.suggestedActions },
+      });
+    }
+
+    return result;
+  }
+
+  private notify(userId: string, data: CreateNotificationData): void {
+    void notificationService.create(userId, data);
   }
 }
-
