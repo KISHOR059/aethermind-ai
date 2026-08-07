@@ -11,6 +11,7 @@ import { Suspense } from "react";
 import { NavLink, Outlet } from "react-router-dom";
 
 import ThemeToggle from "@/features/theme/ThemeToggle";
+import { NotificationBell, NotificationDrawer } from "@/features/notifications";
 import RouteLoading from "@/app/RouteLoading";
 import { env } from "@/shared/config/env";
 import { Avatar, AvatarFallback } from "@/shared/components/ui/avatar";
@@ -146,6 +147,9 @@ function AppLayout() {
             <Input className="pl-9 h-9 text-xs" placeholder={`Search ${env.appName}...`} />
           </div>
           <div className="ml-auto flex items-center gap-2">
+            <NotificationDrawer>
+              <NotificationBell onClick={() => {}} />
+            </NotificationDrawer>
             <ThemeToggle />
             <Separator orientation="vertical" className="h-6" />
             <UserMenu />
