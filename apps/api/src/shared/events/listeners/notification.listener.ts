@@ -1,5 +1,8 @@
 import type { EventBus } from "../event-bus.js";
-import type { TaskEventMap } from "../task.events.js";
+import {
+  TASK_RESCHEDULE_REASON,
+  type TaskEventMap,
+} from "../task.events.js";
 import { notificationService } from "../../../modules/notifications/index.js";
 import {
   NotificationPriority,
@@ -17,6 +20,27 @@ function mapTaskPriority(taskPriority: string): NotificationPriority {
     default:
       return NotificationPriority.NORMAL;
   }
+}
+
+function formatMoveDate(date: Date, estimatedMinutes?: number | null): string {
+  const hasTime =
+    estimatedMinutes != null &&
+    (date.getUTCHours() !== 0 || date.getUTCMinutes() !== 0);
+
+  const day = new Intl.DateTimeFormat("en-US", {
+    timeZone: "UTC",
+    weekday: "long",
+  }).format(date);
+
+  if (!hasTime) return day;
+
+  const time = new Intl.DateTimeFormat("en-US", {
+    timeZone: "UTC",
+    hour: "numeric",
+    minute: "2-digit",
+  }).format(date);
+
+  return `${day} at ${time}`;
 }
 
 export function registerNotificationListener(
@@ -40,6 +64,27 @@ export function registerNotificationListener(
         event.task.status === "COMPLETED";
 
       if (isCompletionOnly) return;
+
+      if (event.reason === TASK_RESCHEDULE_REASON) {
+        if (!event.task.dueDate) return;
+
+        void notificationService.create(event.task.ownerId, {
+          title: "Task moved successfully",
+          message: `${event.task.title} moved to ${formatMoveDate(
+            event.task.dueDate,
+            event.task.estimatedMinutes,
+          )}.`,
+          type: NotificationType.TASK,
+          priority: NotificationPriority.NORMAL,
+          actionUrl: "/calendar",
+          metadata: {
+            taskId: event.task.taskId,
+            rescheduled: true,
+            changedFields: event.changedFields,
+          },
+        });
+        return;
+      }
 
       void notificationService.create(event.task.ownerId, {
         title: "Task Updated",

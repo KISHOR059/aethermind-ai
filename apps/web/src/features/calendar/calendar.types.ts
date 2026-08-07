@@ -1,4 +1,4 @@
-import type { TaskPriority, TaskStatus } from "@/features/tasks/task.types";
+import type { Task, TaskPriority, TaskStatus } from "@/features/tasks/task.types";
 
 export type CalendarEvent = {
   id: string;
@@ -16,6 +16,16 @@ export type CalendarEvent = {
 export type CalendarEventsResult = {
   events: CalendarEvent[];
   range: { start: string; end: string; view: "month" | "week" | "day" };
+};
+
+export type CalendarRescheduleInput = {
+  taskId: string;
+  dueDate: string;
+  estimatedMinutes?: number | null;
+};
+
+export type CalendarRescheduleResult = {
+  task: Task;
 };
 
 export type CalendarView = "month" | "week" | "day" | "agenda";

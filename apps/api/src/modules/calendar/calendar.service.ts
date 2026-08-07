@@ -5,6 +5,9 @@ import {
   TaskPriority,
   TaskStatus,
 } from "../tasks/task.model.js";
+import type { PublicUser } from "../auth/auth.types.js";
+import type { TaskService } from "../tasks/task.service.js";
+import type { TaskRescheduleInput } from "../tasks/task.validation.js";
 import {
   CalendarEventColor,
   CalendarView,
@@ -132,6 +135,22 @@ function toCalendarEvent(task: TaskEventSource): CalendarEvent | null {
 }
 
 export class CalendarService {
+  public constructor(private readonly taskService: TaskService) {}
+
+  /**
+   * Applies a calendar drag-and-drop reschedule through the Task update
+   * pipeline. The Task remains the single source of truth: only the task's
+   * scheduling fields are mutated in MongoDB, and the rest of the system
+   * (calendar, dashboard, notifications, AI context) converges via the
+   * emitted domain events and React Query invalidation.
+   */
+  public async reschedule(
+    user: PublicUser,
+    input: TaskRescheduleInput,
+  ): ReturnType<TaskService["reschedule"]> {
+    return this.taskService.reschedule(user, input);
+  }
+
   public async getEvents(
     userId: string,
     query: CalendarQueryOutput,

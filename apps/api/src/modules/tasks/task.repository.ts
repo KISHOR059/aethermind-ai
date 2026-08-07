@@ -10,7 +10,11 @@ import type {
 
 export class TaskRepository implements ITaskRepository {
   public async create(ownerId: string, data: CreateTaskData) {
-    return TaskModel.create({ ...data, owner: ownerId });
+    return TaskModel.create({
+      ...data,
+      owner: ownerId,
+      estimatedMinutes: data.estimatedMinutes ?? undefined,
+    });
   }
 
   public async findMany(ownerId: string, query: TaskListQuery): Promise<PaginatedTasks> {

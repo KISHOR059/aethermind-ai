@@ -3,7 +3,11 @@ import axios from "axios";
 import apiClient, { ApiError } from "@/shared/lib/api-client";
 import type { ApiSuccess } from "@/shared/types/api";
 
-import type { CalendarEventsResult } from "./calendar.types";
+import type {
+  CalendarEventsResult,
+  CalendarRescheduleInput,
+  CalendarRescheduleResult,
+} from "./calendar.types";
 import type { TaskPriority, TaskStatus } from "@/features/tasks/task.types";
 
 export type CalendarQueryParams = {
@@ -36,5 +40,12 @@ export const calendarService = {
         params,
         signal,
       }),
+    ),
+  reschedule: (input: CalendarRescheduleInput) =>
+    request(
+      apiClient.post<ApiSuccess<CalendarRescheduleResult>>(
+        "/calendar/reschedule",
+        input,
+      ),
     ),
 };

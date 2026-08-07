@@ -9,6 +9,8 @@ export const TASK_EVENT_TYPES = {
   DELETED: "task.deleted",
 } as const;
 
+export const TASK_RESCHEDULE_REASON = "reschedule";
+
 export type TaskEventData = {
   taskId: string;
   ownerId: string;
@@ -16,6 +18,7 @@ export type TaskEventData = {
   status: string;
   priority: string;
   dueDate?: Date;
+  estimatedMinutes?: number | null;
 };
 
 export type DeletedTaskEventData = {
@@ -45,6 +48,7 @@ export class TaskUpdatedEvent extends BaseTaskEvent<typeof TASK_EVENT_TYPES.UPDA
   public constructor(
     public readonly task: TaskEventData,
     public readonly changedFields: readonly string[],
+    public readonly reason?: string,
   ) {
     super(TASK_EVENT_TYPES.UPDATED);
   }

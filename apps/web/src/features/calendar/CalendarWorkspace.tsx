@@ -36,6 +36,13 @@ import CreateTaskDialog from "@/features/tasks/CreateTaskDialog";
 import TaskDetailsDrawer from "@/features/tasks/TaskDetailsDrawer";
 import { useUpdateTask } from "@/features/tasks/task.hooks";
 import { notify } from "@/shared/lib/notifications";
+import CalendarDndRoot from "./dnd/calendar-dnd";
+import type { CalendarDropResult } from "./dnd/calendar-dnd";
+import RescheduleSuggestionPanel from "./dnd/RescheduleSuggestionPanel";
+import {
+  useRescheduleSuggestion,
+  useRescheduleTask,
+} from "./dnd/use-calendar-reschedule";
 
 const AGENDA_RANGE_DAYS = 45;
 
@@ -60,6 +67,13 @@ export function CalendarWorkspace() {
 
   const searchInputRef = useRef<HTMLInputElement>(null);
   const updateTask = useUpdateTask();
+  const reschedule = useRescheduleTask();
+  const {
+    status: suggestionStatus,
+    suggestion,
+    evaluate: evaluateSuggestion,
+    dismiss: dismissSuggestion,
+  } = useRescheduleSuggestion();
 
   const range = useMemo(() => {
     if (view === "day") {
@@ -175,6 +189,55 @@ export function CalendarWorkspace() {
     [],
   );
 
+  const handleReschedule = useCallback(
+    (result: CalendarDropResult) => {
+      const previous = {
+        dueDate: result.event.start,
+        estimatedMinutes: result.event.allDay
+          ? null
+          : Math.max(
+              (new Date(result.event.end).getTime() -
+                new Date(result.event.start).getTime()) /
+                60_000,
+              30,
+            ),
+      };
+
+      reschedule.mutate(
+        {
+          taskId: result.taskId,
+          dueDate: result.dueDate,
+          ...(result.estimatedMinutes !== undefined && {
+            estimatedMinutes: result.estimatedMinutes,
+          }),
+          previous,
+        },
+        {
+          onSuccess: () => {
+            evaluateSuggestion({
+              taskId: result.taskId,
+              title: result.event.title,
+              dueDate: result.dueDate,
+              estimatedMinutes: result.estimatedMinutes,
+            });
+          },
+        },
+      );
+    },
+    [reschedule, evaluateSuggestion],
+  );
+
+  const handleAcceptSuggestion = useCallback(() => {
+    if (!suggestion?.suggestedDate) return;
+    const date = new Date(`${suggestion.suggestedDate}T00:00:00`);
+    reschedule.mutate({
+      taskId: suggestion.taskId,
+      dueDate: date.toISOString(),
+      estimatedMinutes: null,
+    });
+    dismissSuggestion();
+  }, [reschedule, suggestion, dismissSuggestion]);
+
   const selectedTask = useMemo(
     () => (selectedEvent ? eventToTask(selectedEvent) : null),
     [selectedEvent],
@@ -191,6 +254,9 @@ export function CalendarWorkspace() {
           target.isContentEditable)
       )
         return;
+
+      // Let the drag-and-drop keyboard sensor handle keys while dragging.
+      if (event.defaultPrevented) return;
 
       if (event.key === "/") {
         event.preventDefault();
@@ -352,9 +418,19 @@ export function CalendarWorkspace() {
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -8 }}
           transition={{ duration: 0.15, ease: "easeOut" }}
-          className="overflow-x-auto pb-2"
+          className="relative overflow-x-auto pb-2"
         >
-          {viewContent}
+          <CalendarDndRoot onReschedule={handleReschedule}>
+            {viewContent}
+          </CalendarDndRoot>
+          <div className="pointer-events-none absolute right-2 top-2 z-40">
+            <RescheduleSuggestionPanel
+              status={suggestionStatus}
+              suggestion={suggestion}
+              onAccept={handleAcceptSuggestion}
+              onDismiss={dismissSuggestion}
+            />
+          </div>
         </motion.div>
       </AnimatePresence>
 

@@ -24,6 +24,18 @@ export const createTaskSchema = z.object({
 
 export const updateTaskSchema = createTaskSchema.partial();
 
+export const taskRescheduleSchema = z.object({
+  taskId: z.string().trim().min(1, "A valid task ID is required"),
+  dueDate: z.coerce.date("Invalid dueDate. Expected an ISO-8601 date string."),
+  estimatedMinutes: z.coerce
+    .number()
+    .int("estimatedMinutes must be a whole number")
+    .min(1, "estimatedMinutes must be at least 1")
+    .max(100_000)
+    .nullable()
+    .optional(),
+});
+
 const taskSortFields = [
   "createdAt",
   "dueDate",
@@ -59,4 +71,5 @@ export const taskListQuerySchema = z
 
 export type CreateTaskInput = z.infer<typeof createTaskSchema>;
 export type UpdateTaskInput = z.infer<typeof updateTaskSchema>;
+export type TaskRescheduleInput = z.infer<typeof taskRescheduleSchema>;
 export type TaskListQueryInput = z.infer<typeof taskListQuerySchema>;

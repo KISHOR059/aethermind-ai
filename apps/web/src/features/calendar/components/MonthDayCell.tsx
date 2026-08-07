@@ -1,8 +1,10 @@
 import { memo } from "react";
+import { useDroppable } from "@dnd-kit/core";
 
 import type { CalendarEvent } from "../calendar.types";
 import { MAX_VISIBLE_TASKS } from "../calendar.utils";
-import TaskPill from "./TaskPill";
+import DraggableTaskPill from "../dnd/DraggableTaskPill";
+import { DND, dayDropId } from "../dnd/dnd.types";
 import { cn } from "@/shared/lib/cn";
 
 export interface MonthDayCellProps {
@@ -28,11 +30,16 @@ export const MonthDayCell = memo(function MonthDayCell({
   onOpenDay,
   onSelectTask,
 }: MonthDayCellProps) {
+  const { setNodeRef, isOver } = useDroppable({
+    id: dayDropId(date),
+    data: { type: DND.DAY_DROP, date },
+  });
   const visible = events.slice(0, MAX_VISIBLE_TASKS);
   const overflow = events.length - MAX_VISIBLE_TASKS;
 
   return (
     <div
+      ref={setNodeRef}
       role="gridcell"
       aria-selected={isSelected}
       aria-label={`${date.toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" })}, ${events.length} task${events.length === 1 ? "" : "s"}`}
@@ -46,6 +53,7 @@ export const MonthDayCell = memo(function MonthDayCell({
             ? "bg-muted/20"
             : "bg-background",
         isSelected && "bg-primary/5",
+        isOver && "bg-primary/10 ring-2 ring-inset ring-primary/60",
       )}
     >
       <div className="flex items-center justify-between">
@@ -76,7 +84,11 @@ export const MonthDayCell = memo(function MonthDayCell({
 
       <div className="flex min-h-0 flex-1 flex-col gap-1 overflow-hidden">
         {visible.map((event) => (
-          <TaskPill key={event.id} event={event} onSelect={onSelectTask} />
+          <DraggableTaskPill
+            key={event.id}
+            event={event}
+            onSelect={onSelectTask}
+          />
         ))}
         {overflow > 0 && (
           <button

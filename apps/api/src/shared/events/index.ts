@@ -8,6 +8,7 @@ export type { DomainEvent, EventHandler };
 export { EventBus } from "./event-bus.js";
 export {
   TASK_EVENT_TYPES,
+  TASK_RESCHEDULE_REASON,
   TaskCompletedEvent,
   TaskCreatedEvent,
   TaskDeletedEvent,

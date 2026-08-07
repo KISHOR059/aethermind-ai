@@ -1,6 +1,7 @@
 import { NotFoundError } from "../../utils/app-error.js";
 import {
   eventBus,
+  TASK_RESCHEDULE_REASON,
   TaskCompletedEvent,
   TaskCreatedEvent,
   TaskDeletedEvent,
@@ -18,6 +19,7 @@ import type {
 import type {
   CreateTaskInput,
   TaskListQueryInput,
+  TaskRescheduleInput,
   UpdateTaskInput,
 } from "./task.validation.js";
 
@@ -63,6 +65,7 @@ function toTaskEventData(task: PublicTask): TaskEventData {
     status: task.status,
     priority: task.priority,
     dueDate: task.dueDate,
+    estimatedMinutes: task.estimatedMinutes ?? null,
   };
 }
 
@@ -146,5 +149,52 @@ export class TaskService {
     }
 
     eventBus.publish(new TaskDeletedEvent({ taskId, ownerId: owner.id }));
+  }
+
+  /**
+   * Reschedules a task from the calendar drag-and-drop flow.
+   *
+   * Only scheduling fields are mutated (`dueDate`, optional `estimatedMinutes`);
+   * every other field is left untouched so the Task stays the single source of
+   * truth for its own data. The emitted `task.updated` event carries the
+   * `reschedule` reason so listeners can react specifically to drag-based moves.
+   */
+  public async reschedule(
+    owner: PublicUser,
+    input: TaskRescheduleInput,
+  ): Promise<PublicTask> {
+    const currentTask = await this.taskRepository.findById(owner.id, input.taskId);
+
+    if (!currentTask) {
+      throw new NotFoundError("Task not found");
+    }
+
+    const updateData: UpdateTaskData = { dueDate: input.dueDate };
+
+    if (input.estimatedMinutes === null) {
+      updateData.estimatedMinutes = null;
+      updateData.startDate = undefined;
+    } else if (input.estimatedMinutes !== undefined) {
+      updateData.estimatedMinutes = input.estimatedMinutes;
+      updateData.startDate = input.dueDate;
+    }
+
+    const task = await this.taskRepository.update(owner.id, input.taskId, updateData);
+
+    if (!task) {
+      throw new NotFoundError("Task not found");
+    }
+
+    const publicTask = toPublicTask(task);
+
+    eventBus.publish(
+      new TaskUpdatedEvent(
+        toTaskEventData(publicTask),
+        Object.keys(updateData),
+        TASK_RESCHEDULE_REASON,
+      ),
+    );
+
+    return publicTask;
   }
 }

@@ -8,7 +8,7 @@ export type CreateTaskData = {
   priority: TaskPriority;
   dueDate?: Date;
   startDate?: Date;
-  estimatedMinutes?: number;
+  estimatedMinutes?: number | null;
   tags: string[];
   completedAt?: Date;
 };
