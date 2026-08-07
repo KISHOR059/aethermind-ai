@@ -42,7 +42,8 @@ function buildOptimisticEvent(
   input: CalendarRescheduleInput,
 ): CalendarEvent {
   const estimatedMinutes =
-    input.estimatedMinutes === null
+    input.estimatedMinutes === null ||
+    (input.estimatedMinutes === undefined && original.allDay)
       ? null
       : input.estimatedMinutes ?? eventDurationMinutes(original);
   const start = new Date(input.dueDate);
@@ -188,12 +189,7 @@ export function useRescheduleTask() {
 }
 
 function eventsOverlap(a: CalendarEvent, b: CalendarEvent): boolean {
-  if (a.allDay || b.allDay) {
-    return (
-      new Date(a.start).toDateString() === new Date(b.start).toDateString() &&
-      a.taskId !== b.taskId
-    );
-  }
+  if (a.allDay || b.allDay) return false;
   const aStart = new Date(a.start).getTime();
   const aEnd = new Date(a.end).getTime();
   const bStart = new Date(b.start).getTime();
@@ -212,7 +208,7 @@ function findConflicts(
   const moved = calendarQueries.flatMap(([, data]) => data?.events ?? []).find(
     (event) => event.taskId === taskId,
   );
-  if (!moved) return [];
+  if (!moved || moved.status === "COMPLETED") return [];
 
   const conflicts: CalendarEvent[] = [];
   const seen = new Set<string>();
@@ -220,6 +216,7 @@ function findConflicts(
   calendarQueries.forEach(([, data]) => {
     for (const event of data?.events ?? []) {
       if (event.taskId === taskId || seen.has(event.taskId)) continue;
+      if (event.status === "COMPLETED") continue;
       if (eventsOverlap(moved, event)) {
         seen.add(event.taskId);
         conflicts.push(event);
