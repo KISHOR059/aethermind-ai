@@ -238,6 +238,117 @@ Restart pnpm dev after changing an environment file.
 
 Stop the other application using the port and run pnpm dev again. Vite may choose another web port, but the API must use port 4000 unless PORT is changed in apps/api/.env.
 
+## 11. Notification System
+
+AetherMind includes a full-stack notification system with real-time updates, browser notifications, and an automated reminder engine.
+
+### Architecture
+
+```
+Backend (apps/api/src/modules/notifications/)
+├── notification.types.ts          # NotificationType, NotificationPriority enums
+├── notification.model.ts          # Mongoose schema + indexes
+├── notification.repository.ts     # Data access layer (MongooseQueryBuilder)
+├── notification.repository.interface.ts  # Repository contract
+├── notification.service.ts        # Business logic + DTO mapping
+├── notification.controller.ts     # Express request handlers
+├── notification.routes.ts         # Route definitions
+├── notification.validation.ts     # Zod query schemas
+├── notification.container.ts      # Dependency injection singletons
+├── reminder/
+│   ├── reminder.engine.ts         # 5 checkers: overdue, dueToday, dueTomorrow, weeklyReview, milestones
+│   └── reminder.scheduler.ts      # setInterval wrapper (swappable for cron)
+└── index.ts                       # Barrel exports
+
+Frontend (apps/web/src/features/notifications/)
+├── notification.types.ts          # TypeScript types matching backend
+├── notification.service.ts        # Axios API client (background/polling requests)
+├── notification.hooks.ts          # React Query hooks with optimistic updates
+├── NotificationBell.tsx           # Header bell icon with unread badge
+├── NotificationDrawer.tsx         # Slide-out panel with filters and list
+├── NotificationItem.tsx           # Individual notification row (keyboard accessible)
+├── NotificationFilters.tsx        # Type and read-status filter chips
+├── NotificationEmpty.tsx          # Empty state (no notifications / no matches)
+├── NotificationSkeleton.tsx       # Loading skeleton
+├── browser-notifications.ts       # Web Notification API wrapper
+└── use-notification-effects.ts    # Detects new notifications → toast + browser notification
+```
+
+### API Endpoints
+
+All endpoints require a `Bearer` token (`Authorization: Bearer <token>`).
+
+| Method | Path | Description |
+|---|---|---|
+| `GET` | `/api/v1/notifications` | Paginated list with filters (`type`, `priority`, `isRead`, `search`, `sortBy`, `sortOrder`) |
+| `GET` | `/api/v1/notifications/unread-count` | Returns `{ count: number }` |
+| `PATCH` | `/api/v1/notifications/:id/read` | Mark a single notification as read |
+| `PATCH` | `/api/v1/notifications/read-all` | Mark all unread notifications as read |
+| `DELETE` | `/api/v1/notifications/:id` | Delete a notification |
+
+### Notification Types
+
+| Type | Source | Example |
+|---|---|---|
+| `TASK` | Task CRUD events (event bus) | "Task Created", "Task Completed" |
+| `AI` | AI pipeline operations | "Daily Plan Generated", "Weekly Review Generated" |
+| `SYSTEM` | System events | Reserved for future use |
+| `PRODUCTIVITY` | Dashboard insights | Reserved for future use |
+| `REMINDER` | Reminder engine (scheduled) | "3 Overdue Tasks", "Tasks Due Today" |
+
+### Reminder Engine
+
+Runs every 60 minutes on server startup (configurable via `ReminderScheduler`).
+
+| Check | Condition | Priority |
+|---|---|---|
+| Overdue Tasks | Tasks past due date, not completed | HIGH (URGENT if 5+) |
+| Due Today | Tasks due within today | NORMAL (HIGH if any urgent/high task) |
+| Due Tomorrow | Tasks due within tomorrow | LOW |
+| Weekly Review | Monday/Sunday with completed or pending tasks | NORMAL |
+| Productivity Milestones | Weekly completions hit 5/10/15/20/25/50/100 | NORMAL (HIGH if 20+) |
+
+Each reminder uses a deterministic dedup key per user per day to avoid duplicate notifications.
+
+### Browser Notifications
+
+When the user grants permission, the app shows browser notifications for:
+
+- HIGH or URGENT priority notifications
+- Overdue task reminders
+- Due today/tomorrow task reminders
+- Weekly review and daily plan notifications
+
+Browser notifications are supplemental. The Notification Center (drawer) remains the source of truth.
+
+### React Query Synchronization
+
+The notification UI automatically refreshes:
+
+- **Polling**: Every 45 seconds via `refetchInterval`
+- **Window focus**: `refetchOnWindowFocus: true`
+- **Network reconnect**: `refetchOnReconnect: true`
+- **After mutations**: All queries invalidated on `onSettled`
+
+All mutations use optimistic updates with snapshot/rollback on error.
+
+### Verify It Works
+
+1. Start the app (`pnpm dev`) and log in
+2. The bell icon appears in the header with an unread badge
+3. Click the bell to open the notification drawer
+4. Create, complete, or delete a task — a notification appears
+5. The reminder engine fires on startup (check server logs for "Reminder engine checks completed")
+6. Browser notifications appear if permission was granted
+
+View notifications in MongoDB:
+
+```javascript
+use aethermind
+db.notifications.find().pretty()
+db.notifications.countDocuments({ isRead: false })
+```
+
 ## Useful commands
 
 ```powershell
