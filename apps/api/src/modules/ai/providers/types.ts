@@ -34,14 +34,6 @@ export type GenerateTextResponse = {
   model: ModelInformation;
 };
 
-export type StructuredGenerationRequest<T> = {
-  input: string;
-  schema: T;
-  model?: string;
-  temperature?: number;
-  maxOutputTokens?: number;
-};
-
 export type ProviderStatus =
   | "configured"
   | "healthy"

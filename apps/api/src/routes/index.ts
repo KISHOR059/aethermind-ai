@@ -1,6 +1,7 @@
 import { Router } from "express";
 import type { Router as RouterType } from "express";
 
+import activityRouter from "../modules/activity/activity.routes.js";
 import aiRouter from "../modules/ai/ai.routes.js";
 import assistantRouter from "../modules/assistant/assistant.routes.js";
 import authRouter from "../modules/auth/auth.routes.js";
@@ -13,6 +14,7 @@ const apiRouter: RouterType = Router();
 
 apiRouter.use("/api/v1", healthRouter);
 apiRouter.use("/api/v1/auth", authRouter);
+apiRouter.use("/api/v1/activity", activityRouter);
 apiRouter.use("/api/v1/ai", aiRouter);
 apiRouter.use("/api/v1/assistant", assistantRouter);
 apiRouter.use("/api/v1/dashboard", dashboardRouter);

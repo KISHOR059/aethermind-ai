@@ -11,7 +11,6 @@ import type {
   GenerateTextResponse,
   ModelInformation,
   ProviderStatus,
-  StructuredGenerationRequest,
   UsageMetadata,
 } from "./types.js";
 
@@ -149,15 +148,6 @@ export class OllamaProvider implements AIProvider {
     } finally {
       clearTimeout(timeoutId);
     }
-  }
-
-  public async generateStructuredOutput<T>(
-    _request: StructuredGenerationRequest<T>,
-  ): Promise<T> {
-    void _request;
-    throw new AIProviderError(
-      "Structured AI generation is not enabled yet",
-    );
   }
 }
 

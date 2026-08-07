@@ -3,7 +3,6 @@ import type {
   GenerateTextResponse,
   ModelInformation,
   ProviderStatus,
-  StructuredGenerationRequest,
 } from "./types.js";
 
 export interface AIProvider {
@@ -13,8 +12,4 @@ export interface AIProvider {
   generateText(
     request: GenerateTextRequest,
   ): Promise<GenerateTextResponse>;
-
-  generateStructuredOutput<T>(
-    request: StructuredGenerationRequest<T>,
-  ): Promise<T>;
 }

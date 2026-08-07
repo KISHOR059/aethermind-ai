@@ -71,7 +71,7 @@ export function TaskToolbar({
         {/* Status Filter */}
         <select
           value={statusFilter}
-          onChange={(e) => onStatusChange(e.target.value as TaskStatus | "ALL")}
+          onChange={(e) => onStatusChange(e.target.value as TaskStatusFilter)}
           className="h-9 px-3 text-xs rounded-xl border border-border/60 bg-card/80 font-medium text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
         >
           <option value="ALL">Status: All</option>

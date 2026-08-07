@@ -10,7 +10,6 @@ import type { AIProvider } from "./ai-provider.interface.js";
 import type {
   GenerateTextRequest,
   GenerateTextResponse,
-  StructuredGenerationRequest,
 } from "./types.js";
 import type {
   FinishReason,
@@ -76,15 +75,6 @@ export class GeminiProvider implements AIProvider {
     } catch (error) {
       throw mapProviderError(error);
     }
-  }
-
-  public async generateStructuredOutput<T>(
-    _request: StructuredGenerationRequest<T>,
-  ): Promise<T> {
-    void _request;
-    throw new AIProviderError(
-      "Structured AI generation is not enabled yet",
-    );
   }
 
   private getClient(): GoogleGenAI {

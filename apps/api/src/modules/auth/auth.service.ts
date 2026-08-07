@@ -124,11 +124,7 @@ export class AuthService {
 
   private verifyToken(token: string, secret: string): JwtPayload {
     try {
-      console.log("TOKEN:", token);
-
       const payload = jwt.verify(token, secret);
-
-      console.log("JWT VERIFIED:", payload);
 
       if (typeof payload === "string") {
         throw new UnauthorizedError("Invalid access token");
@@ -136,8 +132,6 @@ export class AuthService {
 
       return payload;
     } catch (error) {
-      console.error("JWT VERIFY ERROR:", error);
-
       if (error instanceof UnauthorizedError) {
         throw error;
       }
