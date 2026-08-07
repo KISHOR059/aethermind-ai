@@ -12,12 +12,14 @@ export const notificationKeys = {
 
 const NOTIFICATION_POLL_INTERVAL = 45_000;
 
+const notificationListKeys = ["notifications", "list"] as const;
+
 function updateCachedNotifications(
   queryClient: ReturnType<typeof useQueryClient>,
   updater: (current: NotificationListData) => NotificationListData,
 ) {
   const queries = queryClient.getQueriesData<NotificationListData>({
-    queryKey: notificationKeys.all,
+    queryKey: notificationListKeys,
   });
   queries.forEach(([key, data]) => {
     if (data) queryClient.setQueryData(key, updater(data));
@@ -26,7 +28,7 @@ function updateCachedNotifications(
 
 function snapshotAllNotificationCaches(queryClient: ReturnType<typeof useQueryClient>) {
   return queryClient.getQueriesData<NotificationListData>({
-    queryKey: notificationKeys.all,
+    queryKey: notificationListKeys,
   }) as [queryKey: readonly unknown[], data: NotificationListData | undefined][];
 }
 
@@ -130,7 +132,7 @@ export function useDeleteNotification() {
       await queryClient.cancelQueries({ queryKey: notificationKeys.all });
       const snapshots = snapshotAllNotificationCaches(queryClient);
 
-      const target = queryClient.getQueriesData<NotificationListData>({ queryKey: notificationKeys.all })
+      const target = queryClient.getQueriesData<NotificationListData>({ queryKey: notificationListKeys })
         .find(([, data]) => data?.items.some((item) => item.id === id))?.[1];
       const wasUnread = target?.items.find((item) => item.id === id)?.isRead === false;
 
