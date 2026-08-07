@@ -1,5 +1,6 @@
 import {
   Bot,
+  CalendarDays,
   CheckSquare,
   LayoutDashboard,
   Menu,
@@ -11,7 +12,11 @@ import { Suspense } from "react";
 import { NavLink, Outlet } from "react-router-dom";
 
 import ThemeToggle from "@/features/theme/ThemeToggle";
-import { NotificationBell, NotificationDrawer, useNotificationEffects } from "@/features/notifications";
+import {
+  NotificationBell,
+  NotificationDrawer,
+  useNotificationEffects,
+} from "@/features/notifications";
 import RouteLoading from "@/app/RouteLoading";
 import { env } from "@/shared/config/env";
 import { Avatar, AvatarFallback } from "@/shared/components/ui/avatar";
@@ -27,13 +32,19 @@ import {
 import { Input } from "@/shared/components/ui/input";
 import { ScrollArea } from "@/shared/components/ui/scroll-area";
 import { Separator } from "@/shared/components/ui/separator";
-import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/shared/components/ui/sheet";
+import {
+  Sheet,
+  SheetContent,
+  SheetTitle,
+  SheetTrigger,
+} from "@/shared/components/ui/sheet";
 import { cn } from "@/shared/lib/cn";
 import { useAuth } from "@/features/auth/hooks/auth.context";
 
 const navigationItems = [
   { label: "Dashboard", icon: LayoutDashboard, to: "/dashboard" },
   { label: "Tasks", icon: CheckSquare, to: "/tasks" },
+  { label: "Calendar", icon: CalendarDays, to: "/calendar" },
   { label: "AI Assistant", icon: Bot, to: "/assistant" },
   { label: "Settings", icon: Settings, to: "/settings" },
 ];
@@ -83,7 +94,9 @@ function Sidebar() {
 
 function UserMenu() {
   const { user, isAuthenticated, logout } = useAuth();
-  const initials = user ? `${user.firstName[0] ?? ""}${user.lastName[0] ?? ""}`.toUpperCase() : "AM";
+  const initials = user
+    ? `${user.firstName[0] ?? ""}${user.lastName[0] ?? ""}`.toUpperCase()
+    : "AM";
 
   if (!isAuthenticated) {
     return (
@@ -101,7 +114,12 @@ function UserMenu() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button aria-label="Open account menu" className="rounded-full" size="icon" variant="ghost">
+        <Button
+          aria-label="Open account menu"
+          className="rounded-full"
+          size="icon"
+          variant="ghost"
+        >
           <Avatar className="size-8 border border-border">
             <AvatarFallback className="bg-primary/10 text-primary text-xs font-bold">
               {initials}
@@ -110,12 +128,19 @@ function UserMenu() {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-48">
-        <DropdownMenuLabel>{user ? `${user.firstName} ${user.lastName}` : "Account"}</DropdownMenuLabel>
+        <DropdownMenuLabel>
+          {user ? `${user.firstName} ${user.lastName}` : "Account"}
+        </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild>
           <NavLink to="/settings">Settings</NavLink>
         </DropdownMenuItem>
-        <DropdownMenuItem onSelect={() => { void logout(); }} className="text-rose-600 focus:text-rose-600">
+        <DropdownMenuItem
+          onSelect={() => {
+            void logout();
+          }}
+          className="text-rose-600 focus:text-rose-600"
+        >
           Sign out
         </DropdownMenuItem>
       </DropdownMenuContent>
@@ -136,7 +161,12 @@ function AppLayout() {
         <header className="sticky top-0 z-10 flex h-16 items-center gap-4 border-b bg-background/95 px-4 backdrop-blur sm:px-6">
           <Sheet>
             <SheetTrigger asChild>
-              <Button aria-label="Open navigation" className="lg:hidden" size="icon" variant="outline">
+              <Button
+                aria-label="Open navigation"
+                className="lg:hidden"
+                size="icon"
+                variant="outline"
+              >
                 <Menu className="size-4" />
               </Button>
             </SheetTrigger>
@@ -147,7 +177,10 @@ function AppLayout() {
           </Sheet>
           <div className="relative max-w-md flex-1">
             <Search className="text-muted-foreground absolute top-1/2 left-3 size-4 -translate-y-1/2" />
-            <Input className="pl-9 h-9 text-xs" placeholder={`Search ${env.appName}...`} />
+            <Input
+              className="pl-9 h-9 text-xs"
+              placeholder={`Search ${env.appName}...`}
+            />
           </div>
           <div className="ml-auto flex items-center gap-2">
             <NotificationDrawer>

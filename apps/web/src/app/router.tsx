@@ -9,6 +9,7 @@ const DashboardPage = lazy(() => import("@/pages/DashboardPage"));
 const NotFoundPage = lazy(() => import("@/pages/NotFoundPage"));
 const SettingsPage = lazy(() => import("@/pages/SettingsPage"));
 const TasksPage = lazy(() => import("@/pages/TasksPage"));
+const CalendarPage = lazy(() => import("@/pages/CalendarPage"));
 const AssistantPage = lazy(() => import("@/pages/AssistantPage"));
 const LoginPage = lazy(() => import("@/pages/LoginPage"));
 const RegisterPage = lazy(() => import("@/pages/RegisterPage"));
@@ -23,10 +24,17 @@ export function AppRouter() {
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/unauthorized" element={<UnauthorizedPage />} />
           <Route path="/not-found" element={<NotFoundPage />} />
-          <Route element={<RequireAuth><AppLayout /></RequireAuth>}>
+          <Route
+            element={
+              <RequireAuth>
+                <AppLayout />
+              </RequireAuth>
+            }
+          >
             <Route path="/" element={<Navigate replace to="/dashboard" />} />
             <Route path="/dashboard" element={<DashboardPage />} />
             <Route path="/tasks" element={<TasksPage />} />
+            <Route path="/calendar" element={<CalendarPage />} />
             <Route path="/assistant" element={<AssistantPage />} />
             <Route path="/settings" element={<SettingsPage />} />
           </Route>
