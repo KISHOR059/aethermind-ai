@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
+import { useSearchParams } from "react-router-dom";
 
 import type { CalendarEvent, CalendarFilters } from "./calendar.types";
 import { useCalendarEvents, useCalendarViewPreference } from "./calendar.hooks";
@@ -47,7 +48,10 @@ import {
 const AGENDA_RANGE_DAYS = 45;
 
 export function CalendarWorkspace() {
-  const [view, setView] = useCalendarViewPreference();
+  const [searchParams] = useSearchParams();
+  const urlView = searchParams.get("view");
+  const initialView = urlView === "month" || urlView === "week" || urlView === "day" || urlView === "agenda" ? urlView : undefined;
+  const [view, setView] = useCalendarViewPreference(initialView);
   const [anchorDate, setAnchorDate] = useState<Date>(() =>
     startOfDay(new Date()),
   );
@@ -64,6 +68,22 @@ export function CalendarWorkspace() {
   );
   const [createOpen, setCreateOpen] = useState(false);
   const [focusedKey, setFocusedKey] = useState<string | null>(null);
+
+  const [lastUrlParams, setLastUrlParams] = useState(searchParams);
+  if (lastUrlParams !== searchParams) {
+    setLastUrlParams(searchParams);
+    const viewParam = searchParams.get("view");
+    if (viewParam === "month" || viewParam === "week" || viewParam === "day" || viewParam === "agenda") {
+      setView(viewParam);
+    }
+    const dateParam = searchParams.get("date");
+    if (dateParam && /^\d{4}-\d{2}-\d{2}$/.test(dateParam)) {
+      const date = startOfDay(new Date(`${dateParam}T00:00:00`));
+      setAnchorDate(date);
+      setSelectedDate(date);
+      setFocusedKey(dateKey(date));
+    }
+  }
 
   const searchInputRef = useRef<HTMLInputElement>(null);
   const updateTask = useUpdateTask();

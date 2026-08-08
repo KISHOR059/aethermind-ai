@@ -31,12 +31,27 @@ import { Progress } from "@/shared/components/ui/progress";
 import { ScrollArea } from "@/shared/components/ui/scroll-area";
 import { Separator } from "@/shared/components/ui/separator";
 
-function PlanMyDayDialog() {
-  const [open, setOpen] = useState(false);
+export interface PlanMyDayDialogProps {
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+}
+
+export function PlanMyDayDialog({
+  open: externalOpen,
+  onOpenChange: externalOnOpenChange,
+}: PlanMyDayDialogProps = {}) {
+  const [internalOpen, setInternalOpen] = useState(false);
+  const isControlled = externalOpen !== undefined;
+  const open = isControlled ? externalOpen : internalOpen;
+
   const plan = usePlanDay();
 
   function handleOpenChange(nextOpen: boolean) {
-    setOpen(nextOpen);
+    if (isControlled) {
+      externalOnOpenChange?.(nextOpen);
+    } else {
+      setInternalOpen(nextOpen);
+    }
 
     if (nextOpen && (!plan.data || plan.isStale)) {
       void plan.refetch();
@@ -45,12 +60,14 @@ function PlanMyDayDialog() {
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogTrigger asChild>
-        <Button variant="outline">
-          <Sparkles />
-          Plan My Day
-        </Button>
-      </DialogTrigger>
+      {!isControlled && (
+        <DialogTrigger asChild>
+          <Button variant="outline">
+            <Sparkles />
+            Plan My Day
+          </Button>
+        </DialogTrigger>
+      )}
       <DialogContent className="max-w-2xl">
         <DialogHeader>
           <DialogTitle>AI Daily Plan</DialogTitle>

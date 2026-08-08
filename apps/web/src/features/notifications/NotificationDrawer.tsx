@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Bell, CheckCheck, X } from "lucide-react";
 
@@ -13,6 +13,7 @@ import { NotificationEmpty } from "./NotificationEmpty";
 import { NotificationSkeleton } from "./NotificationSkeleton";
 import { NotificationFilters, type NotificationReadFilter } from "./NotificationFilters";
 import type { NotificationTypeFilter } from "./notification.types";
+import { NOTIFICATIONS_OPEN_EVENT, type NotificationsOpenDetail } from "./notifications-events";
 
 type NotificationDrawerProps = {
   children?: React.ReactNode;
@@ -28,6 +29,16 @@ export function NotificationDrawer({
   const [open, setOpen] = useState(defaultOpen);
   const [typeFilter, setTypeFilter] = useState<NotificationTypeFilter>("ALL");
   const [readFilter, setReadFilter] = useState<NotificationReadFilter>("ALL");
+
+  useEffect(() => {
+    const handleOpenFromCommand = (event: Event) => {
+      const detail = (event as CustomEvent<NotificationsOpenDetail>).detail;
+      setReadFilter(detail?.readFilter ?? "ALL");
+      setOpen(true);
+    };
+    window.addEventListener(NOTIFICATIONS_OPEN_EVENT, handleOpenFromCommand);
+    return () => window.removeEventListener(NOTIFICATIONS_OPEN_EVENT, handleOpenFromCommand);
+  }, []);
 
   const handleOpenChange = (next: boolean) => {
     setOpen(next);

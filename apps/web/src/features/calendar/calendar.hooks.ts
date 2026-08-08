@@ -33,9 +33,9 @@ export function isMobileViewport(): boolean {
   return window.matchMedia(MOBILE_QUERY).matches;
 }
 
-export function useCalendarViewPreference() {
+export function useCalendarViewPreference(initialView?: CalendarView) {
   const [view, setView] = useState<CalendarView>(
-    () => readStoredView() ?? (isMobileViewport() ? "agenda" : "month"),
+    () => initialView ?? readStoredView() ?? (isMobileViewport() ? "agenda" : "month"),
   );
 
   useEffect(() => {

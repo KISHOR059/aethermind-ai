@@ -12,6 +12,9 @@ import { Suspense } from "react";
 import { NavLink, Outlet } from "react-router-dom";
 
 import ThemeToggle from "@/features/theme/ThemeToggle";
+import { CommandPaletteProvider } from "@/features/command-palette";
+import { useCommandPalette } from "@/features/command-palette/command-palette.hooks";
+import { CommandShortcuts } from "@/features/command-palette/CommandShortcuts";
 import {
   NotificationBell,
   NotificationDrawer,
@@ -29,7 +32,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/shared/components/ui/dropdown-menu";
-import { Input } from "@/shared/components/ui/input";
 import { ScrollArea } from "@/shared/components/ui/scroll-area";
 import { Separator } from "@/shared/components/ui/separator";
 import {
@@ -148,56 +150,75 @@ function UserMenu() {
   );
 }
 
+const IS_MAC = typeof navigator !== "undefined" && /Mac/.test(navigator.userAgent);
+
+function CommandPaletteSearchButton() {
+  const { open } = useCommandPalette();
+
+  return (
+    <button
+      type="button"
+      onClick={open}
+      aria-label="Search commands"
+      className="flex h-9 w-full max-w-md items-center gap-2 rounded-lg border border-input bg-muted/40 px-3 text-xs text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
+    >
+      <Search className="size-4 shrink-0" />
+      <span className="min-w-0 flex-1 truncate text-left">
+        Search {env.appName}…
+      </span>
+      <CommandShortcuts keys={[IS_MAC ? "⌘" : "Ctrl", "K"]} />
+    </button>
+  );
+}
+
 function AppLayout() {
   useNotificationEffects();
 
   return (
-    <div className="min-h-screen bg-background text-foreground flex flex-col">
-      <aside className="fixed inset-y-0 left-0 z-20 hidden w-64 border-r bg-card lg:block">
-        <Sidebar />
-      </aside>
+    <CommandPaletteProvider>
+      <div className="min-h-screen bg-background text-foreground flex flex-col">
+        <aside className="fixed inset-y-0 left-0 z-20 hidden w-64 border-r bg-card lg:block">
+          <Sidebar />
+        </aside>
 
-      <div className="lg:pl-64 flex flex-1 flex-col">
-        <header className="sticky top-0 z-10 flex h-16 items-center gap-4 border-b bg-background/95 px-4 backdrop-blur sm:px-6">
-          <Sheet>
-            <SheetTrigger asChild>
-              <Button
-                aria-label="Open navigation"
-                className="lg:hidden"
-                size="icon"
-                variant="outline"
-              >
-                <Menu className="size-4" />
-              </Button>
-            </SheetTrigger>
-            <SheetContent className="p-0" side="left">
-              <SheetTitle className="sr-only">Navigation</SheetTitle>
-              <Sidebar />
-            </SheetContent>
-          </Sheet>
-          <div className="relative max-w-md flex-1">
-            <Search className="text-muted-foreground absolute top-1/2 left-3 size-4 -translate-y-1/2" />
-            <Input
-              className="pl-9 h-9 text-xs"
-              placeholder={`Search ${env.appName}...`}
-            />
-          </div>
-          <div className="ml-auto flex items-center gap-2">
-            <NotificationDrawer>
-              <NotificationBell />
-            </NotificationDrawer>
-            <ThemeToggle />
-            <Separator orientation="vertical" className="h-6" />
-            <UserMenu />
-          </div>
-        </header>
-        <main className="mx-auto w-full max-w-[1600px] flex-1 p-4 sm:p-6 lg:p-8 space-y-6">
-          <Suspense fallback={<RouteLoading />}>
-            <Outlet />
-          </Suspense>
-        </main>
+        <div className="lg:pl-64 flex flex-1 flex-col">
+          <header className="sticky top-0 z-10 flex h-16 items-center gap-4 border-b bg-background/95 px-4 backdrop-blur sm:px-6">
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button
+                  aria-label="Open navigation"
+                  className="lg:hidden"
+                  size="icon"
+                  variant="outline"
+                >
+                  <Menu className="size-4" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent className="p-0" side="left">
+                <SheetTitle className="sr-only">Navigation</SheetTitle>
+                <Sidebar />
+              </SheetContent>
+            </Sheet>
+            <div className="max-w-md flex-1">
+              <CommandPaletteSearchButton />
+            </div>
+            <div className="ml-auto flex items-center gap-2">
+              <NotificationDrawer>
+                <NotificationBell />
+              </NotificationDrawer>
+              <ThemeToggle />
+              <Separator orientation="vertical" className="h-6" />
+              <UserMenu />
+            </div>
+          </header>
+          <main className="mx-auto w-full max-w-[1600px] flex-1 p-4 sm:p-6 lg:p-8 space-y-6">
+            <Suspense fallback={<RouteLoading />}>
+              <Outlet />
+            </Suspense>
+          </main>
+        </div>
       </div>
-    </div>
+    </CommandPaletteProvider>
   );
 }
 

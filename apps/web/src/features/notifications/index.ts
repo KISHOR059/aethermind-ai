@@ -26,6 +26,11 @@ export {
   NOTIFICATION_TYPES,
   NOTIFICATION_PRIORITIES,
 } from "./notification.types";
+export {
+  NOTIFICATIONS_OPEN_EVENT,
+  openNotificationsDrawer,
+} from "./notifications-events";
+export type { NotificationsOpenDetail } from "./notifications-events";
 export type {
   Notification,
   NotificationListParams,

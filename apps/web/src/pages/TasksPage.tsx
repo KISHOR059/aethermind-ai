@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { BarChart3, CalendarClock, Plus, Sparkles } from "lucide-react";
+import { useSearchParams } from "react-router-dom";
 
 import PlanMyDayDialog from "@/features/ai/PlanMyDayDialog";
 import TaskPrioritizationDialog from "@/features/ai/TaskPrioritizationDialog";
@@ -20,10 +21,39 @@ import type { Task, TaskPriority, TaskStatusFilter } from "@/features/tasks/task
 import { Button } from "@/shared/components/ui/button";
 import PageHeader from "@/shared/components/PageHeader";
 
+function isSameDay(isoDate: string | undefined, date: Date) {
+  if (!isoDate) return false;
+  const target = new Date(isoDate);
+  return (
+    target.getFullYear() === date.getFullYear() &&
+    target.getMonth() === date.getMonth() &&
+    target.getDate() === date.getDate()
+  );
+}
+
+function parseStatusFilter(value: string | null): TaskStatusFilter {
+  return value === "TODO" ||
+    value === "IN_PROGRESS" ||
+    value === "COMPLETED" ||
+    value === "OVERDUE"
+    ? value
+    : "ALL";
+}
+
+function parsePriorityFilter(value: string | null): TaskPriority | "ALL" {
+  return value === "LOW" || value === "MEDIUM" || value === "HIGH" || value === "URGENT"
+    ? value
+    : "ALL";
+}
+
 function TasksPage() {
-  const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState<TaskStatusFilter>("ALL");
-  const [priorityFilter, setPriorityFilter] = useState<TaskPriority | "ALL">("ALL");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const search = searchParams.get("search") ?? "";
+  const statusFilter = parseStatusFilter(searchParams.get("status"));
+  const priorityFilter = parsePriorityFilter(searchParams.get("priority"));
+  const dueToday = searchParams.get("dueToday") === "1";
+  const taskIdFromUrl = searchParams.get("task");
+
   const [sortBy, setSortBy] = useState<string>("createdAt");
   const [viewMode, setViewMode] = useState<"list" | "grid">("list");
 
@@ -34,7 +64,64 @@ function TasksPage() {
   const [createTaskOpen, setCreateTaskOpen] = useState(false);
 
   // Selected Task Drawer State
-  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+  const [selectedTaskLocal, setSelectedTaskLocal] = useState<Task | null>(null);
+
+  const updateTaskFilters = useMemo(
+    () =>
+      (updates: Record<string, string | undefined>) =>
+        setSearchParams(
+          (previous) => {
+            const next = new URLSearchParams(previous);
+            for (const [key, value] of Object.entries(updates)) {
+              if (value === undefined || value === "" || value === "ALL") {
+                next.delete(key);
+              } else {
+                next.set(key, value);
+              }
+            }
+            return next;
+          },
+          { replace: true },
+        ),
+    [setSearchParams],
+  );
+
+  const clearTaskFromUrl = useMemo(
+    () => () =>
+      setSearchParams(
+        (previous) => {
+          const next = new URLSearchParams(previous);
+          next.delete("task");
+          return next;
+        },
+        { replace: true },
+      ),
+    [setSearchParams],
+  );
+
+  const handleDrawerOpenChange = (open: boolean) => {
+    if (!open) {
+      setSelectedTaskLocal(null);
+      if (taskIdFromUrl) clearTaskFromUrl();
+    }
+  };
+
+  const handleSelectTask = (task: Task) => {
+    setSelectedTaskLocal(task);
+    if (taskIdFromUrl) clearTaskFromUrl();
+  };
+
+  const handleSearchChange = (value: string) => {
+    updateTaskFilters({ search: value.trim() ? value : undefined });
+  };
+
+  const handleStatusChange = (value: TaskStatusFilter) => {
+    updateTaskFilters({ status: value === "ALL" ? undefined : value });
+  };
+
+  const handlePriorityChange = (value: TaskPriority | "ALL") => {
+    updateTaskFilters({ priority: value === "ALL" ? undefined : value });
+  };
 
   // Query Backend Tasks
   const taskCounts = useTaskCounts();
@@ -55,6 +142,13 @@ function TasksPage() {
   });
 
   const rawTasks = useMemo(() => tasksQuery.data?.items ?? [], [tasksQuery.data?.items]);
+
+  const selectedTaskFromUrl = useMemo(() => {
+    if (!taskIdFromUrl) return null;
+    return tasksQuery.data?.items.find((task) => task.id === taskIdFromUrl) ?? null;
+  }, [taskIdFromUrl, tasksQuery.data?.items]);
+
+  const selectedTask = selectedTaskFromUrl ?? selectedTaskLocal;
 
   const filteredTasks = useMemo(() => {
     let result = [...rawTasks];
@@ -82,6 +176,13 @@ function TasksPage() {
       );
     }
 
+    if (dueToday) {
+      const today = new Date();
+      result = result.filter(
+        (t) => t.status !== "COMPLETED" && isSameDay(t.dueDate, today),
+      );
+    }
+
     if (priorityFilter !== "ALL") {
       result = result.filter((t) => t.priority === priorityFilter);
     }
@@ -105,7 +206,7 @@ function TasksPage() {
     }
 
     return result;
-  }, [rawTasks, search, statusFilter, priorityFilter, sortBy]);
+  }, [rawTasks, search, statusFilter, priorityFilter, dueToday, sortBy]);
 
   return (
     <div className="max-w-screen-2xl mx-auto space-y-6 pb-12">
@@ -162,18 +263,18 @@ function TasksPage() {
           overdue: taskCounts.overdue,
         }}
         activeStatusFilter={statusFilter}
-        onStatusSelect={setStatusFilter}
+        onStatusSelect={handleStatusChange}
         isLoading={taskCounts.isLoading}
       />
 
       {/* 3. Sticky Top Toolbar */}
       <TaskToolbar
         search={search}
-        onSearchChange={setSearch}
+        onSearchChange={handleSearchChange}
         statusFilter={statusFilter}
-        onStatusChange={setStatusFilter}
+        onStatusChange={handleStatusChange}
         priorityFilter={priorityFilter}
-        onPriorityChange={setPriorityFilter}
+        onPriorityChange={handlePriorityChange}
         sortBy={sortBy}
         onSortByChange={setSortBy}
         viewMode={viewMode}
@@ -194,7 +295,7 @@ function TasksPage() {
         <TaskList
           tasks={filteredTasks}
           viewMode={viewMode}
-          onSelectTask={(task) => setSelectedTask(task)}
+          onSelectTask={handleSelectTask}
         />
       )}
 
@@ -202,9 +303,7 @@ function TasksPage() {
       <TaskDetailsDrawer
         task={selectedTask}
         open={!!selectedTask}
-        onOpenChange={(open) => {
-          if (!open) setSelectedTask(null);
-        }}
+        onOpenChange={handleDrawerOpenChange}
       />
 
       {/* Floating Create Button */}
