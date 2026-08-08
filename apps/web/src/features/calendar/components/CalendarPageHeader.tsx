@@ -16,14 +16,12 @@ export function CalendarPageHeader({
   return (
     <div className="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-border/50">
       <div className="flex items-center gap-3">
-        <div className="flex size-10 items-center justify-center rounded-xl bg-gradient-to-br from-primary/15 via-primary/10 to-primary/5 text-primary shadow-sm ring-1 ring-inset ring-primary/20">
+        <div className="flex size-10 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-sm">
           <Calendar className="size-5" aria-hidden="true" />
         </div>
         <div className="space-y-1">
           <h1 className="text-xl font-bold tracking-tight text-foreground sm:text-2xl">
-            <span className="bg-gradient-to-r from-primary via-primary/80 to-primary/50 bg-clip-text text-transparent">
-              {periodLabel}
-            </span>
+            {periodLabel}
           </h1>
           <p className="hidden text-xs text-muted-foreground sm:block">
             Calendar · Plan, schedule, and stay on top of your tasks.

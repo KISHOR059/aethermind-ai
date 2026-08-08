@@ -25,6 +25,12 @@ import {
   timeDropId,
 } from "../dnd/dnd.types";
 import { useCalendarDnd } from "../dnd/calendar-dnd-context";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/shared/components/ui/tooltip";
+import EventTooltipContent from "./EventTooltipContent";
 import { cn } from "@/shared/lib/cn";
 
 const TIME_GRID_HEIGHT = 480;
@@ -55,26 +61,37 @@ export const TimelineEventBlock = memo(
       const start = new Date(event.start);
 
       return (
-        <motion.button
-          ref={ref}
-          type="button"
-          whileHover={{ scale: 1.02 }}
-          transition={{ duration: 0.15 }}
-          onClick={() => onSelect(event)}
-          style={{ top: `${top}%`, height: `${height}%`, ...styleProp }}
-          className={cn(
-            "absolute left-0.5 right-0.5 z-10 flex min-h-5 flex-col justify-center overflow-hidden rounded-md border px-1.5 py-0.5 text-left text-[11px] leading-tight shadow-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-            style.pill,
-          )}
-          aria-label={`${event.title}, ${formatTime(start)}`}
-        >
-          <span className="truncate font-semibold">{event.title}</span>
-          {height > 8 && (
-            <span className="truncate text-[10px] opacity-75">
-              {formatTime(start)}
-            </span>
-          )}
-        </motion.button>
+        <Tooltip delayDuration={300}>
+          <TooltipTrigger asChild>
+            <motion.button
+              ref={ref}
+              type="button"
+              whileHover={{ scale: 1.02 }}
+              transition={{ duration: 0.15 }}
+              onClick={() => onSelect(event)}
+              style={{ top: `${top}%`, height: `${height}%`, ...styleProp }}
+              className={cn(
+                "absolute left-0.5 right-0.5 z-10 flex min-h-5 flex-col justify-center overflow-hidden rounded-md border px-1.5 py-0.5 text-left text-[11px] leading-tight shadow-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                style.pill,
+              )}
+              aria-label={`${event.title}, ${formatTime(start)}`}
+            >
+              <span className="truncate font-semibold">{event.title}</span>
+              {height > 8 && (
+                <span className="truncate text-[10px] opacity-75">
+                  {formatTime(start)}
+                </span>
+              )}
+            </motion.button>
+          </TooltipTrigger>
+          <TooltipContent
+            side="top"
+            sideOffset={6}
+            className="w-72 max-w-sm flex-col items-start gap-0 rounded-lg px-3.5 py-3"
+          >
+            <EventTooltipContent event={event} />
+          </TooltipContent>
+        </Tooltip>
       );
     },
   ),
@@ -106,8 +123,8 @@ const DayHeaderDropButton = memo(function DayHeaderDropButton({
       onClick={() => onSelectDate(day)}
       className={cn(
         "flex flex-col items-center gap-1 border-l border-border/40 py-2 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring",
-        isWeekend(day) && "bg-muted/20",
-        selected && "bg-primary/5",
+        isWeekend(day) && "bg-muted/30",
+        selected && "bg-primary/10",
         isOver && "bg-primary/10 ring-2 ring-inset ring-primary/60",
       )}
       aria-label={day.toLocaleDateString(undefined, {
@@ -209,7 +226,7 @@ const TimeDropColumn = memo(function TimeDropColumn({
       ref={setNodeRef}
       className={cn(
         "relative h-full border-l border-border/40",
-        isWeekend(day) && "bg-muted/20",
+        isWeekend(day) && "bg-muted/30",
         isOver && "bg-primary/10",
       )}
     >

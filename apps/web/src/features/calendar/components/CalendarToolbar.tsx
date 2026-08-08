@@ -114,7 +114,7 @@ export function CalendarToolbar({
       </div>
 
       {/* Current period label */}
-      <span className="hidden text-sm font-bold tracking-tight text-primary lg:inline">
+      <span className="hidden text-sm font-bold tracking-tight text-foreground lg:inline">
         {periodLabel}
       </span>
 
@@ -122,7 +122,7 @@ export function CalendarToolbar({
       <div
         role="tablist"
         aria-label="Calendar view"
-        className="inline-flex items-center rounded-xl border border-border/60 bg-card/80 p-0.5"
+        className="inline-flex items-center rounded-xl border border-border/60 bg-card p-0.5"
       >
         {VIEW_OPTIONS.map(({ value, label, icon: Icon }) => {
           const active = view === value;
@@ -159,7 +159,7 @@ export function CalendarToolbar({
             onChange={(e) => updateFilters({ search: e.target.value })}
             placeholder="Search tasks… (/)"
             aria-label="Search calendar tasks"
-            className="h-9 bg-card/80 pl-9 pr-8 text-xs rounded-xl border-border/60"
+            className="h-9 bg-card pl-9 pr-8 text-xs rounded-xl border-border/60"
           />
           {filters.search && (
             <button

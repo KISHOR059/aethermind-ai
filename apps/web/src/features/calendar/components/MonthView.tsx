@@ -45,7 +45,7 @@ export function MonthView({
     >
       <div
         role="row"
-        className="grid grid-cols-7 border-b border-border/60 bg-muted/30"
+        className="grid grid-cols-7 border-b border-border/60 bg-muted"
       >
         {WEEKDAYS_SHORT.map((weekday, index) => (
           <div

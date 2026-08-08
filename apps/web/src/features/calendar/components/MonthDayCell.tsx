@@ -48,11 +48,11 @@ export const MonthDayCell = memo(function MonthDayCell({
       className={cn(
         "group relative flex min-h-[7.5rem] flex-col gap-1 border-r border-b border-border/50 p-1.5 transition-colors last:border-r-0 focus-within:z-10",
         isOutsideMonth
-          ? "bg-muted/30"
+          ? "bg-muted/40"
           : isWeekend
-            ? "bg-muted/20"
+            ? "bg-muted/30"
             : "bg-background",
-        isSelected && "bg-primary/5",
+        isSelected && "bg-primary/10",
         isToday && "ring-1 ring-inset ring-primary/30",
         isOver && "bg-primary/10 ring-2 ring-inset ring-primary/60",
       )}
