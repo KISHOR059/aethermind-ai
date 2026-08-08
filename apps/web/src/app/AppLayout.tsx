@@ -42,6 +42,7 @@ import {
 } from "@/shared/components/ui/sheet";
 import { cn } from "@/shared/lib/cn";
 import { useAuth } from "@/features/auth/hooks/auth.context";
+import SessionManager from "@/features/auth/session/SessionManager";
 
 const navigationItems = [
   { label: "Dashboard", icon: LayoutDashboard, to: "/dashboard" },
@@ -217,6 +218,7 @@ function AppLayout() {
             </Suspense>
           </main>
         </div>
+        <SessionManager />
       </div>
     </CommandPaletteProvider>
   );

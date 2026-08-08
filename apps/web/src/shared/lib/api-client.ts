@@ -46,6 +46,23 @@ const apiClient: AxiosInstance = axios.create({
 });
 
 let refreshPromise: Promise<string> | null = null;
+let sessionExpiredHandler: (() => void) | null = null;
+
+export function setSessionExpiredHandler(handler: () => void) {
+  sessionExpiredHandler = handler;
+}
+
+function handleSessionExpired() {
+  if (sessionExpiredHandler) {
+    sessionExpiredHandler();
+    return;
+  }
+
+  tokenStorage.remove();
+  if (!window.location.pathname.startsWith("/login")) {
+    window.location.assign("/login");
+  }
+}
 
 function getAccessToken() {
   return tokenStorage.get();
@@ -89,6 +106,13 @@ async function refreshAccessToken() {
         setAccessToken(token);
         return token;
       })
+      .catch((error: AxiosError<ApiErrorPayload>) => {
+        if (error.response?.status === 401) {
+          handleSessionExpired();
+        }
+
+        throw error;
+      })
       .finally(() => {
         refreshPromise = null;
       });
@@ -130,8 +154,7 @@ apiClient.interceptors.response.use(
         config.headers.Authorization = `Bearer ${token}`;
         return apiClient(config);
       } catch (refreshError) {
-        tokenStorage.remove();
-        if (!window.location.pathname.startsWith("/login")) window.location.assign("/login");
+        handleSessionExpired();
         return Promise.reject(normalizeError(refreshError));
       }
     }

@@ -15,5 +15,9 @@ export const loginSchema = z.object({
   password: z.string().min(1),
 });
 
+export const sessionIdParamSchema = z.object({
+  sessionId: z.string().regex(/^[a-f\d]{24}$/i, "Invalid session id"),
+});
+
 export type RegisterInput = z.infer<typeof registerSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;

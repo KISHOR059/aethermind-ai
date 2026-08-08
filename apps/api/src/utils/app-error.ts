@@ -34,9 +34,19 @@ export class ValidationError extends AppError {
 }
 
 export class UnauthorizedError extends AppError {
-  public constructor(message: string = MESSAGES.UNAUTHORIZED) {
-    super(message, HTTP_STATUS.UNAUTHORIZED, ERROR_CODES.UNAUTHORIZED);
+  public constructor(
+    message: string = MESSAGES.UNAUTHORIZED,
+    code: ErrorCode = ERROR_CODES.UNAUTHORIZED,
+  ) {
+    super(message, HTTP_STATUS.UNAUTHORIZED, code);
     this.name = "UnauthorizedError";
+  }
+}
+
+export class SessionExpiredError extends UnauthorizedError {
+  public constructor(message: string = "Your session has expired") {
+    super(message, ERROR_CODES.SESSION_EXPIRED);
+    this.name = "SessionExpiredError";
   }
 }
 

@@ -1,7 +1,7 @@
 import type { ApiSuccess } from "@/shared/types/api";
 import apiClient from "@/shared/lib/api-client";
 
-import type { AuthSession, LoginInput, RegisterInput, User } from "../types";
+import type { AuthSession, LoginInput, RegisterInput, SessionInfo, User } from "../types";
 
 export const authService = {
   async login(input: LoginInput) {
@@ -22,6 +22,16 @@ export const authService = {
   },
   async logout() {
     await apiClient.post<ApiSuccess<Record<string, never>>>("/auth/logout");
+  },
+  async listSessions() {
+    const response = await apiClient.get<ApiSuccess<{ sessions: SessionInfo[] }>>("/auth/sessions");
+    return response.data.data.sessions;
+  },
+  async revokeSession(sessionId: string) {
+    await apiClient.delete<ApiSuccess<Record<string, never>>>(`/auth/sessions/${sessionId}`);
+  },
+  async logoutAll() {
+    await apiClient.post<ApiSuccess<Record<string, never>>>("/auth/logout-all");
   },
 };
 

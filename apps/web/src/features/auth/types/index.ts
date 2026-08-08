@@ -1,2 +1,9 @@
-export type { AuthSession, LoginInput, RegisterInput, User, UserRole } from "./auth.types";
+export type {
+  AuthSession,
+  LoginInput,
+  RegisterInput,
+  SessionInfo,
+  User,
+  UserRole,
+} from "./auth.types";
 

@@ -1,13 +1,23 @@
 import bcrypt from "bcrypt";
+import { randomBytes, randomUUID } from "node:crypto";
 import jwt, { type JwtPayload, type SignOptions } from "jsonwebtoken";
 
 import { env } from "../../config/env.js";
+import { hashToken } from "../../utils/hash.js";
 import {
   ConflictError,
+  NotFoundError,
+  SessionExpiredError,
   UnauthorizedError,
 } from "../../utils/app-error.js";
-import type { AuthSession, PublicUser } from "./auth.types.js";
+import type {
+  AuthSession,
+  DeviceInfo,
+  PublicSession,
+  PublicUser,
+} from "./auth.types.js";
 import type { LoginInput, RegisterInput } from "./auth.validation.js";
+import type { ISessionRepository } from "./session.repository.interface.js";
 import { type UserDocument, UserRole } from "./user.model.js";
 import type { IUserRepository } from "./user.repository.interface.js";
 
@@ -29,9 +39,15 @@ function toPublicUser(user: UserDocument): PublicUser {
 }
 
 export class AuthService {
-  public constructor(private readonly userRepository: IUserRepository) {}
+  public constructor(
+    private readonly userRepository: IUserRepository,
+    private readonly sessionRepository: ISessionRepository,
+  ) {}
 
-  public async register(input: RegisterInput): Promise<AuthSession> {
+  public async register(
+    input: RegisterInput,
+    deviceInfo?: DeviceInfo,
+  ): Promise<AuthSession> {
     const existingUser = await this.userRepository.findByEmail(input.email);
 
     if (existingUser) {
@@ -41,10 +57,13 @@ export class AuthService {
     const password = await bcrypt.hash(input.password, PASSWORD_SALT_ROUNDS);
     const user = await this.userRepository.create({ ...input, password });
 
-    return this.createSession(user);
+    return this.createSession(user, deviceInfo);
   }
 
-  public async login(input: LoginInput): Promise<AuthSession> {
+  public async login(
+    input: LoginInput,
+    deviceInfo?: DeviceInfo,
+  ): Promise<AuthSession> {
     const user = await this.userRepository.findByEmailWithPassword(input.email);
     const isPasswordValid = user
       ? await bcrypt.compare(input.password, user.password)
@@ -54,7 +73,7 @@ export class AuthService {
       throw new UnauthorizedError("Invalid email or password");
     }
 
-    return this.createSession(user);
+    return this.createSession(user, deviceInfo);
   }
 
   public async authenticateAccessToken(token: string): Promise<PublicUser> {
@@ -76,7 +95,40 @@ export class AuthService {
   public async refreshSession(refreshToken: string): Promise<AuthSession> {
     const payload = this.verifyToken(refreshToken, env.JWT_REFRESH_SECRET);
 
-    if (!payload.sub) {
+    if (!payload.sub || typeof payload.sid !== "string") {
+      throw new UnauthorizedError("Invalid refresh token");
+    }
+
+    const session = await this.sessionRepository.findById(payload.sid);
+
+    if (!session) {
+      throw new UnauthorizedError("Session is no longer valid");
+    }
+
+    if (session.userId.toString() !== payload.sub) {
+      throw new UnauthorizedError("Invalid refresh token");
+    }
+
+    if (session.revokedAt) {
+      throw new UnauthorizedError("Session has been revoked");
+    }
+
+    const now = new Date();
+
+    if (now.getTime() - session.lastActivityAt.getTime() > env.SESSION_INACTIVITY_TIMEOUT_MS) {
+      await this.sessionRepository.revoke(session._id.toString());
+      throw new SessionExpiredError("Your session has expired due to inactivity");
+    }
+
+    if (now.getTime() > session.absoluteExpiresAt.getTime()) {
+      await this.sessionRepository.revoke(session._id.toString());
+      throw new SessionExpiredError("Your session has expired");
+    }
+
+    const presentedHash = hashToken(refreshToken);
+
+    if (presentedHash !== session.refreshTokenHash) {
+      await this.sessionRepository.revoke(session._id.toString());
       throw new UnauthorizedError("Invalid refresh token");
     }
 
@@ -86,39 +138,131 @@ export class AuthService {
       throw new UnauthorizedError("User is not authorized");
     }
 
-    return this.createSession(user);
-  }
+    const newRefreshToken = this.signRefreshToken(
+      payload.sub,
+      session._id.toString(),
+      user.role,
+    );
+    const lastActivityAt = new Date();
+    const expiresAt = new Date(
+      lastActivityAt.getTime() + env.SESSION_INACTIVITY_TIMEOUT_MS,
+    );
 
-  private createSession(user: UserDocument): AuthSession {
-    const userId = user._id.toString();
+    const rotated = await this.sessionRepository.rotateRefreshToken(
+      session._id.toString(),
+      session.refreshTokenHash,
+      {
+        refreshTokenHash: hashToken(newRefreshToken),
+        lastActivityAt,
+        expiresAt,
+      },
+    );
+
+    if (!rotated) {
+      throw new UnauthorizedError("Invalid refresh token");
+    }
 
     return {
       user: toPublicUser(user),
-      accessToken: this.signToken(
-        userId,
-        user.role,
-        env.JWT_ACCESS_SECRET,
-        env.JWT_ACCESS_EXPIRES_IN,
-      ),
-      refreshToken: this.signToken(
-        userId,
-        user.role,
-        env.JWT_REFRESH_SECRET,
-        env.JWT_REFRESH_EXPIRES_IN,
-      ),
+      accessToken: this.signAccessToken(user._id.toString(), user.role),
+      refreshToken: newRefreshToken,
     };
   }
 
-  private signToken(
-    subject: string,
-    role: UserRole,
-    secret: string,
-    expiresIn: string,
-  ): string {
+  public async revokeSessionById(sessionId: string): Promise<boolean> {
+    const session = await this.sessionRepository.revoke(sessionId);
+
+    return session !== null;
+  }
+
+  public async revokeSession(userId: string, sessionId: string): Promise<void> {
+    const session = await this.sessionRepository.findById(sessionId);
+
+    if (!session || session.userId.toString() !== userId) {
+      throw new NotFoundError("Session not found");
+    }
+
+    await this.sessionRepository.revoke(sessionId);
+  }
+
+  public async revokeAllSessions(userId: string): Promise<number> {
+    return this.sessionRepository.revokeAllByUser(userId);
+  }
+
+  public async listSessions(
+    userId: string,
+    currentSessionId?: string,
+  ): Promise<PublicSession[]> {
+    const sessions = await this.sessionRepository.findActiveByUserId(userId);
+
+    return sessions.map((session) => ({
+      id: session._id.toString(),
+      createdAt: session.createdAt,
+      lastActivityAt: session.lastActivityAt,
+      expiresAt: session.expiresAt,
+      userAgent: session.userAgent,
+      ipAddress: session.ipAddress,
+      isCurrent: session._id.toString() === currentSessionId,
+    }));
+  }
+
+  private async createSession(
+    user: UserDocument,
+    deviceInfo?: DeviceInfo,
+  ): Promise<AuthSession> {
+    const userId = user._id.toString();
+    const now = new Date();
+
+    const session = await this.sessionRepository.create({
+      userId,
+      refreshTokenHash: randomBytes(32).toString("hex"),
+      lastActivityAt: now,
+      expiresAt: new Date(now.getTime() + env.SESSION_INACTIVITY_TIMEOUT_MS),
+      absoluteExpiresAt: new Date(now.getTime() + env.SESSION_MAX_LIFETIME_MS),
+      userAgent: deviceInfo?.userAgent,
+      ipAddress: deviceInfo?.ipAddress,
+    });
+
+    const refreshToken = this.signRefreshToken(
+      userId,
+      session._id.toString(),
+      user.role,
+    );
+
+    await this.sessionRepository.rotateRefreshToken(
+      session._id.toString(),
+      session.refreshTokenHash,
+      {
+        refreshTokenHash: hashToken(refreshToken),
+        lastActivityAt: now,
+        expiresAt: session.expiresAt,
+      },
+    );
+
+    return {
+      user: toPublicUser(user),
+      accessToken: this.signAccessToken(userId, user.role),
+      refreshToken,
+    };
+  }
+
+  private signAccessToken(subject: string, role: UserRole): string {
     return jwt.sign(
       { sub: subject, role },
-      secret,
-      { expiresIn: expiresIn as SignOptions["expiresIn"] },
+      env.JWT_ACCESS_SECRET,
+      { expiresIn: env.JWT_ACCESS_EXPIRES_IN as SignOptions["expiresIn"] },
+    );
+  }
+
+  private signRefreshToken(
+    subject: string,
+    sessionId: string,
+    role: UserRole,
+  ): string {
+    return jwt.sign(
+      { sub: subject, sid: sessionId, role, jti: randomUUID() },
+      env.JWT_REFRESH_SECRET,
+      { expiresIn: env.JWT_REFRESH_EXPIRES_IN as SignOptions["expiresIn"] },
     );
   }
 
@@ -127,7 +271,7 @@ export class AuthService {
       const payload = jwt.verify(token, secret);
 
       if (typeof payload === "string") {
-        throw new UnauthorizedError("Invalid access token");
+        throw new UnauthorizedError("Invalid token");
       }
 
       return payload;
@@ -136,7 +280,7 @@ export class AuthService {
         throw error;
       }
 
-      throw new UnauthorizedError("Invalid or expired access token");
+      throw new UnauthorizedError("Invalid or expired token");
     }
   }
 }

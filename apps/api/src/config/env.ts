@@ -2,6 +2,17 @@ import "dotenv/config";
 
 import { z } from "zod";
 
+import { isDurationString } from "../utils/duration.js";
+
+const durationString = z
+  .string()
+  .trim()
+  .refine(isDurationString, {
+    message: "must be a duration string such as 30s, 15m, 24h or 7d",
+  });
+
+const positiveNumber = z.coerce.number().int().min(1);
+
 const envSchema = z.object({
   PORT: z.coerce.number().int().min(1).max(65_535).default(4000),
   NODE_ENV: z
@@ -28,8 +39,11 @@ const envSchema = z.object({
     .string()
     .min(32, "JWT_REFRESH_SECRET must contain at least 32 characters")
     .default("aethermind-development-refresh-secret-change-me"),
-  JWT_ACCESS_EXPIRES_IN: z.string().default("15m"),
-  JWT_REFRESH_EXPIRES_IN: z.string().default("7d"),
+  JWT_ACCESS_EXPIRES_IN: durationString.default("15m"),
+  JWT_REFRESH_EXPIRES_IN: durationString.default("7d"),
+  SESSION_INACTIVITY_TIMEOUT_MS: positiveNumber.default(86_400_000),
+  SESSION_MAX_LIFETIME_MS: positiveNumber.default(604_800_000),
+  SESSION_WARNING_MS: positiveNumber.default(300_000),
   WHISPER_MODEL: z.string().trim().default("base"),
   WHISPER_PATH: z.string().trim().default("whisper"),
   PIPER_MODEL: z.string().trim().default("en_US-lessac-medium"),
@@ -46,6 +60,12 @@ if (
 ) {
   throw new Error(
     "JWT_ACCESS_SECRET and JWT_REFRESH_SECRET are required in production",
+  );
+}
+
+if (env.SESSION_WARNING_MS >= env.SESSION_INACTIVITY_TIMEOUT_MS) {
+  throw new Error(
+    "SESSION_WARNING_MS must be smaller than SESSION_INACTIVITY_TIMEOUT_MS",
   );
 }
 

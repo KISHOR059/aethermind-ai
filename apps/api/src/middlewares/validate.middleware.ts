@@ -5,7 +5,7 @@ import { ValidationError } from "../utils/app-error.js";
 
 function createValidationMiddleware<T>(
   schema: z.ZodType<T>,
-  source: "body" | "query",
+  source: "body" | "query" | "params",
 ): RequestHandler {
   return (request, _response, next) => {
     const result = schema.safeParse(request[source]);
@@ -39,4 +39,8 @@ export function validateBody<T>(schema: z.ZodType<T>): RequestHandler {
 
 export function validateQuery<T>(schema: z.ZodType<T>): RequestHandler {
   return createValidationMiddleware(schema, "query");
+}
+
+export function validateParams<T>(schema: z.ZodType<T>): RequestHandler {
+  return createValidationMiddleware(schema, "params");
 }

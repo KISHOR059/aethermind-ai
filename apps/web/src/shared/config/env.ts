@@ -16,10 +16,30 @@ function apiUrl(value: string | undefined) {
   return resolved;
 }
 
+function positiveNumber(value: string | undefined, fallback: number, name: string) {
+  const resolved = Number(value ?? fallback);
+
+  if (!Number.isFinite(resolved) || resolved <= 0) {
+    throw new Error(`${name} must be a positive number`);
+  }
+
+  return resolved;
+}
+
 export const env = Object.freeze({
   apiUrl: apiUrl(import.meta.env.VITE_API_URL),
   appName: requiredText(import.meta.env.VITE_APP_NAME, "AetherMind", "VITE_APP_NAME"),
   version: requiredText(import.meta.env.VITE_APP_VERSION, "1.0.0", "VITE_APP_VERSION"),
+  sessionInactivityTimeoutMs: positiveNumber(
+    import.meta.env.VITE_SESSION_INACTIVITY_TIMEOUT_MS,
+    86_400_000,
+    "VITE_SESSION_INACTIVITY_TIMEOUT_MS",
+  ),
+  sessionWarningMs: positiveNumber(
+    import.meta.env.VITE_SESSION_WARNING_MS,
+    300_000,
+    "VITE_SESSION_WARNING_MS",
+  ),
 });
 
 export type AppEnv = typeof env;

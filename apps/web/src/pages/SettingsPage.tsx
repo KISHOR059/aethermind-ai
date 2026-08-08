@@ -1,6 +1,7 @@
 import { Bot, User as UserIcon } from "lucide-react";
 import PageHeader from "@/shared/components/PageHeader";
 import { useAuth } from "@/features/auth/hooks/auth.context";
+import SessionSettings from "@/features/auth/components/SessionSettings";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/components/ui/card";
 import ThemeToggle from "@/features/theme/ThemeToggle";
 import { Badge } from "@/shared/components/ui/badge";
@@ -66,6 +67,8 @@ function SettingsPage() {
           </CardContent>
         </Card>
       </div>
+
+      <SessionSettings />
     </div>
   );
 }
