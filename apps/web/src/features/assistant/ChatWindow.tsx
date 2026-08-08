@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Bot, Plus, Trash2, Cpu } from "lucide-react";
+import { Bot, Trash2, Cpu } from "lucide-react";
 import type { Message } from "./assistant.types";
 import ChatInput from "./ChatInput";
 import MessageBubble from "./MessageBubble";
@@ -14,7 +14,6 @@ export interface ChatWindowProps {
   userName?: string;
   isSending: boolean;
   onSendMessage: (text: string) => Promise<string> | void;
-  onNewConversation: () => void;
   onClearChat?: () => void;
 }
 
@@ -24,7 +23,6 @@ export function ChatWindow({
   userName,
   isSending,
   onSendMessage,
-  onNewConversation,
   onClearChat,
 }: ChatWindowProps) {
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -47,50 +45,40 @@ export function ChatWindow({
   };
 
   return (
-    <div className="flex h-[calc(100vh-14rem)] flex-col rounded-xl border bg-card shadow-sm overflow-hidden">
+    <div className="flex h-full min-h-0 flex-col rounded-xl border bg-card shadow-sm overflow-hidden">
       {/* Header */}
-      <div className="flex items-center justify-between border-b px-6 py-4">
-        <div>
-          <h2 className="text-lg font-bold flex items-center gap-2">
-            <Bot className="size-5 text-primary" />
-            {title}
-          </h2>
-          <p className="text-xs text-muted-foreground">
-            Your intelligent productivity coach. Ask about tasks, schedules, or performance.
-          </p>
+      <div className="flex items-center justify-between gap-3 border-b px-4 py-2.5">
+        <div className="flex min-w-0 items-center gap-2">
+          <Bot className="size-4 shrink-0 text-primary" />
+          <h2 className="truncate text-sm font-semibold">{title}</h2>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex shrink-0 items-center gap-1.5">
           <Button
             variant={showOfflineVoicePanel ? "default" : "outline"}
             size="sm"
             onClick={() => setShowOfflineVoicePanel(!showOfflineVoicePanel)}
-            className="gap-1.5 text-xs"
+            className="gap-1.5 text-xs h-8"
             title="Toggle Offline AI Voice Controls (Whisper.cpp & Piper TTS)"
           >
             <Cpu className="size-3.5 text-amber-300" />
             Offline Voice
           </Button>
 
-          <Button variant="outline" size="sm" onClick={onNewConversation} className="gap-1.5 text-xs">
-            <Plus className="size-3.5" />
-            New Conversation
-          </Button>
-
           {onClearChat && (
-            <Button variant="ghost" size="sm" onClick={onClearChat} className="gap-1.5 text-xs text-muted-foreground">
+            <Button variant="ghost" size="sm" onClick={onClearChat} className="gap-1.5 text-xs h-8 text-muted-foreground">
               <Trash2 className="size-3.5" />
-              Clear Chat
+              Clear
             </Button>
           )}
         </div>
       </div>
 
       {/* Messages Stream */}
-      <div className="flex-1 overflow-y-auto px-6 py-4 space-y-2">
+      <div className="flex-1 min-h-0 overflow-y-auto px-4 py-3 space-y-1">
         {/* Offline Voice Active Visualizer Panel */}
         {showOfflineVoicePanel && (
-          <div className="mb-4">
+          <div className="mb-3">
             <VoiceControls
               voiceState={offlineVoice.voiceState}
               audioLevel={offlineVoice.audioLevel}
@@ -107,14 +95,14 @@ export function ChatWindow({
         )}
 
         {messages.length === 0 ? (
-          <div className="h-full flex flex-col items-center justify-center space-y-4 text-center max-w-md mx-auto py-12">
-            <div className="size-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary">
-              <Bot className="size-6" />
+          <div className="flex h-full flex-col items-center justify-center space-y-3 text-center max-w-md mx-auto">
+            <div className="size-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+              <Bot className="size-5" />
             </div>
             <div>
-              <h3 className="font-semibold text-base">How can I help you today?</h3>
-              <p className="text-xs text-muted-foreground mt-1">
-                Select a suggestion below or type your own question to start analyzing tasks and schedules.
+              <h3 className="text-sm font-semibold">How can I help you today?</h3>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Ask about tasks, schedules, or productivity.
               </p>
             </div>
             <SuggestionChips onSelectSuggestion={onSendMessage} disabled={isSending} />
@@ -132,10 +120,7 @@ export function ChatWindow({
       </div>
 
       {/* Input Area */}
-      <div className="border-t p-4 space-y-2 bg-background/50 rounded-b-xl">
-        {messages.length > 0 && (
-          <SuggestionChips onSelectSuggestion={onSendMessage} disabled={isSending} />
-        )}
+      <div className="border-t p-3 bg-background/50 rounded-b-xl">
         <ChatInput
           onSendMessage={onSendMessage}
           disabled={isSending}

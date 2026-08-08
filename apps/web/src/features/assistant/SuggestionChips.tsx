@@ -10,13 +10,9 @@ const SUGGESTIONS = [
   "What should I work on next?",
   "Plan tomorrow.",
   "Summarize my week.",
-  "Break down my authentication task.",
-  "Reschedule today's work.",
-  "How productive am I?",
-  "Which task is blocking progress?",
-  "How can I improve?",
-  "Generate study plan.",
   "Prioritize my tasks.",
+  "Break down my top task.",
+  "How can I improve?",
 ];
 
 export function SuggestionChips({
@@ -24,7 +20,7 @@ export function SuggestionChips({
   disabled,
 }: SuggestionChipsProps) {
   return (
-    <div className="flex flex-wrap items-center justify-center gap-2 py-2">
+    <div className="flex flex-wrap items-center justify-center gap-1.5">
       {SUGGESTIONS.map((suggestion, idx) => (
         <Button
           key={idx}
@@ -32,7 +28,7 @@ export function SuggestionChips({
           size="sm"
           disabled={disabled}
           onClick={() => onSelectSuggestion(suggestion)}
-          className="text-xs gap-1.5 rounded-full hover:border-primary/50 hover:bg-primary/5 transition-all"
+          className="h-7 text-xs gap-1 rounded-full hover:border-primary/50 hover:bg-primary/5 transition-all"
         >
           <Sparkles className="size-3 text-amber-500" />
           {suggestion}

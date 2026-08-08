@@ -42,7 +42,7 @@ export function MessageBubble({ message, userName }: MessageBubbleProps) {
   return (
     <div
       className={cn(
-        "flex items-start gap-3 py-3 group",
+        "flex items-start gap-3 py-1.5 group",
         isUser ? "flex-row-reverse text-right" : "flex-row text-left",
       )}
     >

@@ -22,13 +22,13 @@ export function AssistantSidebar({
 }: AssistantSidebarProps) {
   return (
     <Card className="h-full flex flex-col border-primary/20">
-      <CardHeader className="py-4 border-b">
+      <CardHeader className="py-2.5 px-4 border-b">
         <CardTitle className="text-sm font-semibold flex items-center gap-2">
           <Bot className="size-4 text-primary" />
           Conversations
         </CardTitle>
       </CardHeader>
-      <CardContent className="flex-1 overflow-y-auto p-3">
+      <CardContent className="flex-1 min-h-0 overflow-y-auto p-2.5">
         <ConversationList
           conversations={conversations}
           activeId={activeId}

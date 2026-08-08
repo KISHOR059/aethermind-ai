@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Bot } from "lucide-react";
 import {
   useConversationMessages,
   useConversations,
@@ -9,7 +10,6 @@ import {
 import AssistantSidebar from "@/features/assistant/AssistantSidebar";
 import ChatWindow from "@/features/assistant/ChatWindow";
 import { useAuth } from "@/features/auth/hooks/auth.context";
-import PageHeader from "@/shared/components/PageHeader";
 
 export function AssistantPage() {
   const { user } = useAuth();
@@ -65,16 +65,21 @@ export function AssistantPage() {
   const userName = user ? `${user.firstName} ${user.lastName}` : undefined;
 
   return (
-    <div className="space-y-6">
-      <PageHeader
-        eyebrow="Intelligence"
-        title="AI Assistant"
-        description="Chat with your personal AetherMind productivity coach to plan tasks, analyze bottlenecks, and optimize your work."
-      />
+    <div className="flex h-[calc(100vh-6rem)] flex-col gap-3 sm:h-[calc(100vh-7rem)] lg:h-[calc(100vh-8rem)]">
+      <header className="flex items-center justify-between border-b border-border/60 pb-2.5">
+        <div className="flex items-center gap-2.5">
+          <div className="flex size-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
+            <Bot className="size-4" />
+          </div>
+          <div>
+            <h1 className="text-lg font-bold leading-tight tracking-tight">AI Assistant</h1>
+            <p className="text-xs text-muted-foreground">Your personal AetherMind productivity coach.</p>
+          </div>
+        </div>
+      </header>
 
-      <div className="grid grid-cols-12 gap-6 items-start">
-        {/* Sidebar - Recent Conversations */}
-        <div className="col-span-12 lg:col-span-3 hidden lg:block h-[calc(100vh-14rem)]">
+      <div className="grid min-h-0 flex-1 grid-cols-12 gap-4">
+        <div className="col-span-3 hidden h-full min-h-0 lg:block">
           <AssistantSidebar
             conversations={conversations}
             activeId={activeConversationId}
@@ -85,15 +90,13 @@ export function AssistantPage() {
           />
         </div>
 
-        {/* Main Chat Interface */}
-        <div className="col-span-12 lg:col-span-9">
+        <div className="col-span-12 h-full min-h-0 lg:col-span-9">
           <ChatWindow
             messages={messages}
             title={activeConv?.title ?? "AI Productivity Assistant"}
             userName={userName}
             isSending={sendMessageMutation.isPending}
             onSendMessage={handleSendMessage}
-            onNewConversation={handleNewConversation}
             onClearChat={activeConversationId ? handleNewConversation : undefined}
           />
         </div>
