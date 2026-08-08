@@ -43,7 +43,10 @@ export function MonthView({
       aria-label={`Month view for ${anchorDate.toLocaleDateString(undefined, { month: "long", year: "numeric" })}`}
       className="min-w-[640px] select-none"
     >
-      <div role="row" className="grid grid-cols-7 border-b border-border/60">
+      <div
+        role="row"
+        className="grid grid-cols-7 border-b border-border/60 bg-muted/30"
+      >
         {WEEKDAYS_SHORT.map((weekday, index) => (
           <div
             key={weekday}

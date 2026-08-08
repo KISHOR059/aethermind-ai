@@ -53,6 +53,7 @@ export const MonthDayCell = memo(function MonthDayCell({
             ? "bg-muted/20"
             : "bg-background",
         isSelected && "bg-primary/5",
+        isToday && "ring-1 ring-inset ring-primary/30",
         isOver && "bg-primary/10 ring-2 ring-inset ring-primary/60",
       )}
     >

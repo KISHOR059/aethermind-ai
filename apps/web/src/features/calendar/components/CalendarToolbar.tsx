@@ -50,6 +50,7 @@ export interface CalendarToolbarProps {
   canNavigate: boolean;
   onNavigate: (direction: "prev" | "next") => void;
   onToday: () => void;
+  periodLabel: string;
   searchInputRef: RefObject<HTMLInputElement | null>;
 }
 
@@ -61,6 +62,7 @@ export function CalendarToolbar({
   canNavigate,
   onNavigate,
   onToday,
+  periodLabel,
   searchInputRef,
 }: CalendarToolbarProps) {
   const activeFilterCount =
@@ -110,6 +112,11 @@ export function CalendarToolbar({
           Today
         </Button>
       </div>
+
+      {/* Current period label */}
+      <span className="hidden text-sm font-bold tracking-tight text-primary lg:inline">
+        {periodLabel}
+      </span>
 
       {/* View switcher */}
       <div

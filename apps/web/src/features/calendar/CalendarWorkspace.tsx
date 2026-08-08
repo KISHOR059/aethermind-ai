@@ -426,6 +426,7 @@ export function CalendarWorkspace() {
         canNavigate={canNavigate}
         onNavigate={navigate}
         onToday={goToToday}
+        periodLabel={range.label}
         searchInputRef={searchInputRef}
       />
 
