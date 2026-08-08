@@ -1,88 +1,149 @@
 # AetherMind AI
 
-A full-stack task management application built with React, Express, TypeScript, MongoDB, and Turborepo.
+> An AI-powered, full-stack task management platform that turns your task backlog into an actionable daily plan.
 
-This guide explains how beginners can clone and run the project on Windows.
+AetherMind AI is a production-grade monorepo application built with **React 19**, **Express**, **TypeScript**, **MongoDB**, and **Turborepo**. It combines classic task management (tasks, calendar, dashboards) with an autonomous AI cognitive layer that prioritizes work, plans your day, breaks down complex tasks, and reviews your week — powered by local **Ollama** models or cloud **Google Gemini**.
 
-## 1. Install the required software
+---
 
-Install:
+## Screenshots
 
-1. Git for Windows: https://git-scm.com/download/win
-2. Node.js 18 or newer (LTS recommended): https://nodejs.org/
-3. MongoDB Community Server: https://www.mongodb.com/try/download/community
-4. MongoDB Shell (mongosh): https://www.mongodb.com/try/download/shell
+| | |
+|---|---|
+| **Login** | **Dashboard** |
+| ![Login](docs/screenshots/01-login.png) | ![Dashboard](docs/screenshots/02-dashboard.png) |
+| **Tasks (Kanban)** | **Calendar** |
+| ![Tasks](docs/screenshots/03-tasks.png) | ![Calendar](docs/screenshots/04-calendar.png) |
+| **Plan My Day (AI)** | **AI Assistant** |
+| ![Plan My Day](docs/screenshots/05-plan-my-day.png) | ![Assistant](docs/screenshots/06-assistant.png) |
 
-Open PowerShell and verify Node.js:
+---
 
-```powershell
-node --version
-npm --version
+## Features
+
+### Task Management
+- Full task CRUD with statuses (TODO, IN_PROGRESS, COMPLETED), priorities (LOW → URGENT), tags, estimated time, start/due dates
+- Kanban-style board with drag-and-drop reordering (`@dnd-kit`)
+- Calendar workspace with drag-and-drop scheduling and multiple views
+- Powerful filtering, sorting, and pagination via a reusable `MongooseQueryBuilder`
+
+### AI Cognitive Layer
+- **Plan My Day** — generates an optimal daily schedule, productivity score, top priorities, and recommendations
+- **Weekly Review** — summarizes your week and surfaces insights
+- **Task Breakdown** — splits large tasks into subtasks
+- **Task Prioritization** — re-ranks your backlog based on due dates and priority
+- **Smart Reschedule** — suggests new dates when tasks slip
+- **Provider abstraction** — swap between local **Ollama** (`llama3.2:3b`, `qwen3`) and cloud **Gemini** via environment variables, no code changes
+- Strict **Zod schema validation** on LLM output with automatic retry on `INVALID_JSON`
+
+### AI Assistant
+- Conversational chat with your task data
+- Conversation history stored in MongoDB
+- Suggestion chips, typing indicator, and voice input
+
+### Notifications & Reminders
+- Full-stack notification center with unread badge, filters, and slide-out drawer
+- Automated reminder engine (overdue, due today/tomorrow, weekly review, productivity milestones)
+- Browser notifications (Web Notification API) and toast notifications
+- React Query polling + optimistic updates
+
+### Platform
+- JWT access tokens + HttpOnly refresh cookie rotation with reuse detection
+- Role-based access control (`USER`, `ADMIN`)
+- Dashboard with charts (Recharts), insights, and quick actions
+- Dark mode theming, command palette (⌘K), keyboard shortcuts
+- Voice module with offline settings
+- Docker Compose for MongoDB
+
+---
+
+## Tech Stack
+
+| Layer | Technology |
+|---|---|
+| **Frontend** | React 19, TypeScript, Vite 8, React Router 7, TanStack Query 5, Tailwind CSS 4, Radix UI, Framer Motion, Recharts, Zod |
+| **Backend** | Node.js, Express 5, TypeScript, Mongoose 9, Zod, JWT, Helmet, CORS, compression |
+| **AI** | Google Gemini SDK (`@google/genai`), Ollama HTTP API |
+| **Data** | MongoDB 8 (local or Docker) |
+| **Monorepo** | Turborepo 2, pnpm 9 workspaces |
+
+---
+
+## Monorepo Structure
+
+```text
+aethermind-ai/
+├── apps/
+│   ├── web/                      # React + Vite frontend
+│   │   └── src/
+│   │       ├── app/              # Router, layout, providers
+│   │       ├── pages/            # Dashboard, Tasks, Calendar, Assistant, Settings
+│   │       ├── features/         # auth, tasks, calendar, dashboard, ai, assistant,
+│   │       │                     # notifications, command-palette, voice, theme
+│   │       └── shared/           # Components, hooks, utils, lib
+│   └── api/                      # Express backend
+│       └── src/
+│           ├── modules/          # auth, tasks, calendar, dashboard, ai, assistant,
+│           │                     # notifications, activity, voice
+│           ├── middlewares/      # auth, error handling, rate limiting
+│           ├── database/         # MongoDB connection
+│           └── shared/           # events, query builder, utils
+├── docs/
+│   ├── screenshots/              # Project screenshots
+│   └── AUTH_SESSION.md
+├── Ai-Architecture.md            # Deep dive into the AI module
+├── docker-compose.yml            # MongoDB service
+├── package.json                  # Turborepo root
+└── turbo.json
 ```
 
-Install pnpm:
+### Request Flow
 
-```powershell
-npm install --global pnpm@9
-pnpm --version
+```text
+React Web App
+  │  POST /api/v1/ai/plan-day (Bearer JWT)
+  ▼
+Express API Gateway ── requireAuth ──> AiController
+  ▼
+AiService ──> AIPipeline
+  ├── ContextBuilder  (tasks, time, user, settings)
+  ├── PromptBuilder   (versioned system/user prompts)
+  ├── ProviderFactory (Ollama | Gemini)
+  ├── ResponseParser  (JSON extraction)
+  └── Zod validation  (double-pass, auto-retry)
 ```
 
-## 2. Clone the project
+---
 
-```powershell
+## Quick Start
+
+### Prerequisites
+
+- Node.js 18+ (LTS recommended)
+- pnpm 9 (`npm install --global pnpm@9`)
+- MongoDB (local install **or** Docker)
+
+### 1. Clone and install
+
+```bash
 git clone <YOUR_REPOSITORY_URL>
 cd aethermind-ai
-```
-
-Replace <YOUR_REPOSITORY_URL> with the Git repository URL.
-
-## 3. Install dependencies
-
-From the project root:
-
-```powershell
 pnpm install
 ```
 
-## 4. Install and start MongoDB
+### 2. Start MongoDB
 
-During MongoDB installation, choose Install MongoD as a Service if available.
+**Option A — Docker** (recommended):
 
-Check the service:
-
-```powershell
-Get-Service MongoDB
+```bash
+docker compose up -d
 ```
 
-If it is stopped, start it:
+**Option B — Local MongoDB**: install MongoDB Community Server and verify with `mongosh --eval "db.runCommand({ ping: 1 })"` (expect `{ ok: 1 }`).
 
-```powershell
-Start-Service MongoDB
-```
+### 3. Configure the API
 
-You can also open Windows Services, find MongoDB Server, and click Start.
-
-Verify MongoDB:
-
-```powershell
-mongosh --eval "db.runCommand({ ping: 1 })"
-```
-
-The result should contain:
-
-```text
-{ ok: 1 }
-```
-
-## 5. Configure the API
-
-Create this file:
-
-```text
-apps/api/.env
-```
-
-Add:
+Create `apps/api/.env`:
 
 ```env
 PORT=4000
@@ -95,9 +156,7 @@ JWT_ACCESS_EXPIRES_IN=15m
 JWT_REFRESH_EXPIRES_IN=7d
 ```
 
-The MongoDB URI connects to local MongoDB on port 27017 and uses the aethermind database.
-
-For local Ollama, set these API environment variables:
+**AI provider** — use local Ollama (default) or cloud Gemini:
 
 ```env
 AI_PROVIDER=ollama
@@ -106,25 +165,22 @@ OLLAMA_MODEL=llama3.2:3b
 OLLAMA_REQUEST_TIMEOUT_MS=180000
 ```
 
-Start Ollama and pull the model before using the AI feature:
+```env
+AI_PROVIDER=gemini
+GEMINI_API_KEY=your-key
+GEMINI_MODEL=gemini-1.5-flash
+```
 
-```powershell
+Start Ollama and pull the model:
+
+```bash
 ollama serve
 ollama pull llama3.2:3b
 ```
 
-To switch back to Gemini, set `AI_PROVIDER=gemini` and configure the Gemini
-environment variables. No source code changes are required.
+### 4. Configure the web app
 
-## 6. Configure the web app
-
-Create:
-
-```text
-apps/web/.env
-```
-
-Add:
+Create `apps/web/.env`:
 
 ```env
 VITE_API_URL=http://localhost:4000/api/v1
@@ -132,228 +188,84 @@ VITE_APP_NAME=AetherMind
 VITE_APP_VERSION=1.0.0
 ```
 
-## 7. Start the project
+### 5. Run
 
-From the project root:
-
-```powershell
+```bash
 pnpm dev
 ```
 
-Open the web app at http://localhost:5173.
+- Web app: http://localhost:5173
+- API: http://localhost:4000
+- Health check: http://localhost:4000/api/v1/health
 
-The API runs at http://localhost:4000.
+### 6. Optional: seed demo data
 
-Keep PowerShell open while using the application. Press Ctrl+C to stop the servers.
+```bash
+pnpm --filter api seed
+```
 
-## 8. Check the API
-
-Open:
+Creates a demo user and 10 sample tasks. Login with:
 
 ```text
-http://localhost:4000/api/v1/health
+Email:    demo@aethermind.ai
+Password: DemoPassword123!
 ```
 
-The response should contain:
+---
 
-```json
-{
-  "success": true,
-  "data": {
-    "status": "ok"
-  }
-}
-```
+## Available Scripts
 
-## 9. View saved MongoDB data
+| Command | Description |
+|---|---|
+| `pnpm dev` | Run web + API in watch mode |
+| `pnpm build` | Build all packages |
+| `pnpm lint` | Lint all packages |
+| `pnpm check-types` | Type-check all packages |
+| `pnpm format` | Prettier format |
+| `pnpm --filter api test` | Run API tests (Vitest + supertest) |
+| `pnpm --filter api seed` | Seed demo user and sample tasks |
 
-Open MongoDB Shell:
+---
 
-```powershell
-mongosh
-```
+## API Overview
 
-Select the database and list collections:
-
-```javascript
-use aethermind
-show collections
-```
-
-View tasks:
-
-```javascript
-db.tasks.find().pretty()
-```
-
-View registered users:
-
-```javascript
-db.users.find({}, { firstName: 1, lastName: 1, email: 1 }).pretty()
-```
-
-Exit:
-
-```javascript
-exit
-```
-
-MongoDB Compass connection string:
-
-```text
-mongodb://127.0.0.1:27017
-```
-
-Open the aethermind database, then the tasks or users collection.
-
-## 10. Common problems
-
-### pnpm is not recognized
-
-Close and reopen PowerShell, then run:
-
-```powershell
-npm install --global pnpm@9
-```
-
-### MongoDB connection refused
-
-```powershell
-Get-Service MongoDB
-Start-Service MongoDB
-mongosh --eval "db.runCommand({ ping: 1 })"
-```
-
-### The web app cannot connect to the API
-
-Confirm that the API is running on port 4000 and that apps/web/.env contains:
-
-```env
-VITE_API_URL=http://localhost:4000/api/v1
-```
-
-Restart pnpm dev after changing an environment file.
-
-### Port 5173 or 4000 is already in use
-
-Stop the other application using the port and run pnpm dev again. Vite may choose another web port, but the API must use port 4000 unless PORT is changed in apps/api/.env.
-
-## 11. Notification System
-
-AetherMind includes a full-stack notification system with real-time updates, browser notifications, and an automated reminder engine.
-
-### Architecture
-
-```
-Backend (apps/api/src/modules/notifications/)
-├── notification.types.ts          # NotificationType, NotificationPriority enums
-├── notification.model.ts          # Mongoose schema + indexes
-├── notification.repository.ts     # Data access layer (MongooseQueryBuilder)
-├── notification.repository.interface.ts  # Repository contract
-├── notification.service.ts        # Business logic + DTO mapping
-├── notification.controller.ts     # Express request handlers
-├── notification.routes.ts         # Route definitions
-├── notification.validation.ts     # Zod query schemas
-├── notification.container.ts      # Dependency injection singletons
-├── reminder/
-│   ├── reminder.engine.ts         # 5 checkers: overdue, dueToday, dueTomorrow, weeklyReview, milestones
-│   └── reminder.scheduler.ts      # setInterval wrapper (swappable for cron)
-└── index.ts                       # Barrel exports
-
-Frontend (apps/web/src/features/notifications/)
-├── notification.types.ts          # TypeScript types matching backend
-├── notification.service.ts        # Axios API client (background/polling requests)
-├── notification.hooks.ts          # React Query hooks with optimistic updates
-├── NotificationBell.tsx           # Header bell icon with unread badge
-├── NotificationDrawer.tsx         # Slide-out panel with filters and list
-├── NotificationItem.tsx           # Individual notification row (keyboard accessible)
-├── NotificationFilters.tsx        # Type and read-status filter chips
-├── NotificationEmpty.tsx          # Empty state (no notifications / no matches)
-├── NotificationSkeleton.tsx       # Loading skeleton
-├── browser-notifications.ts       # Web Notification API wrapper
-└── use-notification-effects.ts    # Detects new notifications → toast + browser notification
-```
-
-### API Endpoints
-
-All endpoints require a `Bearer` token (`Authorization: Bearer <token>`).
+All endpoints are prefixed with `/api/v1` and (except auth/health) require `Authorization: Bearer <token>`.
 
 | Method | Path | Description |
 |---|---|---|
-| `GET` | `/api/v1/notifications` | Paginated list with filters (`type`, `priority`, `isRead`, `search`, `sortBy`, `sortOrder`) |
-| `GET` | `/api/v1/notifications/unread-count` | Returns `{ count: number }` |
-| `PATCH` | `/api/v1/notifications/:id/read` | Mark a single notification as read |
-| `PATCH` | `/api/v1/notifications/read-all` | Mark all unread notifications as read |
-| `DELETE` | `/api/v1/notifications/:id` | Delete a notification |
+| `POST` | `/auth/register` | Create an account |
+| `POST` | `/auth/login` | Sign in (returns access token + refresh cookie) |
+| `POST` | `/auth/refresh` | Rotate refresh token |
+| `POST` | `/auth/logout` | Sign out |
+| `GET` | `/tasks` | Paginated, filterable task list |
+| `POST` / `PATCH` / `DELETE` | `/tasks` `/tasks/:id` | Task CRUD |
+| `GET` | `/calendar` | Calendar data for a date range |
+| `POST` | `/calendar/reschedule` | Reschedule a task in the calendar |
+| `GET` | `/dashboard/stats` | Aggregated metrics, charts, insights |
+| `POST` | `/ai/plan-day` | Generate daily plan |
+| `POST` | `/ai/tasks/:taskId/breakdown` | Break a task into subtasks |
+| `POST` | `/ai/prioritize` | Re-rank tasks |
+| `POST` | `/ai/reschedule` | Suggest new task dates |
+| `POST` | `/ai/weekly-review` | Generate weekly review |
+| `POST` | `/ai/productivity-insights` | Productivity insights |
+| `POST` | `/ai/chat` | Chat with the AI assistant |
+| `GET` / `POST` | `/assistant/conversations` | List / create conversations |
+| `GET` | `/notifications` | Paginated notification list |
+| `PATCH` | `/notifications/:id/read` | Mark notification read |
+| `PATCH` | `/notifications/read-all` | Mark all as read |
+| `GET` | `/notifications/unread-count` | Unread count |
+| `GET` | `/health` | Service health |
 
-### Notification Types
+---
 
-| Type | Source | Example |
-|---|---|---|
-| `TASK` | Task CRUD events (event bus) | "Task Created", "Task Completed" |
-| `AI` | AI pipeline operations | "Daily Plan Generated", "Weekly Review Generated" |
-| `SYSTEM` | System events | Reserved for future use |
-| `PRODUCTIVITY` | Dashboard insights | Reserved for future use |
-| `REMINDER` | Reminder engine (scheduled) | "3 Overdue Tasks", "Tasks Due Today" |
+## Learn More
 
-### Reminder Engine
+- **[Ai-Architecture.md](Ai-Architecture.md)** — deep dive into the AI pipeline: context builders, prompt engineering, provider abstraction, Zod validation, retry logic, and telemetry
+- **[docs/AUTH_SESSION.md](docs/AUTH_SESSION.md)** — authentication and session design
+- **[apps/api/docs/api/README.md](apps/api/docs/api/README.md)** — API conventions and response envelope
 
-Runs every 60 minutes on server startup (configurable via `ReminderScheduler`).
+---
 
-| Check | Condition | Priority |
-|---|---|---|
-| Overdue Tasks | Tasks past due date, not completed | HIGH (URGENT if 5+) |
-| Due Today | Tasks due within today | NORMAL (HIGH if any urgent/high task) |
-| Due Tomorrow | Tasks due within tomorrow | LOW |
-| Weekly Review | Monday/Sunday with completed or pending tasks | NORMAL |
-| Productivity Milestones | Weekly completions hit 5/10/15/20/25/50/100 | NORMAL (HIGH if 20+) |
+## License
 
-Each reminder uses a deterministic dedup key per user per day to avoid duplicate notifications.
-
-### Browser Notifications
-
-When the user grants permission, the app shows browser notifications for:
-
-- HIGH or URGENT priority notifications
-- Overdue task reminders
-- Due today/tomorrow task reminders
-- Weekly review and daily plan notifications
-
-Browser notifications are supplemental. The Notification Center (drawer) remains the source of truth.
-
-### React Query Synchronization
-
-The notification UI automatically refreshes:
-
-- **Polling**: Every 45 seconds via `refetchInterval`
-- **Window focus**: `refetchOnWindowFocus: true`
-- **Network reconnect**: `refetchOnReconnect: true`
-- **After mutations**: All queries invalidated on `onSettled`
-
-All mutations use optimistic updates with snapshot/rollback on error.
-
-### Verify It Works
-
-1. Start the app (`pnpm dev`) and log in
-2. The bell icon appears in the header with an unread badge
-3. Click the bell to open the notification drawer
-4. Create, complete, or delete a task — a notification appears
-5. The reminder engine fires on startup (check server logs for "Reminder engine checks completed")
-6. Browser notifications appear if permission was granted
-
-View notifications in MongoDB:
-
-```javascript
-use aethermind
-db.notifications.find().pretty()
-db.notifications.countDocuments({ isRead: false })
-```
-
-## Useful commands
-
-```powershell
-pnpm dev
-pnpm check-types
-pnpm lint
-pnpm format
-```
+[MIT](LICENSE)
