@@ -147,7 +147,7 @@ apiClient.interceptors.response.use(
 
     const isAuthEndpoint = ["/auth/login", "/auth/register", "/auth/logout", "/auth/refresh"].some((path) => config.url?.endsWith(path));
 
-    if (error.response?.status === 401 && !config._skipAuthRefresh && !isAuthEndpoint) {
+    if (error.response?.status === 401 && !config._skipAuthRefresh && !isAuthEndpoint && getAccessToken()) {
       try {
         const token = await refreshAccessToken();
         config._skipAuthRefresh = true;
