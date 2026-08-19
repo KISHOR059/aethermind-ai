@@ -62,12 +62,29 @@ export class GeminiProvider implements AIProvider {
       request.thinkingLevel,
     );
 
+    const requestedOutputTokens = request.maxOutputTokens ?? 1024;
+    // In Gemini 2.x/3.x, maxOutputTokens covers BOTH thinking tokens and generated response tokens.
+    // Ensure the total budget provides sufficient capacity for both stages.
+    const geminiMaxOutputTokens =
+      thinkingBudget !== undefined && thinkingBudget > 0
+        ? Math.max(2048, thinkingBudget + requestedOutputTokens)
+        : requestedOutputTokens;
+
+    logger.debug("Configuring Gemini request", {
+      model: targetModel,
+      geminiMaxOutputTokens,
+      requestedOutputTokens,
+      thinkingBudget,
+      hasResponseSchema: Boolean(request.responseSchema),
+      responseMimeType: request.responseMimeType ?? "application/json",
+    });
+
     const executeOperation = async (): Promise<GenerateTextResponse> => {
       try {
         const config: Record<string, unknown> = {
           responseMimeType: request.responseMimeType ?? "application/json",
-          temperature: request.temperature ?? 0.2,
-          maxOutputTokens: request.maxOutputTokens ?? 2_048,
+          temperature: request.temperature ?? 0.1,
+          maxOutputTokens: geminiMaxOutputTokens,
         };
 
         if (request.topP !== undefined) {
@@ -78,9 +95,13 @@ export class GeminiProvider implements AIProvider {
           config.responseSchema = request.responseSchema;
         }
 
-        if (thinkingBudget !== undefined) {
+        if (thinkingBudget !== undefined && thinkingBudget > 0) {
           config.thinkingConfig = {
             thinkingBudget,
+          };
+        } else if (thinkingBudget === 0) {
+          config.thinkingConfig = {
+            thinkingBudget: 0,
           };
         }
 
@@ -93,7 +114,35 @@ export class GeminiProvider implements AIProvider {
           this.timeoutMs,
         );
 
-        const text = response.text?.trim();
+        const candidate = response.candidates?.[0];
+        const finishReason = normalizeFinishReason(candidate?.finishReason);
+        const usage = toUsageMetadata(response.usageMetadata);
+        const text = response.text?.trim() ?? "";
+
+        logger.debug("Gemini response extracted", {
+          provider: "Gemini",
+          model: targetModel,
+          rawResponseLength: text.length,
+          finishReason,
+          candidateCount: response.candidates?.length ?? 0,
+          geminiMaxOutputTokens,
+          thinkingBudget,
+          usage,
+        });
+
+        if (finishReason === "MAX_TOKENS") {
+          logger.warn(
+            "Gemini generation reached MAX_TOKENS limit. Output may be truncated.",
+            {
+              provider: "Gemini",
+              model: targetModel,
+              rawResponseLength: text.length,
+              geminiMaxOutputTokens,
+              finishReason,
+              usage,
+            },
+          );
+        }
 
         if (!text) {
           throw new AIProviderError(
@@ -105,10 +154,8 @@ export class GeminiProvider implements AIProvider {
 
         return {
           text,
-          finishReason: normalizeFinishReason(
-            response.candidates?.[0]?.finishReason,
-          ),
-          usage: toUsageMetadata(response.usageMetadata),
+          finishReason,
+          usage,
           model: {
             provider: "Gemini",
             model: targetModel,

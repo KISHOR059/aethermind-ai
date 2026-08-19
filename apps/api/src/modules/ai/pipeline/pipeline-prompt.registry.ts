@@ -12,6 +12,13 @@ import {
   taskPrioritizationResponseSchema,
   weeklyReviewResponseSchema,
   assistantChatResponseSchema,
+  dailyPlannerGeminiSchema,
+  taskBreakdownGeminiSchema,
+  taskPrioritizationGeminiSchema,
+  smartRescheduleGeminiSchema,
+  weeklyReviewGeminiSchema,
+  productivityInsightsGeminiSchema,
+  assistantChatGeminiSchema,
   type AssistantChatResponse,
   type DailyPlannerResponse,
   type ProductivityInsightsResponse,
@@ -31,6 +38,7 @@ export type PipelinePromptDefinition<TContext, TResponse> = {
     promptBuilder: PromptBuilder,
   ) => BuiltPrompt;
   readonly schema: z.ZodType<TResponse>;
+  readonly responseSchema?: unknown;
   readonly options?: {
     readonly temperature?: number;
     readonly topP?: number;
@@ -89,10 +97,11 @@ export const pipelinePromptRegistry: PipelinePromptRegistry = {
         userName: context.user.firstName + " " + context.user.lastName,
       }),
     schema: dailyPlannerResponseSchema,
+    responseSchema: dailyPlannerGeminiSchema,
     options: {
       temperature: 0.1,
       topP: 0.9,
-      maxOutputTokens: 600,
+      maxOutputTokens: 1024,
       numCtx: 4096,
       thinkingLevel: "medium",
     },
@@ -119,10 +128,11 @@ export const pipelinePromptRegistry: PipelinePromptRegistry = {
         weekday: context.time.dayOfWeek,
       }),
     schema: taskBreakdownResponseSchema,
+    responseSchema: taskBreakdownGeminiSchema,
     options: {
       temperature: 0.1,
       topP: 0.9,
-      maxOutputTokens: 500,
+      maxOutputTokens: 1024,
       numCtx: 4096,
       thinkingLevel: "medium",
     },
@@ -137,10 +147,11 @@ export const pipelinePromptRegistry: PipelinePromptRegistry = {
         userName: `${context.user.firstName} ${context.user.lastName}`,
       }),
     schema: taskPrioritizationResponseSchema,
+    responseSchema: taskPrioritizationGeminiSchema,
     options: {
       temperature: 0.1,
       topP: 0.9,
-      maxOutputTokens: 800,
+      maxOutputTokens: 1024,
       numCtx: 4096,
       thinkingLevel: "low",
     },
@@ -155,10 +166,11 @@ export const pipelinePromptRegistry: PipelinePromptRegistry = {
         userName: `${context.user.firstName} ${context.user.lastName}`,
       }),
     schema: taskPrioritizationResponseSchema,
+    responseSchema: taskPrioritizationGeminiSchema,
     options: {
       temperature: 0.1,
       topP: 0.9,
-      maxOutputTokens: 800,
+      maxOutputTokens: 1024,
       numCtx: 4096,
       thinkingLevel: "low",
     },
@@ -173,10 +185,11 @@ export const pipelinePromptRegistry: PipelinePromptRegistry = {
         userName: `${context.user.firstName} ${context.user.lastName}`,
       }),
     schema: smartRescheduleResponseSchema,
+    responseSchema: smartRescheduleGeminiSchema,
     options: {
       temperature: 0.1,
       topP: 0.9,
-      maxOutputTokens: 800,
+      maxOutputTokens: 1024,
       numCtx: 4096,
       thinkingLevel: "medium",
     },
@@ -191,10 +204,11 @@ export const pipelinePromptRegistry: PipelinePromptRegistry = {
         userName: `${context.user.firstName} ${context.user.lastName}`,
       }),
     schema: smartRescheduleResponseSchema,
+    responseSchema: smartRescheduleGeminiSchema,
     options: {
       temperature: 0.1,
       topP: 0.9,
-      maxOutputTokens: 800,
+      maxOutputTokens: 1024,
       numCtx: 4096,
       thinkingLevel: "medium",
     },
@@ -209,10 +223,11 @@ export const pipelinePromptRegistry: PipelinePromptRegistry = {
         userName: `${context.user.firstName} ${context.user.lastName}`,
       }),
     schema: weeklyReviewResponseSchema,
+    responseSchema: weeklyReviewGeminiSchema,
     options: {
       temperature: 0.1,
       topP: 0.9,
-      maxOutputTokens: 800,
+      maxOutputTokens: 1024,
       numCtx: 4096,
       thinkingLevel: "low",
     },
@@ -227,10 +242,11 @@ export const pipelinePromptRegistry: PipelinePromptRegistry = {
         userName: `${context.user.firstName} ${context.user.lastName}`,
       }),
     schema: productivityInsightsResponseSchema,
+    responseSchema: productivityInsightsGeminiSchema,
     options: {
       temperature: 0.1,
       topP: 0.9,
-      maxOutputTokens: 600,
+      maxOutputTokens: 1024,
       numCtx: 4096,
       thinkingLevel: "low",
     },
@@ -247,12 +263,14 @@ export const pipelinePromptRegistry: PipelinePromptRegistry = {
         userMessage: context.userMessage ?? "",
       }),
     schema: assistantChatResponseSchema,
+    responseSchema: assistantChatGeminiSchema,
     options: {
       temperature: 0.2,
       topP: 0.9,
-      maxOutputTokens: 800,
+      maxOutputTokens: 1024,
       numCtx: 4096,
-      thinkingLevel: "medium",
+      thinkingLevel: "low",
     },
   },
 };
+

@@ -46,9 +46,12 @@ export type {
 } from "./productivity-insights.schema.js";
 export { assistantChatResponseSchema } from "./assistant-chat.schema.js";
 export type { AssistantChatResponse } from "./assistant-chat.schema.js";
-
-
-
-
-
-
+export {
+  dailyPlannerGeminiSchema,
+  taskBreakdownGeminiSchema,
+  taskPrioritizationGeminiSchema,
+  smartRescheduleGeminiSchema,
+  weeklyReviewGeminiSchema,
+  productivityInsightsGeminiSchema,
+  assistantChatGeminiSchema,
+} from "./gemini-schemas.js";

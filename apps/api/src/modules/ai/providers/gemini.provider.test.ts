@@ -63,11 +63,13 @@ describe("GeminiProvider", () => {
       "gemini-3.5-flash",
       5000,
     );
+    const testSchema = { type: "OBJECT", properties: { status: { type: "STRING" } } };
     const response = await provider.generateText({
       input: "Generate plan",
-      temperature: 0.2,
-      maxOutputTokens: 1000,
+      temperature: 0.1,
+      maxOutputTokens: 1024,
       thinkingLevel: "medium",
+      responseSchema: testSchema,
     });
 
     expect(response.text).toBe('{"status": "ok", "score": 95}');
@@ -86,11 +88,33 @@ describe("GeminiProvider", () => {
         model: "gemini-3.5-flash",
         config: expect.objectContaining({
           responseMimeType: "application/json",
+          responseSchema: testSchema,
+          maxOutputTokens: 2048,
           thinkingConfig: { thinkingBudget: 1024 },
         }),
       }),
     );
   });
+
+  it("handles MAX_TOKENS finishReason cleanly", async () => {
+    mockGenerateContent.mockResolvedValueOnce({
+      text: '{"summary": "partial',
+      candidates: [{ finishReason: "MAX_TOKENS" }],
+      usageMetadata: {
+        promptTokenCount: 100,
+        candidatesTokenCount: 600,
+        totalTokenCount: 700,
+      },
+      modelVersion: "gemini-3.5-flash",
+    });
+
+    const provider = new GeminiProvider("test-api-key", "gemini-3.5-flash", 5000);
+    const response = await provider.generateText({ input: "Generate plan" });
+
+    expect(response.text).toBe('{"summary": "partial');
+    expect(response.finishReason).toBe("MAX_TOKENS");
+  });
+
 
   it("throws AIProviderError when model returns empty text", async () => {
     mockGenerateContent.mockResolvedValue({

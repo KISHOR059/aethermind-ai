@@ -127,15 +127,18 @@ export class AIPipeline {
         input: serializedInput,
         temperature: promptDefinition.options?.temperature ?? 0.1,
         topP: promptDefinition.options?.topP ?? 0.9,
-        maxOutputTokens: promptDefinition.options?.maxOutputTokens ?? 768,
+        maxOutputTokens: promptDefinition.options?.maxOutputTokens ?? 1024,
         numCtx: promptDefinition.options?.numCtx ?? 4096,
         thinkingLevel: promptDefinition.options?.thinkingLevel,
+        responseMimeType: "application/json",
+        responseSchema: promptDefinition.responseSchema,
       });
       const llmTimeMs = Date.now() - tLlmStart;
 
       logger.info("AI Provider Raw Response Received", {
         promptId: request.prompt,
         rawResponseLength: providerResponse.text.length,
+        finishReason: providerResponse.finishReason,
         llmTimeMs,
       });
 
@@ -155,6 +158,7 @@ export class AIPipeline {
           logger.warn("AI response is invalid JSON, attempting single retry", {
             rawResponse: providerResponse.text,
             error: error.message,
+            finishReason: providerResponse.finishReason,
           });
 
           const retryPrompt =
@@ -170,9 +174,11 @@ export class AIPipeline {
               input: retryInput,
               temperature: 0.1,
               topP: 0.9,
-              maxOutputTokens: promptDefinition.options?.maxOutputTokens ?? 768,
+              maxOutputTokens: promptDefinition.options?.maxOutputTokens ?? 1024,
               numCtx: promptDefinition.options?.numCtx ?? 4096,
               thinkingLevel: promptDefinition.options?.thinkingLevel,
+              responseMimeType: "application/json",
+              responseSchema: promptDefinition.responseSchema,
             });
 
             data = this.dependencies.responseParser.parse(
@@ -229,6 +235,10 @@ export class AIPipeline {
         fallbackUsed: Boolean(finalResponse.fallbackUsed),
         primaryProvider: finalResponse.primaryProvider,
         retryCount: finalResponse.retryCount,
+        finishReason: finalResponse.finishReason,
+        outputTokenCount: finalResponse.usage?.outputTokens,
+        inputTokenCount: finalResponse.usage?.inputTokens,
+        totalTokens: finalResponse.usage?.totalTokens,
         contextTimeMs,
         promptTimeMs,
         llmTimeMs,
