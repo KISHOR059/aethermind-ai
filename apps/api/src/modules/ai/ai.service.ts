@@ -26,6 +26,14 @@ export type AiHealth = {
   model: string;
   status: ProviderStatus;
   version: string;
+  isAvailable?: boolean;
+  latencyMs?: number;
+  fallback?: {
+    provider: string;
+    model: string;
+    status: ProviderStatus;
+    isAvailable?: boolean;
+  };
 };
 
 export class AiService {
@@ -39,12 +47,28 @@ export class AiService {
     this.taskRepository = taskRepository ?? new TaskRepository();
   }
 
-  public getHealth(): AiHealth {
+  public async getHealth(): Promise<AiHealth> {
+    if (this.aiProvider.healthCheck) {
+      const health = await this.aiProvider.healthCheck();
+      return {
+        provider: health.provider,
+        model: health.model,
+        status: health.status,
+        version: health.version,
+        isAvailable: health.isAvailable,
+        latencyMs: health.latencyMs,
+        fallback: health.fallback,
+      };
+    }
+
     return {
       provider: this.aiProvider.modelInformation.provider,
       model: this.aiProvider.modelInformation.model,
       status: this.aiProvider.status,
       version: this.aiProvider.modelInformation.version,
+      isAvailable:
+        this.aiProvider.status !== "not_configured" &&
+        this.aiProvider.status !== "offline",
     };
   }
 

@@ -10,13 +10,13 @@ import { createAIProvider } from "./providers/provider.factory.js";
 
 const aiProvider = createAIProvider();
 logger.info("AI provider initialized", {
-  Provider: aiProvider.modelInformation.provider,
-  Model: aiProvider.modelInformation.model,
-  Configured: aiProvider.status !== "not_configured",
-  Timeout:
-    env.AI_PROVIDER.toLowerCase() === "ollama"
-      ? env.OLLAMA_REQUEST_TIMEOUT_MS
-      : env.AI_REQUEST_TIMEOUT_MS,
+  provider: aiProvider.modelInformation.provider,
+  model: aiProvider.modelInformation.model,
+  primary: env.AI_PROVIDER,
+  fallback: env.AI_FALLBACK_PROVIDER,
+  geminiTimeoutMs: env.AI_GEMINI_TIMEOUT_MS,
+  ollamaTimeoutMs: env.AI_OLLAMA_TIMEOUT_MS,
+  configured: aiProvider.status !== "not_configured",
 });
 const contextBuilder = new ContextBuilder();
 const promptBuilder = new PromptBuilder();
@@ -38,7 +38,21 @@ export {
   buildDailyPlannerContext,
   buildTaskBreakdownContext,
 } from "./context/index.js";
-export { createAIProvider } from "./providers/provider.factory.js";
+export {
+  createAIProvider,
+  GeminiProvider,
+  OllamaProvider,
+  FallbackProvider,
+} from "./providers/index.js";
+export type {
+  AIProvider,
+  GenerateTextRequest,
+  GenerateTextResponse,
+  ModelInformation,
+  ProviderHealth,
+  ProviderStatus,
+  UsageMetadata,
+} from "./providers/index.js";
 export {
   buildDailyPlannerPrompt,
   buildPrioritizationPrompt,
@@ -49,4 +63,5 @@ export {
 } from "./prompt/index.js";
 export { AIPipeline } from "./pipeline/index.js";
 export { parseResponse } from "./parser/index.js";
+
 

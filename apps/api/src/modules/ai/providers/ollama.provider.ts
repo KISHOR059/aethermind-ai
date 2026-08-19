@@ -1,4 +1,5 @@
 import { env } from "../../../config/env.js";
+import { logger } from "../../../lib/logger.js";
 import {
   AIProviderError,
   AIProviderTimeoutError,
@@ -10,11 +11,10 @@ import type {
   GenerateTextRequest,
   GenerateTextResponse,
   ModelInformation,
+  ProviderHealth,
   ProviderStatus,
   UsageMetadata,
 } from "./types.js";
-
-import { logger } from "../../../lib/logger.js";
 
 type OllamaResponse = {
   model?: unknown;
@@ -28,20 +28,26 @@ export class OllamaProvider implements AIProvider {
   public readonly modelInformation: ModelInformation;
   public status: ProviderStatus;
 
+  private readonly baseUrl: string;
+  private readonly configuredModel: string;
+  private readonly timeoutMs: number;
+
   public constructor(
     baseUrl = env.OLLAMA_BASE_URL,
-    private readonly configuredModel = env.OLLAMA_MODEL,
+    configuredModel = env.OLLAMA_MODEL,
+    timeoutMs = env.AI_OLLAMA_TIMEOUT_MS,
   ) {
     this.baseUrl = baseUrl.replace(/\/+$/, "");
+    this.configuredModel = configuredModel;
+    this.timeoutMs = timeoutMs;
     this.modelInformation = {
       provider: "Ollama",
-      model: configuredModel,
+      model: this.configuredModel,
       version: "1.0.0",
     };
-    this.status = this.baseUrl && configuredModel ? "healthy" : "not_configured";
+    this.status =
+      this.baseUrl && this.configuredModel ? "healthy" : "not_configured";
   }
-
-  private readonly baseUrl: string;
 
   public async generateText(
     request: GenerateTextRequest,
@@ -55,9 +61,10 @@ export class OllamaProvider implements AIProvider {
 
     const model = request.model ?? this.configuredModel;
     const controller = new AbortController();
+    const startedAt = Date.now();
     const timeoutId = setTimeout(
       () => controller.abort(),
-      env.OLLAMA_REQUEST_TIMEOUT_MS,
+      this.timeoutMs,
     );
 
     const payload = {
@@ -127,6 +134,7 @@ export class OllamaProvider implements AIProvider {
           model: typeof data.model === "string" ? data.model : model,
           version: "1.0.0",
         },
+        latencyMs: Date.now() - startedAt,
       };
     } catch (error) {
       if (error instanceof AIProviderError) {
@@ -145,6 +153,61 @@ export class OllamaProvider implements AIProvider {
           : "Ollama is unavailable.",
         503,
       );
+    } finally {
+      clearTimeout(timeoutId);
+    }
+  }
+
+  public async healthCheck(): Promise<ProviderHealth> {
+    if (!this.baseUrl || !this.configuredModel) {
+      return {
+        provider: "Ollama",
+        model: this.configuredModel,
+        status: "not_configured",
+        version: "1.0.0",
+        isAvailable: false,
+      };
+    }
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 3_000);
+    const startedAt = Date.now();
+
+    try {
+      const response = await fetch(`${this.baseUrl}/api/tags`, {
+        method: "GET",
+        signal: controller.signal,
+      });
+
+      if (response.ok) {
+        this.status = "healthy";
+        return {
+          provider: "Ollama",
+          model: this.configuredModel,
+          status: "healthy",
+          version: "1.0.0",
+          isAvailable: true,
+          latencyMs: Date.now() - startedAt,
+        };
+      }
+
+      this.status = "offline";
+      return {
+        provider: "Ollama",
+        model: this.configuredModel,
+        status: "offline",
+        version: "1.0.0",
+        isAvailable: false,
+      };
+    } catch {
+      this.status = "offline";
+      return {
+        provider: "Ollama",
+        model: this.configuredModel,
+        status: "offline",
+        version: "1.0.0",
+        isAvailable: false,
+      };
     } finally {
       clearTimeout(timeoutId);
     }

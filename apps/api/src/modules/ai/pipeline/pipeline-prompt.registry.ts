@@ -23,6 +23,7 @@ import {
 import type { PromptBuilder } from "../prompt/prompt-builder.js";
 import { formatTaskContextForPrompt } from "../prompt/prompt-utils.js";
 import type { BuiltPrompt } from "../prompt/prompt.types.js";
+import type { ThinkingLevel } from "../providers/types.js";
 
 export type PipelinePromptDefinition<TContext, TResponse> = {
   readonly buildPrompt: (
@@ -35,6 +36,7 @@ export type PipelinePromptDefinition<TContext, TResponse> = {
     readonly topP?: number;
     readonly maxOutputTokens?: number;
     readonly numCtx?: number;
+    readonly thinkingLevel?: ThinkingLevel;
   };
   readonly ttlMs?: number;
 };
@@ -92,6 +94,7 @@ export const pipelinePromptRegistry: PipelinePromptRegistry = {
       topP: 0.9,
       maxOutputTokens: 600,
       numCtx: 4096,
+      thinkingLevel: "medium",
     },
     ttlMs: 120_000, // 2 minutes
   },
@@ -121,6 +124,7 @@ export const pipelinePromptRegistry: PipelinePromptRegistry = {
       topP: 0.9,
       maxOutputTokens: 500,
       numCtx: 4096,
+      thinkingLevel: "medium",
     },
     ttlMs: 600_000, // 10 minutes per task ID
   },
@@ -138,6 +142,7 @@ export const pipelinePromptRegistry: PipelinePromptRegistry = {
       topP: 0.9,
       maxOutputTokens: 800,
       numCtx: 4096,
+      thinkingLevel: "low",
     },
     ttlMs: 120_000, // 2 minutes
   },
@@ -155,6 +160,7 @@ export const pipelinePromptRegistry: PipelinePromptRegistry = {
       topP: 0.9,
       maxOutputTokens: 800,
       numCtx: 4096,
+      thinkingLevel: "low",
     },
     ttlMs: 120_000, // 2 minutes
   },
@@ -172,6 +178,7 @@ export const pipelinePromptRegistry: PipelinePromptRegistry = {
       topP: 0.9,
       maxOutputTokens: 800,
       numCtx: 4096,
+      thinkingLevel: "medium",
     },
     ttlMs: 120_000, // 2 minutes
   },
@@ -189,6 +196,7 @@ export const pipelinePromptRegistry: PipelinePromptRegistry = {
       topP: 0.9,
       maxOutputTokens: 800,
       numCtx: 4096,
+      thinkingLevel: "medium",
     },
     ttlMs: 120_000, // 2 minutes
   },
@@ -206,6 +214,7 @@ export const pipelinePromptRegistry: PipelinePromptRegistry = {
       topP: 0.9,
       maxOutputTokens: 800,
       numCtx: 4096,
+      thinkingLevel: "medium",
     },
     ttlMs: 300_000, // 5 minutes
   },
@@ -223,6 +232,7 @@ export const pipelinePromptRegistry: PipelinePromptRegistry = {
       topP: 0.9,
       maxOutputTokens: 600,
       numCtx: 4096,
+      thinkingLevel: "low",
     },
     ttlMs: 300_000, // 5 minutes
   },
@@ -242,6 +252,7 @@ export const pipelinePromptRegistry: PipelinePromptRegistry = {
       topP: 0.9,
       maxOutputTokens: 800,
       numCtx: 4096,
+      thinkingLevel: "medium",
     },
   },
 };

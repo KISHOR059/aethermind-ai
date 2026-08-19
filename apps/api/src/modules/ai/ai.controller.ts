@@ -11,9 +11,10 @@ export class AiController {
     _request: Request,
     response: Response,
   ): Promise<void> => {
+    const health = await this.aiService.getHealth();
     successResponse(
       response,
-      this.aiService.getHealth(),
+      health,
       "AI service is available",
     );
   };

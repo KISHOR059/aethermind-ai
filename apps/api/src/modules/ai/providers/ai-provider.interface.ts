@@ -2,6 +2,7 @@ import type {
   GenerateTextRequest,
   GenerateTextResponse,
   ModelInformation,
+  ProviderHealth,
   ProviderStatus,
 } from "./types.js";
 
@@ -12,4 +13,6 @@ export interface AIProvider {
   generateText(
     request: GenerateTextRequest,
   ): Promise<GenerateTextResponse>;
+
+  healthCheck?(): Promise<ProviderHealth>;
 }

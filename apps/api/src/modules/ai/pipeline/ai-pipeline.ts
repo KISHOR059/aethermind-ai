@@ -129,6 +129,7 @@ export class AIPipeline {
         topP: promptDefinition.options?.topP ?? 0.9,
         maxOutputTokens: promptDefinition.options?.maxOutputTokens ?? 768,
         numCtx: promptDefinition.options?.numCtx ?? 4096,
+        thinkingLevel: promptDefinition.options?.thinkingLevel,
       });
       const llmTimeMs = Date.now() - tLlmStart;
 
@@ -171,6 +172,7 @@ export class AIPipeline {
               topP: 0.9,
               maxOutputTokens: promptDefinition.options?.maxOutputTokens ?? 768,
               numCtx: promptDefinition.options?.numCtx ?? 4096,
+              thinkingLevel: promptDefinition.options?.thinkingLevel,
             });
 
             data = this.dependencies.responseParser.parse(
@@ -222,6 +224,11 @@ export class AIPipeline {
       logger.info("AI Pipeline Timing Breakdown", {
         promptId: request.prompt,
         userId: request.userId,
+        provider: finalResponse.model.provider,
+        model: finalResponse.model.model,
+        fallbackUsed: Boolean(finalResponse.fallbackUsed),
+        primaryProvider: finalResponse.primaryProvider,
+        retryCount: finalResponse.retryCount,
         contextTimeMs,
         promptTimeMs,
         llmTimeMs,
@@ -237,6 +244,10 @@ export class AIPipeline {
           model: finalResponse.model.model,
           tokenUsage: finalResponse.usage ?? null,
           promptVersion: builtPrompt.version,
+          fallbackUsed: finalResponse.fallbackUsed,
+          primaryProvider: finalResponse.primaryProvider,
+          fallbackReason: finalResponse.fallbackReason,
+          retryCount: finalResponse.retryCount,
           stageTimings: {
             contextTimeMs,
             promptTimeMs,

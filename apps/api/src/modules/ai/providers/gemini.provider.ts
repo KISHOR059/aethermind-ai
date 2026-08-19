@@ -1,6 +1,7 @@
 import { ApiError, GoogleGenAI } from "@google/genai";
 
 import { env } from "../../../config/env.js";
+import { logger } from "../../../lib/logger.js";
 import {
   AIProviderError,
   AIProviderTimeoutError,
@@ -8,73 +9,147 @@ import {
 } from "../../../utils/app-error.js";
 import type { AIProvider } from "./ai-provider.interface.js";
 import type {
+  FinishReason,
   GenerateTextRequest,
   GenerateTextResponse,
-} from "./types.js";
-import type {
-  FinishReason,
   ModelInformation,
+  ProviderHealth,
   ProviderStatus,
+  ThinkingLevel,
   UsageMetadata,
 } from "./types.js";
 
 export class GeminiProvider implements AIProvider {
-  public readonly modelInformation: ModelInformation = {
-    provider: "Gemini",
-    model: env.GEMINI_MODEL,
-    version: "1.0.0",
-  };
-
-  public readonly status: ProviderStatus;
+  public readonly modelInformation: ModelInformation;
+  public status: ProviderStatus;
 
   private readonly client: GoogleGenAI | null;
+  private readonly configuredModel: string;
+  private readonly timeoutMs: number;
 
-  public constructor() {
-    this.client = env.GEMINI_API_KEY
-      ? new GoogleGenAI({ apiKey: env.GEMINI_API_KEY })
-      : null;
-    this.status = this.client ? "configured" : "not_configured";
+  public constructor(
+    apiKey = env.GEMINI_API_KEY,
+    model = env.GEMINI_MODEL,
+    timeoutMs = env.AI_GEMINI_TIMEOUT_MS,
+  ) {
+    this.configuredModel = model || "gemini-3.5-flash";
+    this.timeoutMs = timeoutMs;
+    this.modelInformation = {
+      provider: "Gemini",
+      model: this.configuredModel,
+      version: "1.0.0",
+    };
+
+    if (apiKey && apiKey.trim().length > 0) {
+      this.client = new GoogleGenAI({ apiKey: apiKey.trim() });
+      this.status = "configured";
+    } else {
+      this.client = null;
+      this.status = "not_configured";
+    }
   }
 
   public async generateText(
     request: GenerateTextRequest,
   ): Promise<GenerateTextResponse> {
     const client = this.getClient();
+    const targetModel = request.model ?? this.configuredModel;
+    const startedAt = Date.now();
+    let retryCount = 0;
 
-    try {
-      const response = await withTimeout(
-        client.models.generateContent({
-          model: request.model ?? env.GEMINI_MODEL,
-          contents: request.input,
-          config: {
-            responseMimeType: "application/json",
-            temperature: request.temperature ?? 0.2,
-            maxOutputTokens: request.maxOutputTokens ?? 2_048,
+    const thinkingBudget = resolveThinkingBudget(
+      request.thinkingBudget,
+      request.thinkingLevel,
+    );
+
+    const executeOperation = async (): Promise<GenerateTextResponse> => {
+      try {
+        const config: Record<string, unknown> = {
+          responseMimeType: request.responseMimeType ?? "application/json",
+          temperature: request.temperature ?? 0.2,
+          maxOutputTokens: request.maxOutputTokens ?? 2_048,
+        };
+
+        if (request.topP !== undefined) {
+          config.topP = request.topP;
+        }
+
+        if (request.responseSchema) {
+          config.responseSchema = request.responseSchema;
+        }
+
+        if (thinkingBudget !== undefined) {
+          config.thinkingConfig = {
+            thinkingBudget,
+          };
+        }
+
+        const response = await withTimeout(
+          client.models.generateContent({
+            model: targetModel,
+            contents: request.input,
+            config,
+          }),
+          this.timeoutMs,
+        );
+
+        const text = response.text?.trim();
+
+        if (!text) {
+          throw new AIProviderError(
+            "The AI provider returned an empty response",
+          );
+        }
+
+        this.status = "healthy";
+
+        return {
+          text,
+          finishReason: normalizeFinishReason(
+            response.candidates?.[0]?.finishReason,
+          ),
+          usage: toUsageMetadata(response.usageMetadata),
+          model: {
+            provider: "Gemini",
+            model: targetModel,
+            version: response.modelVersion ?? "1.0.0",
           },
-        }),
-        env.AI_REQUEST_TIMEOUT_MS,
-      );
-      const text = response.text?.trim();
-
-      if (!text) {
-        throw new AIProviderError("The AI provider returned an empty response");
+          retryCount,
+          latencyMs: Date.now() - startedAt,
+        };
+      } catch (error) {
+        throw mapProviderError(error, targetModel);
       }
+    };
 
+    return withRetry(
+      executeOperation,
+      2,
+      500,
+      (count) => {
+        retryCount = count;
+      },
+    );
+  }
+
+  public async healthCheck(): Promise<ProviderHealth> {
+    if (!this.client) {
       return {
-        text,
-        finishReason: normalizeFinishReason(
-          response.candidates?.[0]?.finishReason,
-        ),
-        usage: toUsageMetadata(response.usageMetadata),
-        model: {
-          provider: "Gemini",
-          model: request.model ?? env.GEMINI_MODEL,
-          version: response.modelVersion ?? "1.0.0",
-        },
+        provider: "Gemini",
+        model: this.configuredModel,
+        status: "not_configured",
+        version: "1.0.0",
+        isAvailable: false,
       };
-    } catch (error) {
-      throw mapProviderError(error);
     }
+
+    return {
+      provider: "Gemini",
+      model: this.configuredModel,
+      status: this.status === "offline" ? "offline" : "healthy",
+      version: "1.0.0",
+      isAvailable: this.status !== "offline",
+    };
   }
 
   private getClient(): GoogleGenAI {
@@ -89,6 +164,30 @@ export class GeminiProvider implements AIProvider {
   }
 }
 
+function resolveThinkingBudget(
+  explicitBudget?: number,
+  level?: ThinkingLevel,
+): number | undefined {
+  if (explicitBudget !== undefined) {
+    return explicitBudget;
+  }
+
+  const resolvedLevel = level ?? (env.AI_THINKING_LEVEL as ThinkingLevel);
+
+  switch (resolvedLevel) {
+    case "none":
+      return 0;
+    case "low":
+      return 256;
+    case "medium":
+      return 1024;
+    case "high":
+      return 2048;
+    default:
+      return 1024;
+  }
+}
+
 async function withTimeout<T>(
   operation: Promise<T>,
   timeoutMs: number,
@@ -96,7 +195,10 @@ async function withTimeout<T>(
   let timeoutId: ReturnType<typeof setTimeout> | undefined;
 
   const timeout = new Promise<never>((_resolve, reject) => {
-    timeoutId = setTimeout(() => reject(new AIProviderTimeoutError()), timeoutMs);
+    timeoutId = setTimeout(
+      () => reject(new AIProviderTimeoutError()),
+      timeoutMs,
+    );
   });
 
   try {
@@ -108,12 +210,99 @@ async function withTimeout<T>(
   }
 }
 
-function mapProviderError(error: unknown): Error {
+async function withRetry<T>(
+  operation: () => Promise<T>,
+  maxRetries: number,
+  baseDelayMs: number,
+  onRetry?: (retryCount: number) => void,
+): Promise<T> {
+  let attempt = 0;
+  while (true) {
+    try {
+      return await operation();
+    } catch (error) {
+      attempt++;
+      if (attempt > maxRetries || !isTransientError(error)) {
+        throw error;
+      }
+      onRetry?.(attempt);
+      const delayMs =
+        baseDelayMs * Math.pow(2, attempt - 1) + Math.random() * 100;
+      logger.warn(
+        `Gemini transient error encountered, retrying (${attempt}/${maxRetries}) after ${Math.round(delayMs)}ms...`,
+        {
+          error: error instanceof Error ? error.message : String(error),
+        },
+      );
+      await sleep(delayMs);
+    }
+  }
+}
+
+function isTransientError(error: unknown): boolean {
+  if (error instanceof AIRateLimitError) {
+    return true;
+  }
+  if (error instanceof AIProviderTimeoutError) {
+    return true;
+  }
+  if (error instanceof ApiError) {
+    // 404, 401, 403, 400 are non-transient configuration errors
+    if (
+      error.status === 404 ||
+      error.status === 401 ||
+      error.status === 403 ||
+      error.status === 400
+    ) {
+      return false;
+    }
+
+    return (
+      error.status === 429 ||
+      error.status === 500 ||
+      error.status === 502 ||
+      error.status === 503 ||
+      error.status === 504
+    );
+  }
+  if (error instanceof AIProviderError) {
+    if (
+      error.statusCode === 404 ||
+      error.statusCode === 401 ||
+      error.statusCode === 403 ||
+      error.statusCode === 400
+    ) {
+      return false;
+    }
+    return error.statusCode >= 500 || error.statusCode === 429;
+  }
+  return false;
+}
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function mapProviderError(error: unknown, targetModel: string): Error {
   if (error instanceof AIProviderError) {
     return error;
   }
 
   if (error instanceof ApiError) {
+    if (error.status === 404) {
+      logger.error("Gemini model not found (HTTP 404)", {
+        provider: "Gemini",
+        model: targetModel,
+        operation: "generateContent",
+        status: 404,
+        message: error.message,
+      });
+      return new AIProviderError(
+        `Gemini model '${targetModel}' not found or unavailable (HTTP 404). Please verify GEMINI_MODEL configuration.`,
+        404,
+      );
+    }
+
     if (error.status === 429) {
       return new AIRateLimitError();
     }
@@ -122,7 +311,67 @@ function mapProviderError(error: unknown): Error {
       return new AIProviderTimeoutError();
     }
 
-    return new AIProviderError();
+    if (error.status === 401 || error.status === 403) {
+      return new AIProviderError(
+        "Gemini authentication failed. Please verify GEMINI_API_KEY.",
+        401,
+      );
+    }
+
+    if (error.status >= 500) {
+      return new AIProviderError(
+        `Gemini service error (HTTP ${error.status}).`,
+        503,
+      );
+    }
+
+    return new AIProviderError(
+      `Gemini request failed (HTTP ${error.status}).`,
+      error.status,
+    );
+  }
+
+  if (error instanceof Error) {
+    const msg = error.message.toLowerCase();
+    if (
+      msg.includes("404") ||
+      msg.includes("not found") ||
+      msg.includes("is no longer available")
+    ) {
+      logger.error("Gemini model unavailable or not found", {
+        provider: "Gemini",
+        model: targetModel,
+        message: error.message,
+      });
+      return new AIProviderError(
+        `Gemini model '${targetModel}' not found or unavailable (HTTP 404). Please verify GEMINI_MODEL configuration.`,
+        404,
+      );
+    }
+    if (
+      msg.includes("api key") ||
+      msg.includes("unauthorized") ||
+      msg.includes("permission_denied")
+    ) {
+      return new AIProviderError(
+        "Gemini authentication failed. Please verify GEMINI_API_KEY.",
+        401,
+      );
+    }
+    if (
+      msg.includes("resource_exhausted") ||
+      msg.includes("quota") ||
+      msg.includes("rate limit")
+    ) {
+      return new AIRateLimitError();
+    }
+    if (
+      msg.includes("timeout") ||
+      msg.includes("timed out") ||
+      msg.includes("deadline_exceeded")
+    ) {
+      return new AIProviderTimeoutError();
+    }
   }
 
   return new AIProviderError();
@@ -138,17 +387,20 @@ function normalizeFinishReason(value: unknown): FinishReason {
     "UNKNOWN",
   ];
 
-  return typeof value === "string" && finishReasons.includes(value as FinishReason)
+  return typeof value === "string" &&
+    finishReasons.includes(value as FinishReason)
     ? (value as FinishReason)
     : "UNKNOWN";
 }
 
 function toUsageMetadata(
-  usage: {
-    promptTokenCount?: number;
-    candidatesTokenCount?: number;
-    totalTokenCount?: number;
-  } | undefined,
+  usage:
+    | {
+        promptTokenCount?: number;
+        candidatesTokenCount?: number;
+        totalTokenCount?: number;
+      }
+    | undefined,
 ): UsageMetadata | undefined {
   if (!usage) {
     return undefined;

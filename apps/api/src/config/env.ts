@@ -21,11 +21,37 @@ const envSchema = z.object({
   WEB_ORIGIN: z.string().url().default("http://localhost:5173"),
   AI_PROVIDER: z.string().trim().min(1).default("gemini"),
   GEMINI_API_KEY: z.string().trim().default(""),
-  GEMINI_MODEL: z.string().trim().min(1).default("gemini-2.5-pro"),
-  AI_REQUEST_TIMEOUT_MS: z.coerce.number().int().min(1_000).max(120_000).default(30_000),
+  GEMINI_MODEL: z.string().trim().min(1).default("gemini-3.5-flash"),
+  AI_THINKING_LEVEL: z
+    .enum(["none", "low", "medium", "high"])
+    .default("medium"),
+  AI_FALLBACK_PROVIDER: z.string().trim().min(1).default("ollama"),
+  AI_GEMINI_TIMEOUT_MS: z.coerce
+    .number()
+    .int()
+    .min(1_000)
+    .max(120_000)
+    .default(30_000),
+  AI_OLLAMA_TIMEOUT_MS: z.coerce
+    .number()
+    .int()
+    .min(1_000)
+    .max(300_000)
+    .default(120_000),
+  AI_REQUEST_TIMEOUT_MS: z.coerce
+    .number()
+    .int()
+    .min(1_000)
+    .max(120_000)
+    .default(30_000),
   OLLAMA_BASE_URL: z.string().url().default("http://localhost:11434"),
   OLLAMA_MODEL: z.string().trim().min(1).default("llama3.2:3b"),
-  OLLAMA_REQUEST_TIMEOUT_MS: z.coerce.number().int().min(1_000).max(300_000).default(180_000),
+  OLLAMA_REQUEST_TIMEOUT_MS: z.coerce
+    .number()
+    .int()
+    .min(1_000)
+    .max(300_000)
+    .default(120_000),
   MONGODB_URI: z
     .string()
     .trim()
@@ -61,6 +87,14 @@ if (
   throw new Error(
     "JWT_ACCESS_SECRET and JWT_REFRESH_SECRET are required in production",
   );
+}
+
+if (
+  env.NODE_ENV === "production" &&
+  env.AI_PROVIDER.toLowerCase() === "gemini" &&
+  !env.GEMINI_API_KEY
+) {
+  throw new Error("GEMINI_API_KEY is required when AI_PROVIDER=gemini in production");
 }
 
 if (env.SESSION_WARNING_MS >= env.SESSION_INACTIVITY_TIMEOUT_MS) {

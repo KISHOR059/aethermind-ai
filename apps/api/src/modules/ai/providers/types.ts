@@ -18,6 +18,8 @@ export type ModelInformation = {
   version: string;
 };
 
+export type ThinkingLevel = "none" | "low" | "medium" | "high";
+
 export type GenerateTextRequest = {
   input: string;
   model?: string;
@@ -25,6 +27,10 @@ export type GenerateTextRequest = {
   topP?: number;
   maxOutputTokens?: number;
   numCtx?: number;
+  responseMimeType?: string;
+  responseSchema?: unknown;
+  thinkingLevel?: ThinkingLevel;
+  thinkingBudget?: number;
 };
 
 export type GenerateTextResponse = {
@@ -32,6 +38,11 @@ export type GenerateTextResponse = {
   finishReason: FinishReason;
   usage?: UsageMetadata;
   model: ModelInformation;
+  fallbackUsed?: boolean;
+  primaryProvider?: string;
+  fallbackReason?: string;
+  retryCount?: number;
+  latencyMs?: number;
 };
 
 export type ProviderStatus =
@@ -39,3 +50,18 @@ export type ProviderStatus =
   | "healthy"
   | "offline"
   | "not_configured";
+
+export type ProviderHealth = {
+  provider: string;
+  model: string;
+  status: ProviderStatus;
+  version: string;
+  isAvailable: boolean;
+  latencyMs?: number;
+  fallback?: {
+    provider: string;
+    model: string;
+    status: ProviderStatus;
+    isAvailable: boolean;
+  };
+};
