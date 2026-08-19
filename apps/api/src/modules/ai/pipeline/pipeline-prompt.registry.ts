@@ -214,7 +214,7 @@ export const pipelinePromptRegistry: PipelinePromptRegistry = {
       topP: 0.9,
       maxOutputTokens: 800,
       numCtx: 4096,
-      thinkingLevel: "medium",
+      thinkingLevel: "low",
     },
     ttlMs: 300_000, // 5 minutes
   },

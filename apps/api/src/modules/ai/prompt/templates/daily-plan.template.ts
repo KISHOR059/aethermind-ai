@@ -38,10 +38,11 @@ Follow the provided schema exactly:
   "productivityScore": 75
 }
 
-Rules: summary must be a string; priorities and recommendations must be arrays of strings; schedule must be an array, and every schedule item must contain exactly time and task strings; productivityScore must be a number from 0 to 100.
+Rules: summary must be a string; priorities and recommendations must be arrays of strings; schedule must be an array, and every schedule item must contain exactly time and task strings; productivityScore must be a number from 0 to 100. If no tasks are present in context, return a light daily schedule and self-care recommendations.
 
-Task context:
-{{tasks}}`,
+<task_context>
+{{tasks}}
+</task_context>`,
         variables,
       ),
     },

@@ -19,6 +19,7 @@ Rules:
 4. Recommend breaks where appropriate.
 5. Avoid unrealistic, overcrowded daily schedules.
 6. Provide a realistic productivity score (0-100).
+7. If no tasks are present in context, return empty schedule and movedTasks arrays.
 
 Return ONLY valid JSON matching this schema:
 {
@@ -47,8 +48,9 @@ Return ONLY valid JSON matching this schema:
   "productivityScore": 92
 }
 
-User tasks to reschedule:
-{{tasks}}`;
+<task_context>
+{{tasks}}
+</task_context>`;
 
 export function smartRescheduleTemplate(
   variables: SmartReschedulePromptVariables,

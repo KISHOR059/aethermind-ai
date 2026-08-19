@@ -11,16 +11,14 @@ export type ProductivityInsightsPromptVariables = {
 
 const PRODUCTIVITY_INSIGHTS_PROMPT_TEMPLATE = `Analyze the comprehensive 30-day task completion history, workload distribution, and work habits for {{userName}} as of {{today}} ({{weekday}}).
 
-Task and workload context:
-{{tasks}}
-
 Instructions:
 1. Analyze overall productivity, completion rates, streaks, and focus duration.
 2. Identify 2-4 key user strengths (e.g., high focus on urgent tasks, consistent morning streak).
 3. Identify 2-4 key weaknesses or bottlenecks (e.g., postponing low priority tasks, high overdue rate).
 4. Identify 2-4 key work patterns/habits (e.g., most productive on Tuesdays, context switching during peak hours).
 5. Formulate 2-4 clear, actionable recommendations for long-term habits and efficiency.
-6. Calculate statistics and assign a realistic productivity score (0-100).
+6. Statistics MUST be strictly grounded in the task statistics provided in context. Never invent completion numbers.
+7. Assign a realistic productivity score (0-100).
 
 Return ONLY valid JSON matching this schema:
 {
@@ -49,7 +47,11 @@ Return ONLY valid JSON matching this schema:
     "estimatedHoursWorked": 42
   },
   "productivityScore": 91
-}`;
+}
+
+<task_context>
+{{tasks}}
+</task_context>`;
 
 export function productivityInsightsTemplate(
   variables: ProductivityInsightsPromptVariables,

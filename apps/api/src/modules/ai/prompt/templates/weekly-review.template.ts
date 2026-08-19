@@ -12,14 +12,11 @@ export type WeeklyReviewPromptVariables = {
 const WEEKLY_REVIEW_PROMPT_TEMPLATE = `Analyze the past seven days of work history and task activity for {{userName}} as of {{today}} ({{weekday}}).
 Generate a comprehensive, encouraging, and constructive weekly productivity review.
 
-Tasks activity history for the past 7 days:
-{{tasks}}
-
 Rules:
 1. Highlight top achievements completed over the week.
 2. Identify productivity patterns and insights (e.g. most productive days, bottlenecks, postponed large tasks).
 3. Provide realistic, actionable recommendations for the upcoming week.
-4. Calculate weekly statistics based on task counts and estimated minutes.
+4. Statistics MUST match the verified precalculated numbers provided in the task context below. NEVER invent or hallucinate metrics.
 5. Provide a realistic overall productivity score (0-100).
 
 Return ONLY valid JSON matching this schema:
@@ -45,7 +42,11 @@ Return ONLY valid JSON matching this schema:
     "estimatedMinutesWorked": 960
   },
   "productivityScore": 91
-}`;
+}
+
+<task_context>
+{{tasks}}
+</task_context>`;
 
 export function weeklyReviewTemplate(
   variables: WeeklyReviewPromptVariables,

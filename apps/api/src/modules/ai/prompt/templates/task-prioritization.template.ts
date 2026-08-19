@@ -9,7 +9,7 @@ export type TaskPrioritizationPromptVariables = {
   readonly weekday: string;
 };
 
-const TASK_PRIORITIZATION_PROMPT_TEMPLATE = `Analyze every task below for {{userName}} on {{today}} ({{weekday}}).
+const TASK_PRIORITIZATION_PROMPT_TEMPLATE = `Analyze every task in the task context below for {{userName}} on {{today}} ({{weekday}}).
 Return an ordered list of all tasks ranked by priority (recommendedPriority 1 = highest priority).
 
 For each task, provide:
@@ -20,7 +20,7 @@ For each task, provide:
 - urgency ("LOW", "MEDIUM", "HIGH", "URGENT")
 - estimatedFocusMinutes (integer estimated minutes for a deep work session)
 
-Also provide an overall summary and 2-4 actionable recommendations.
+Also provide an overall summary and 2-4 actionable recommendations. If no tasks are present in context, return an empty prioritizedTasks list [].
 
 Return ONLY valid JSON matching this schema:
 {
@@ -41,8 +41,9 @@ Return ONLY valid JSON matching this schema:
   ]
 }
 
-Tasks to prioritize:
-{{tasks}}`;
+<task_context>
+{{tasks}}
+</task_context>`;
 
 export function taskPrioritizationTemplate(
   variables: TaskPrioritizationPromptVariables,

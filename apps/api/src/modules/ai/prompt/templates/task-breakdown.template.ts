@@ -28,7 +28,7 @@ export function taskBreakdownTemplate(
       content: renderPromptText(
         `Act as a senior project planner. Break down the following task into logical, actionable subtasks for {{userName}}.
 
-Task Details:
+<task_details>
 - Title: {{taskTitle}}
 - Description: {{taskDescription}}
 - Priority: {{priority}}
@@ -37,6 +37,7 @@ Task Details:
 - Estimated Duration: {{estimatedMinutes}} minutes
 - Existing Subtasks: {{existingSubtasks}}
 - Current Date: {{currentDate}} ({{weekday}})
+</task_details>
 
 Requirements:
 1. Generate between 5 and 15 subtasks.
