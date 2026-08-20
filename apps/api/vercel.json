@@ -19,7 +19,7 @@
   "crons": [
     {
       "path": "/api/v1/notifications/reminders/run",
-      "schedule": "0 * * * *"
+      "schedule": "0 9 * * *"
     }
   ]
 }
