@@ -75,7 +75,10 @@ const notificationSchema = new Schema<Notification>(
 
 notificationSchema.index({ userId: 1, isRead: 1 });
 notificationSchema.index({ userId: 1, createdAt: -1 });
-notificationSchema.index({ userId: 1, "metadata.reminderId": 1 }, { sparse: true });
+notificationSchema.index(
+  { userId: 1, "metadata.reminderId": 1 },
+  { unique: true, sparse: true },
+);
 
 export const NotificationModel = model<Notification>(
   "Notification",

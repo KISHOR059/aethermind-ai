@@ -15,6 +15,21 @@ type ReminderNotificationData = {
   metadata?: Record<string, unknown>;
 };
 
+export interface ReminderCheckSummary {
+  name: string;
+  status: "success" | "failed";
+  error?: string;
+}
+
+export interface ReminderRunResult {
+  status: "completed" | "partial_failure";
+  executedAt: string;
+  totalChecks: number;
+  successfulChecks: number;
+  failedChecks: number;
+  checks: ReminderCheckSummary[];
+}
+
 function startOfDay(date: Date): Date {
   const d = new Date(date);
   d.setHours(0, 0, 0, 0);
@@ -55,22 +70,39 @@ async function createReminderNotification(
 ): Promise<void> {
   if (await hasExistingReminder(id, userId)) return;
 
-  await NotificationModel.create({
-    userId,
-    ...notification,
-    type: NotificationType.REMINDER,
-    metadata: {
-      ...notification.metadata,
-      reminderId: id,
-      createdAt: new Date().toISOString(),
-    },
-  });
+  try {
+    await NotificationModel.create({
+      userId,
+      ...notification,
+      type: NotificationType.REMINDER,
+      metadata: {
+        ...notification.metadata,
+        reminderId: id,
+        createdAt: new Date().toISOString(),
+      },
+    });
 
-  logger.info("Reminder notification created", {
-    reminderId: id,
-    userId,
-    title: notification.title,
-  });
+    logger.info("Reminder notification created", {
+      reminderId: id,
+      userId,
+      title: notification.title,
+    });
+  } catch (error: unknown) {
+    // Gracefully handle duplicate key race condition (E11000) for concurrency safety
+    if (
+      typeof error === "object" &&
+      error !== null &&
+      "code" in error &&
+      (error as { code: number }).code === 11000
+    ) {
+      logger.debug("Duplicate reminder notification suppressed by unique constraint", {
+        reminderId: id,
+        userId,
+      });
+      return;
+    }
+    throw error;
+  }
 }
 
 async function getActiveUserIds(): Promise<string[]> {
@@ -280,7 +312,7 @@ export async function checkProductivityMilestones(): Promise<void> {
   }
 }
 
-export async function runAllReminderChecks(): Promise<void> {
+export async function runAllReminderChecks(): Promise<ReminderRunResult> {
   logger.info("Starting reminder engine checks");
 
   const checks = [
@@ -291,16 +323,38 @@ export async function runAllReminderChecks(): Promise<void> {
     { name: "productivity-milestones", fn: checkProductivityMilestones },
   ];
 
+  const results: ReminderCheckSummary[] = [];
+
   for (const check of checks) {
     try {
       await check.fn();
+      results.push({ name: check.name, status: "success" });
       logger.debug(`Reminder check completed: ${check.name}`);
     } catch (error) {
+      const errMsg = error instanceof Error ? error.message : "Unknown error";
+      results.push({ name: check.name, status: "failed", error: errMsg });
       logger.error(`Reminder check failed: ${check.name}`, {
-        error: error instanceof Error ? error.message : "Unknown error",
+        error: errMsg,
       });
     }
   }
 
-  logger.info("Reminder engine checks completed");
+  const failedCount = results.filter((r) => r.status === "failed").length;
+  const runResult: ReminderRunResult = {
+    status: failedCount === 0 ? "completed" : "partial_failure",
+    executedAt: new Date().toISOString(),
+    totalChecks: checks.length,
+    successfulChecks: checks.length - failedCount,
+    failedChecks: failedCount,
+    checks: results,
+  };
+
+  logger.info("Reminder engine checks completed", {
+    status: runResult.status,
+    totalChecks: runResult.totalChecks,
+    successfulChecks: runResult.successfulChecks,
+    failedChecks: runResult.failedChecks,
+  });
+
+  return runResult;
 }

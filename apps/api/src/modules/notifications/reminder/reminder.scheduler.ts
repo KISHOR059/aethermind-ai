@@ -1,4 +1,4 @@
-import { runAllReminderChecks } from "./reminder.engine.js";
+import { runAllReminderChecks, type ReminderRunResult } from "./reminder.engine.js";
 import { logger } from "../../../lib/logger.js";
 
 const DEFAULT_INTERVAL_MS = 60 * 60 * 1000;
@@ -58,8 +58,8 @@ export class ReminderScheduler {
     logger.info("Reminder scheduler stopped");
   }
 
-  async runOnce(): Promise<void> {
-    await runAllReminderChecks();
+  async runOnce(): Promise<ReminderRunResult> {
+    return await runAllReminderChecks();
   }
 
   private async run(): Promise<void> {
@@ -76,3 +76,5 @@ export class ReminderScheduler {
     return this.intervalId !== null;
   }
 }
+
+export const reminderScheduler = new ReminderScheduler();

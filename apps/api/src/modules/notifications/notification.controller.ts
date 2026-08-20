@@ -4,6 +4,7 @@ import { NotFoundError, UnauthorizedError } from "../../utils/app-error.js";
 import { paginatedResponse, successResponse } from "../../utils/response.js";
 import type { NotificationService } from "./notification.service.js";
 import type { NotificationListQueryOutput } from "./notification.validation.js";
+import { reminderScheduler } from "./reminder/index.js";
 
 export class NotificationController {
   public constructor(private readonly service: NotificationService) {}
@@ -93,5 +94,17 @@ export class NotificationController {
     await this.service.delete(request.user.id, notificationId);
 
     successResponse(response, null, "Notification deleted successfully");
+  };
+
+  public runReminders = async (
+    _request: Request,
+    response: Response,
+  ): Promise<void> => {
+    const result = await reminderScheduler.runOnce();
+    successResponse(
+      response,
+      result,
+      "Reminder checks executed successfully",
+    );
   };
 }

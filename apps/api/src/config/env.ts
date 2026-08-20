@@ -61,6 +61,7 @@ const envSchema = z.object({
   PIPER_PATH: z.string().trim().default("piper"),
   VOICE_ENABLED: z.coerce.boolean().default(true),
   VOICE_STREAMING_ENABLED: z.coerce.boolean().default(false),
+  CRON_SECRET: z.string().trim().default(""),
 });
 
 export const env = envSchema.parse(process.env);
@@ -76,6 +77,10 @@ if (
 
 if (env.NODE_ENV === "production" && !env.GEMINI_API_KEY) {
   throw new Error("GEMINI_API_KEY is required in production");
+}
+
+if (env.NODE_ENV === "production" && !env.CRON_SECRET) {
+  throw new Error("CRON_SECRET is required in production");
 }
 
 if (env.SESSION_WARNING_MS >= env.SESSION_INACTIVITY_TIMEOUT_MS) {
