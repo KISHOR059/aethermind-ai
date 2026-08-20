@@ -1,14 +1,38 @@
 {
   "$schema": "https://turborepo.dev/schema.json",
   "ui": "tui",
+  "globalEnv": [
+    "NODE_ENV",
+    "VERCEL",
+    "VERCEL_ENV"
+  ],
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
+      "env": [
+        "VITE_API_URL",
+        "PORT",
+        "WEB_ORIGIN",
+        "AI_PROVIDER",
+        "GEMINI_API_KEY",
+        "GEMINI_MODEL",
+        "AI_THINKING_LEVEL",
+        "AI_GEMINI_TIMEOUT_MS",
+        "AI_REQUEST_TIMEOUT_MS",
+        "MONGODB_URI",
+        "JWT_ACCESS_SECRET",
+        "JWT_REFRESH_SECRET",
+        "JWT_ACCESS_EXPIRES_IN",
+        "JWT_REFRESH_EXPIRES_IN",
+        "SESSION_INACTIVITY_TIMEOUT_MS",
+        "SESSION_MAX_LIFETIME_MS",
+        "SESSION_WARNING_MS",
+        "VOICE_ENABLED",
+        "VOICE_STREAMING_ENABLED",
+        "CRON_SECRET"
+      ],
       "outputs": [
-        ".next/**",
-        "!.next/cache/**",
-        "!.next/dev/**",
         "dist/**"
       ]
     },
