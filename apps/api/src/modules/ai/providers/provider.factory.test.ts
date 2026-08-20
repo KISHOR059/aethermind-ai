@@ -1,36 +1,29 @@
 import { describe, expect, it } from "vitest";
 import { createAIProvider } from "./provider.factory.js";
-import { FallbackProvider } from "./fallback.provider.js";
 import { GeminiProvider } from "./gemini.provider.js";
+import { FallbackProvider } from "./fallback.provider.js";
 import { OllamaProvider } from "./ollama.provider.js";
 
 describe("createAIProvider", () => {
-  it("creates FallbackProvider when primary and fallback are distinct", () => {
-    const provider = createAIProvider("gemini", "ollama");
-    expect(provider).toBeInstanceOf(FallbackProvider);
-    expect(provider.modelInformation.provider).toBe("Gemini");
-  });
-
-  it("creates GeminiProvider directly when fallback is 'none'", () => {
-    const provider = createAIProvider("gemini", "none");
+  it("returns GeminiProvider as the sole AI provider", () => {
+    const provider = createAIProvider();
     expect(provider).toBeInstanceOf(GeminiProvider);
     expect(provider.modelInformation.provider).toBe("Gemini");
+    expect(provider.modelInformation.model).toBe("gemini-3.5-flash");
   });
 
-  it("creates OllamaProvider directly when fallback is 'none'", () => {
-    const provider = createAIProvider("ollama", "none");
-    expect(provider).toBeInstanceOf(OllamaProvider);
-    expect(provider.modelInformation.provider).toBe("Ollama");
+  it("does not instantiate FallbackProvider or OllamaProvider", () => {
+    const provider = createAIProvider();
+    expect(provider).not.toBeInstanceOf(FallbackProvider);
+    expect(provider).not.toBeInstanceOf(OllamaProvider);
   });
 
-  it("creates standalone provider when primary and fallback are identical", () => {
-    const provider = createAIProvider("gemini", "gemini");
-    expect(provider).toBeInstanceOf(GeminiProvider);
-  });
-
-  it("throws error for unsupported provider", () => {
-    expect(() => createAIProvider("unsupported-llm", "none")).toThrow(
-      "Unsupported AI provider: unsupported-llm",
-    );
+  it("provides an AIProvider-compliant instance with generateText method", () => {
+    const provider = createAIProvider();
+    expect(typeof provider.generateText).toBe("function");
+    expect(typeof provider.healthCheck).toBe("function");
+    expect(provider.modelInformation).toBeDefined();
+    expect(provider.status).toBeDefined();
   });
 });
+

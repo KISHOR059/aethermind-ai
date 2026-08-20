@@ -1,4 +1,3 @@
-import { env } from "../../../config/env.js";
 import { logger } from "../../../lib/logger.js";
 import {
   AIProviderError,
@@ -33,9 +32,9 @@ export class OllamaProvider implements AIProvider {
   private readonly timeoutMs: number;
 
   public constructor(
-    baseUrl = env.OLLAMA_BASE_URL,
-    configuredModel = env.OLLAMA_MODEL,
-    timeoutMs = env.AI_OLLAMA_TIMEOUT_MS,
+    baseUrl = process.env.OLLAMA_BASE_URL || "http://localhost:11434",
+    configuredModel = process.env.OLLAMA_MODEL || "llama3.2:3b",
+    timeoutMs = Number(process.env.AI_OLLAMA_TIMEOUT_MS) || 120_000,
   ) {
     this.baseUrl = baseUrl.replace(/\/+$/, "");
     this.configuredModel = configuredModel;

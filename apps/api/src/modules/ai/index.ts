@@ -12,10 +12,7 @@ const aiProvider = createAIProvider();
 logger.info("AI provider initialized", {
   provider: aiProvider.modelInformation.provider,
   model: aiProvider.modelInformation.model,
-  primary: env.AI_PROVIDER,
-  fallback: env.AI_FALLBACK_PROVIDER,
-  geminiTimeoutMs: env.AI_GEMINI_TIMEOUT_MS,
-  ollamaTimeoutMs: env.AI_OLLAMA_TIMEOUT_MS,
+  timeoutMs: env.AI_GEMINI_TIMEOUT_MS,
   configured: aiProvider.status !== "not_configured",
 });
 const contextBuilder = new ContextBuilder();
