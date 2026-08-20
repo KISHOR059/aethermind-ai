@@ -2,7 +2,7 @@ import compression from "compression";
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import express from "express";
-import type { Express } from "express";
+import type { Express, RequestHandler } from "express";
 import helmet from "helmet";
 
 import { env } from "./config/env.js";
@@ -17,8 +17,14 @@ const app: Express = express();
 
 registerEventListeners();
 
+const helmetMiddleware = (
+  typeof helmet === "function"
+    ? helmet
+    : (helmet as unknown as { default: () => RequestHandler }).default
+) as () => RequestHandler;
+
 app.use(requestIdMiddleware);
-app.use(helmet());
+app.use(helmetMiddleware());
 app.use(
   cors({
     origin: (origin, callback) => {
