@@ -1,6 +1,6 @@
 # AI Module Architecture
 
-An enterprise-grade, modular, and provider-agnostic Artificial Intelligence architecture built for **AetherMind AI**. This system powers intelligent productivity features—such as **Plan My Day**—by contextually assembling user task data, engineering strict system prompts, orchestrating multi-provider LLM inference (local Ollama models and cloud Google Gemini), validating output against strict Zod schemas, and providing deterministic retry mechanisms and rich UI states.
+An enterprise-grade, modular, and cloud-first Artificial Intelligence architecture built for **AetherMind AI**. This system powers intelligent productivity features—such as **Plan My Day**, **Task Breakdown**, **Task Prioritization**, **Smart Reschedule**, **Weekly Review**, **Productivity Insights**, and **AI Assistant Chat**—by contextually assembling user task data, engineering strict system prompts, orchestrating cloud LLM inference with **Google Gemini 3.5 Flash**, validating output against strict Zod schemas, and providing deterministic retry mechanisms and rich UI states.
 
 ---
 
@@ -12,22 +12,22 @@ An enterprise-grade, modular, and provider-agnostic Artificial Intelligence arch
 - [Folder Structure](#folder-structure)
 - [End-to-End Request Flow](#end-to-end-request-flow)
 - [Authentication Flow](#authentication-flow)
-- [AI Pipeline](#ai-pipeline)
+- [AI Pipeline & Lifecycle](#ai-pipeline--lifecycle)
 - [Context Builder](#context-builder)
 - [Prompt Builder](#prompt-builder)
 - [AI Provider Abstraction](#ai-provider-abstraction)
-- [Ollama Provider](#ollama-provider)
 - [Gemini Provider](#gemini-provider)
-- [Response Parser](#response-parser)
+- [In-Memory Caching (AICacheService)](#in-memory-caching-aicacheservice)
+- [Response Parser & Schema Validation](#response-parser--schema-validation)
 - [Zod Validation](#zod-validation)
 - [Error Handling](#error-handling)
 - [Frontend Flow](#frontend-flow)
-- [Performance](#performance)
-- [Security](#security)
-- [Logging](#logging)
-- [Current Example](#current-example)
-- [Future AI Features](#future-ai-features)
-- [Lessons Learned](#lessons-learned)
+- [Performance & Benchmarks](#performance--benchmarks)
+- [Security & Secrets Management](#security--secrets-management)
+- [Logging & Telemetry](#logging--telemetry)
+- [Current Features & Examples](#current-features--examples)
+- [Production Deployment & Serverless Considerations](#production-deployment--serverless-considerations)
+- [Historical Migration Note](#historical-migration-note)
 - [Tech Stack](#tech-stack)
 - [Conclusion](#conclusion)
 
@@ -36,34 +36,37 @@ An enterprise-grade, modular, and provider-agnostic Artificial Intelligence arch
 ## Overview
 
 ### Why AI Was Introduced
-Modern task management applications often suffer from user cognitive overload: users create long lists of tasks but struggle to prioritize, schedule, and execute them effectively. AetherMind AI introduces an autonomous AI cognitive layer that converts disorganized task backlogs into structured, actionable, and context-aware daily execution plans.
+Modern task management applications often suffer from user cognitive overload: users accumulate extensive backlogs of tasks but struggle to prioritize, schedule, and execute them effectively. AetherMind AI introduces an autonomous AI cognitive layer that converts disorganized task backlogs into structured, actionable, and context-aware daily execution plans.
 
-### Current Feature: Plan My Day
-The primary feature powered by this architecture is **Plan My Day**. It analyzes the user's active tasks, due dates, priority tiers, estimated completion times, and current temporal context to construct an optimal schedule, calculate a daily productivity score, highlight top priorities, and provide personalized productivity recommendations.
+### Current Features Powered by AI
+- **Plan My Day**: Analyzes active tasks, due dates, priority tiers, estimated completion times, and temporal context to generate an optimized daily schedule, productivity score, top priorities, and actionable recommendations.
+- **Task Breakdown**: Decomposes complex or intimidating tasks into atomic, dependency-ordered subtasks with realistic time estimates.
+- **Task Prioritization**: Re-ranks the user's backlog considering urgency, overdue status, and effort.
+- **Smart Reschedule**: Identifies overdue tasks and intelligently reschedules them to future dates while preventing daily overload.
+- **Weekly Review**: Evaluates weekly performance metrics, identifies productivity bottlenecks, highlights achievements, and provides grounded coaching insights.
+- **Productivity Insights**: Computes productivity strengths, patterns, weaknesses, and habit streaks from historical workspace data.
+- **AI Assistant Chat**: Interactive conversational assistant strictly grounded in the user's workspace tasks and productivity context.
 
-### Supported Providers
-- **Ollama**: Local, privacy-first inference using open-source models such as `llama3.2:3b` and `qwen3`.
-- **Google Gemini**: Cloud-based high-throughput inference using models like `gemini-1.5-flash` or `gemini-1.5-pro`.
-
-### Future Extensibility
-The pipeline and provider abstractions permit zero-friction integration of new models (e.g., Anthropic Claude, OpenAI GPT-4o, DeepSeek) and new intelligence features (e.g., AI Chat, Task Breakdown, Weekly Review) without modifying core controller or routing layers.
+### Primary AI Provider
+- **Google Gemini 3.5 Flash**: Cloud-based high-throughput inference using Google's `@google/genai` SDK with configurable reasoning/thinking budgets.
 
 ---
 
 ## Features
 
-- **AI Daily Planner**: Context-aware schedule generation and task prioritization.
-- **Local AI Support (Ollama)**: Privacy-preserving, offline-capable local LLM execution.
-- **Cloud AI Support (Gemini)**: Ultra-fast cloud inference with high context limits.
-- **Provider Abstraction**: Unified strategy pattern for swapping AI providers seamlessly.
-- **Prompt Engineering**: Versioned prompt templates enforcing strict JSON output.
-- **Context Builder**: Dynamic aggregation of user tasks, temporal metadata, and user preferences.
+- **Autonomous Daily Planner**: Context-aware schedule generation and task prioritization.
+- **Cloud AI Inference (Gemini 3.5 Flash)**: Ultra-fast cloud inference with high context limits (~1.5s–5s response times).
+- **Thinking / Reasoning Budgets**: Configurable Gemini 3.5 Flash thinking token budgets (`none`, `low`, `medium`, `high`).
+- **Provider Abstraction**: Decoupled interface architecture adhering to Dependency Inversion.
+- **Prompt Engineering**: Versioned prompt templates enforcing strict JSON output and security boundaries.
+- **Context Builder**: Dynamic aggregation of user tasks, temporal metadata, preferences, and workspace statistics.
 - **JSON Response Validation**: Double-pass Zod schema validation ensuring runtime type safety.
-- **Automatic Retry Mechanism**: Single-pass auto-retry specifically targeted at `INVALID_JSON` parse errors.
-- **Structured Parsing**: Robust extraction of JSON payloads from raw LLM output strings.
-- **React Query Integration**: Declarative async state management with automatic refetching and error boundaries.
+- **Deterministic Auto-Retry**: Automatic single-pass self-correction retry targeted at `INVALID_JSON` parse errors.
+- **Transient Fault Tolerance**: Exponential backoff with jitter on HTTP 429 rate limits and 503 service errors.
+- **In-Memory Caching**: TTL-backed caching (`AICacheService`) for idempotent AI operations.
+- **React Query Integration**: Declarative async state management with automatic caching, refetching, and error boundaries.
 - **Secure Authentication**: JWT access token verification coupled with HttpOnly refresh cookies.
-- **Execution Metrics**: Fine-grained telemetry tracking prompt versions, token consumption, and execution duration.
+- **Comprehensive Telemetry**: Stage-by-stage timing breakdowns, token consumption, and model metadata.
 
 ---
 
@@ -93,33 +96,39 @@ The pipeline and provider abstractions permit zero-friction integration of new m
 │ ┌──────────────────┐  ┌──────────────────┐  ┌──────────────────────┐  │
 │ │  ContextBuilder  │  │  PromptBuilder   │  │   ResponseParser     │  │
 │ └────────┬─────────┘  └────────┬─────────┘  └──────────▲───────────┘  │
-└──────────┼─────────────────────┼───────────────────────┼───────────────┘
-           │                     │                       │
-           ▼                     ▼                       │
-   Gather User Tasks     Assemble System/User            │ Validate JSON
-   & Temporal State      Prompt Templates                │ & Zod Schema
-                                 │                       │
-                                 ▼                       │
-                     ┌───────────────────────┐           │
-                     │   Provider Factory    │           │
-                     └───────────┬───────────┘           │
-                                 │                       │
-                       ┌─────────┴─────────┐             │
-                       ▼                   ▼             │
-             ┌───────────────────┐ ┌───────────────────┐ │
-             │   OllamaProvider  │ │  GeminiProvider   │─┘
-             │  (llama3.2:3b)    │ │ (gemini-1.5-flash)│
-             └───────────────────┘ └───────────────────┘
+│          │                     │                       │              │
+│          ▼                     ▼                       │ Validate JSON│
+│  Gather User Tasks     Assemble System/User            │ & Zod Schema │
+│  & Temporal State      Prompt Templates                │              │
+│          │                     │                       │              │
+│          └──────────────┬──────┴───────────────────────┤              │
+│                         ▼                              │              │
+│               ┌───────────────────┐                    │              │
+│               │  AICacheService   │ (Cache Hit?)       │              │
+│               └─────────┬─────────┘                    │              │
+│                         ▼ (Cache Miss)                 │              │
+│               ┌───────────────────┐                    │              │
+│               │ Provider Factory  │                    │              │
+│               └─────────┬─────────┘                    │              │
+│                         ▼                              │              │
+│               ┌───────────────────┐                    │              │
+│               │  GeminiProvider   │────────────────────┘              │
+│               │ (gemini-3.5-flash)│                                   │
+│               └─────────┬─────────┘                                   │
+└─────────────────────────┼─────────────────────────────────────────────┘
+                          │ HTTPS
+                          ▼
+             Google Gemini Cloud API
 ```
 
 ### Layer Responsibilities
 
-1. **Presentation Layer (React Frontend)**: Manages dialog visibility, displays an animated loading experience with rotating progress messages and timer, and renders structured plan cards.
+1. **Presentation Layer (React Frontend)**: Manages dialog visibility, renders stateful loading indicators with animated progress, and presents structured plan cards.
 2. **Transport & Auth Layer (Axios & Express Middleware)**: Handles HTTP requests, injects Bearer JWT tokens, handles 401 token refreshes, and validates caller identity.
-3. **Controller & Service Layer (`AiController` & `AiService`)**: Sanitizes API requests, delegates work to the pipeline, and formats uniform `ApiSuccess<T>` standard responses.
-4. **Pipeline Layer (`AIPipeline`)**: Coordinates context gathering, prompt construction, provider invocation, response parsing, schema validation, and automatic retries.
+3. **Controller & Service Layer (`AiController` & `AiService`)**: Sanitizes API requests, delegates work to the pipeline, and formats uniform `ApiSuccess<T>` responses.
+4. **Pipeline Layer (`AIPipeline`)**: Coordinates context gathering, cache checks, prompt construction, provider invocation, response parsing, schema validation, and automatic retries.
 5. **Context & Prompt Layer**: Transforms database records into structured LLM context and injects them into versioned system/user prompt templates.
-6. **Provider Layer (`AIProvider`)**: Hides vendor-specific API differences behind a uniform execution contract (`generate()`).
+6. **Provider Layer (`AIProvider` & `GeminiProvider`)**: Manages model interaction, thinking budgets, structured output modes, and transient retries via `@google/genai`.
 7. **Parsing & Validation Layer (`ResponseParser` & `SchemaValidator`)**: Guarantees that raw LLM output strings match runtime Zod structural rules before reaching caller applications.
 
 ---
@@ -128,10 +137,13 @@ The pipeline and provider abstractions permit zero-friction integration of new m
 
 ```text
 apps/api/src/modules/ai/
-├── ai.controller.ts            # Route handler exposing endpoints to Express
+├── ai.controller.ts            # Route handlers exposing AI endpoints to Express
 ├── ai.routes.ts                # Express router mapping endpoints to auth middleware & controller
 ├── ai.service.ts               # Core module entry service wrapping pipeline execution
 ├── index.ts                    # Public barrel export for the AI module
+├── cache/
+│   ├── ai-cache.service.ts     # In-memory TTL cache for deterministic AI requests
+│   └── index.ts
 ├── context/
 │   ├── context-builder.ts              # Orchestrator aggregating all context providers
 │   ├── context-provider.interface.ts  # Contract interface for context sources
@@ -165,9 +177,9 @@ apps/api/src/modules/ai/
 │   └── templates/                    # Concrete prompt templates (e.g. daily-plan.template.ts)
 └── providers/
     ├── ai-provider.interface.ts      # Uniform interface for LLM vendors
-    ├── gemini.provider.ts            # Google Gemini SDK implementation
-    ├── ollama.provider.ts            # Local Ollama HTTP API implementation
-    ├── provider.factory.ts           # Factory instantiating default/configured provider
+    ├── gemini.provider.ts            # Google Gemini SDK (@google/genai) implementation
+    ├── index.ts                      # Provider barrel export
+    ├── provider.factory.ts           # Direct factory instantiating GeminiProvider
     └── types.ts                      # Provider options, response, and metrics types
 ```
 
@@ -186,8 +198,10 @@ sequenceDiagram
     participant Service as AI Service
     participant Pipe as AI Pipeline
     participant Ctx as Context Builder
+    participant Cache as AI Cache Service
     participant Prompt as Prompt Builder
-    participant Provider as AI Provider (Ollama/Gemini)
+    participant Provider as Gemini Provider
+    participant Gemini as Google Gemini Cloud API
     participant Parser as Response Parser
 
     User->>Web: Clicks "Plan My Day"
@@ -196,20 +210,30 @@ sequenceDiagram
     Auth->>Auth: Verifies JWT Secret & Subject
     Auth->>Ctrl: Hands off request with authenticated user session
     Ctrl->>Service: Calls planDay(userId)
-    Service->>Pipe: Executes pipeline for "daily-plan" task
+    Service->>Pipe: Executes pipeline for "daily-planner" promptId
     Pipe->>Ctx: Gather context for userId
     Ctx-->>Pipe: Returns aggregated tasks & temporal context
-    Pipe->>Prompt: Build prompt messages with context
-    Prompt-->>Pipe: Returns System & User Prompt Messages
-    Pipe->>Provider: generate(promptMessages, options)
-    Provider-->>Pipe: Returns raw LLM text & execution telemetry
-    Pipe->>Parser: parseResponse(rawResponse, ZodSchema)
-    alt Response is valid JSON & matches Zod Schema
-        Parser-->>Pipe: Returns structured result
-    else Response is INVALID_JSON
-        Pipe->>Provider: Automatic Single Retry ("The previous response was not valid JSON...")
-        Provider-->>Pipe: Returns fresh LLM text
-        Pipe->>Parser: Re-parses & validates
+    Pipe->>Cache: Check for cached response
+    alt Cache Hit
+        Cache-->>Pipe: Returns cached AIExecutionResult
+    else Cache Miss
+        Pipe->>Prompt: Build prompt messages with context
+        Prompt-->>Pipe: Returns System & User Prompt Messages
+        Pipe->>Provider: generateText(request)
+        Provider->>Gemini: HTTPS API Request (responseMimeType: "application/json")
+        Gemini-->>Provider: JSON Response + Token Usage Metadata
+        Provider-->>Pipe: Returns raw LLM text & execution telemetry
+        Pipe->>Parser: parseResponse(rawResponse, ZodSchema)
+        alt Response is valid JSON & matches Zod Schema
+            Parser-->>Pipe: Returns structured validated result
+            Pipe->>Cache: Store result in cache (if cacheable)
+        else Response is INVALID_JSON
+            Pipe->>Provider: Automatic Single Retry ("The previous response was not valid JSON...")
+            Provider->>Gemini: HTTPS Retry Request
+            Gemini-->>Provider: Corrected JSON Response
+            Provider-->>Pipe: Returns fresh LLM text
+            Pipe->>Parser: Re-parses & validates
+        end
     end
     Pipe-->>Service: Returns PlanDayResult + AIExecutionMetrics
     Service-->>Ctrl: Returns pipeline output
@@ -217,23 +241,6 @@ sequenceDiagram
     Client-->>Web: Updates React Query cache
     Web->>User: Renders AI Daily Plan UI
 ```
-
-### Detailed Step Walkthrough
-
-1. **User Action**: The user opens the task workspace and clicks **"Plan My Day"**.
-2. **React Query Execution**: `usePlanDay()` hook checks cache freshness and triggers `planDay()` query function.
-3. **HTTP Transport**: `apiClient` sends `POST /api/v1/ai/plan-day` with extended `timeout: 120000` (120s).
-4. **JWT Injection**: Axios request interceptor injects `Authorization: Bearer <token>` from local storage.
-5. **Express Authentication**: `requireAuth` middleware verifies the access token signature and attaches `request.user`.
-6. **Controller Dispatch**: `AiController.planDay` extracts `request.user.id` and delegates execution to `AiService`.
-7. **Service Orchestration**: `AiService` delegates work to `AIPipeline.execute()`.
-8. **Context Collection**: `ContextBuilder` queries Prisma for user tasks, overdue items, priority tiers, and temporal metadata.
-9. **Prompt Construction**: `PromptBuilder` interpolates context into `daily-plan.template.ts` and prepends strict `SYSTEM_PROMPT`.
-10. **LLM Provider Execution**: `ProviderFactory` routes execution to `OllamaProvider` (or `GeminiProvider`).
-11. **Raw LLM Output**: Model performs inference and returns a JSON string response.
-12. **Parsing & Validation**: `ResponseParser` strips markdown fences, parses raw JSON, and validates structural compliance via Zod.
-13. **API Response Delivery**: Express sends `HTTP 200` with standard `ApiSuccess` structure.
-14. **UI Render**: React Query cache updates, loading screen completes, and the daily plan renders on screen.
 
 ---
 
@@ -245,123 +252,18 @@ sequenceDiagram
     participant Client as Web Client
     participant API as API Server
     participant Auth as Auth Middleware
-    participant DB as Prisma Database
+    participant DB as MongoDB Database
 
     Client->>API: POST /api/v1/auth/login
-    API->>DB: Validate user credentials
-    DB-->>API: User record
-    API-->>Client: Returns Access Token (JWT) + Sets HttpOnly Refresh Cookie
-
-    Client->>Auth: POST /api/v1/ai/plan-day (Headers: Authorization: Bearer <JWT>)
-    alt Token Valid
-        Auth->>Auth: Verify JWT signature & expiration
-        Auth->>API: Attach user to Request Context
-    else Token Expired (401)
-        Auth-->>Client: HTTP 401 Unauthorized
-        Client->>API: POST /api/v1/auth/refresh (Sends HttpOnly Cookie)
-        API-->>Client: Issues new JWT Access Token
-        Client->>Auth: Retries POST /api/v1/ai/plan-day with new Bearer JWT
-    end
-```
-
-### Why Authentication Happens Prior to AI Execution
-AI model generation is computationally expensive (high GPU utilization locally, API cost per token on cloud providers). Enforcing authentication at the API gateway layer prevents unauthenticated denial-of-service (DoS) attacks and ensures prompt context is isolated to the authenticated user's private data.
-
----
-
-## AI Pipeline
-
-The `AIPipeline` is the core orchestrator of the entire module.
-
-```mermaid
-flowchart TD
-    A[Start Pipeline Execution] --> B[Aggregate Context via ContextBuilder]
-    B --> C[Construct Prompt via PromptBuilder]
-    C --> D[Invoke Provider generate]
-    D --> E{Raw String Output}
-    E --> F[ResponseParser.parse]
-    F --> G{Parsing Result}
-    G -- Success --> H[Zod Schema Validation]
-    H -- Valid --> I[Return Validated Result + Telemetry]
-    G -- INVALID_JSON Retry Available --> J[Trigger Single Automatic Retry]
-    J --> K[Prepend System Retry Prompt]
-    K --> D
-    G -- INVALID_JSON Retry Exhausted --> L[Throw AIParseError]
-    H -- SCHEMA_VALIDATION_FAILED --> M[Throw Immediately Without Retry]
-```
-
-### Pipeline Responsibilities
-- **Context & Prompt Orchestration**: Dynamically builds inputs required by specific AI tasks.
-- **Provider Switching**: Seamlessly executes requests against whichever `AIProvider` is active.
-- **Transient Failure Recovery**: Implements targeted retry loops for malformed JSON without wasting tokens on non-retryable validation errors.
-- **Telemetry Collection**: Measures provider execution time, prompt tokens, completion tokens, and pipeline duration.
-
----
-
-## Context Builder
-
-The quality of AI daily planning directly depends on the quality of context provided to the model.
-
-### Collected Data Fields
-
-| Context Source | Collected Fields | Purpose |
-| :--- | :--- | :--- |
-| **`TaskContextProvider`** | Incomplete tasks, Overdue tasks, Tasks due today, Tasks completed today, Priority tiers (`URGENT`, `HIGH`, `MEDIUM`, `LOW`), Estimated duration (minutes) | Core workload analysis and scheduling inputs |
-| **`TimeContextProvider`** | Current date, Day of week, Current time, User timezone | Temporal anchoring for realistic schedule generation |
-| **`UserContextProvider`** | User ID, Name, Email, Workspace ID | Personalized summary generation |
-| **`SettingsContextProvider`**| Work hours start/end, Focus time preferences | Schedule constraint boundaries |
-
----
-
-## Prompt Builder
-
-Prompt construction combines immutable system instructions with task-specific templates.
-
-### Strict System Prompt Enforcement
-
-```typescript
-export const SYSTEM_PROMPT = `
-You are an AI productivity assistant.
-
-Return ONLY valid JSON.
-Do NOT return markdown.
-Do NOT wrap JSON in \`\`\`.
-Do NOT include explanations.
-Do NOT include reasoning.
-Do NOT include comments.
-Do NOT include trailing commas.
-
-Every property must use double quotes.
-The response MUST be valid JSON parsable by JSON.parse().
-Follow the schema exactly.
-`;
-```
-
-### Template Example (`daily-plan.template.ts`)
-
-```typescript
-export const dailyPlanTemplate = {
-  id: "daily-plan",
-  version: "1.0.0",
-  systemPrompt: SYSTEM_PROMPT,
-  userPromptTemplate: `
-Plan the daily schedule for {{userName}} on {{currentDate}} ({{dayOfWeek}}).
-
-Tasks Context:
-- Active Tasks: {{activeTasksCount}}
-- Overdue Tasks: {{overdueTasksCount}}
-- High Priority Tasks: {{highPriorityTasks}}
-
-Format your response matching this exact JSON structure:
-{
-  "summary": "String",
-  "priorities": ["String"],
-  "schedule": [{"time": "HH:MM AM/PM", "task": "String"}],
-  "recommendations": ["String"],
-  "productivityScore": 85
-}
-`,
-};
+    API->>DB: Query user by email & verify bcrypt password
+    DB-->>API: User record found & verified
+    API-->>Client: HTTP 200 (accessToken in JSON body, refreshToken in HttpOnly cookie)
+    
+    Note over Client,API: Subsequent AI Request
+    Client->>Auth: POST /api/v1/ai/plan-day (Authorization: Bearer <accessToken>)
+    Auth->>Auth: Verify JWT signature & expiration
+    Auth->>API: Attach req.user = { id, email, role }
+    API->>API: Process AI Pipeline with authenticated userId
 ```
 
 ---
@@ -372,76 +274,66 @@ Format your response matching this exact JSON structure:
 classDiagram
     class AIProvider {
         <<interface>>
-        +name: string
-        +isAvailable(): Promise~boolean~
-        +generate(messages, options): Promise~AIProviderResponse~
-    }
-
-    class OllamaProvider {
-        -baseUrl: string
-        -model: string
-        +generate(messages, options): Promise~AIProviderResponse~
+        +modelInformation: ModelInformation
+        +status: ProviderStatus
+        +generateText(request: GenerateTextRequest): Promise~GenerateTextResponse~
+        +healthCheck(): Promise~ProviderHealth~
     }
 
     class GeminiProvider {
-        -apiKey: string
+        -ai: GoogleGenAI
         -model: string
-        +generate(messages, options): Promise~AIProviderResponse~
+        -timeoutMs: number
+        -thinkingBudget: number
+        +generateText(request: GenerateTextRequest): Promise~GenerateTextResponse~
+        +healthCheck(): Promise~ProviderHealth~
     }
 
     class ProviderFactory {
-        +getProvider(name): AIProvider
+        +createAIProvider(): AIProvider
     }
 
-    AIProvider <|.. OllamaProvider
     AIProvider <|.. GeminiProvider
     ProviderFactory ..> AIProvider
 ```
 
-The system employs Dependency Inversion: business logic depends exclusively on the `AIProvider` interface, allowing runtime swapping of AI engines via environment configuration (`AI_PROVIDER=ollama` or `AI_PROVIDER=gemini`).
-
----
-
-## Ollama Provider
-
-### Local AI Architecture
-`OllamaProvider` communicates directly with the local Ollama daemon via standard HTTP endpoints (`POST /api/generate`).
-
-### Features & Configuration
-- **Native JSON Mode**: Passes `format: "json"` in the request body to enforce JSON mode at the LLM decoding layer.
-- **Timeout Management**: Uses `AbortController` configured with `OLLAMA_REQUEST_TIMEOUT_MS` (default: 180,000ms / 3 minutes).
-- **Supported Models**: Optimized for `llama3.2:3b` and `qwen3`.
-
-| Feature | Advantage | Disadvantage |
-| :--- | :--- | :--- |
-| **Local Ollama** | 100% Data Privacy, Zero API Cost, Offline Functionality | Requires Local GPU/CPU Hardware, Higher Latency (25-40s) |
+The system employs **Dependency Inversion**: domain logic and pipeline stages depend strictly on the `AIProvider` contract. `createAIProvider()` returns `GeminiProvider`, keeping provider initialization centralized and clean.
 
 ---
 
 ## Gemini Provider
 
 ### Cloud AI Architecture
-`GeminiProvider` wraps the official `@google/genai` SDK to execute cloud inference against Google's infrastructure.
+`GeminiProvider` communicates with Google's cloud infrastructure via the official `@google/genai` SDK.
 
-### Features & Configuration
-- **High Throughput**: Rapid response generation (~2-5 seconds).
-- **Usage Telemetry**: Extracts token usage metrics directly from API response metadata.
-- **Rate Limit Handling**: Translates Google API quota errors into typed `AIRateLimitError` exceptions.
-
-| Feature | Advantage | Disadvantage |
-| :--- | :--- | :--- |
-| **Cloud Gemini** | Extremely Fast (2-5s), High Context Limits, Zero Local Compute Required | Requires Cloud API Key, External Network Dependency |
+### Key Capabilities & Configurations
+- **Model**: `gemini-3.5-flash` by default.
+- **Thinking / Reasoning Budget**: Maps `AI_THINKING_LEVEL` configuration (`none`, `low`, `medium`, `high`) to token limits (0 to 2,048 tokens).
+- **Structured Output**: Instructs the model using `config: { responseMimeType: "application/json" }`.
+- **Transient Retry with Jitter**: Automatically retries HTTP 429 rate limits, 503 service errors, and network disconnects up to 2 times using exponential backoff with randomized jitter.
+- **Fail-Fast**: Immediately throws non-transient errors (HTTP 401/403 invalid API keys, 404 missing model) without wasteful retry delays.
+- **Timeout Management**: Bounded by `AI_GEMINI_TIMEOUT_MS` (default: 30,000ms).
 
 ---
 
-## Response Parser
+## In-Memory Caching (AICacheService)
 
-Raw LLM responses are inherently unpredictable. The `ResponseParser` guarantees that string responses are converted into validated domain objects.
+`AICacheService` provides in-memory TTL caching for AI operations.
+
+- **Deterministic Cache Keys**: Generated by hashing `userId + promptId + stableSerializedContext`.
+- **Configurable TTL**: Feature-specific cache expiration (e.g. 5 minutes for daily plans, 15 minutes for productivity insights).
+- **Telemetry**: Caching state is reflected in execution metrics (`stageTimings.cached: true`).
+
+---
+
+## Response Parser & Schema Validation
+
+Raw LLM responses are converted into strongly-typed domain objects:
 
 ```typescript
 export class ResponseParser {
   public parse<T>(rawText: string, schema: ZodSchema<T>): ParserResult<T> {
-    // 1. Sanitize text (strip markdown fences like ```json ... ```)
+    // 1. Sanitize text (strip markdown code fences if present)
     const cleanedText = JsonParser.extractJsonString(rawText);
 
     // 2. Parse JSON string
@@ -465,20 +357,20 @@ export class ResponseParser {
 
 ## Zod Validation
 
-Zod schema validation guarantees that incoming AI structures adhere strictly to expected application interfaces.
+Strict runtime validation guarantees that data structures conform to the expected domain interfaces:
 
 ```typescript
-export const dailyPlanSchema = z.object({
-  summary: z.string().min(10),
-  priorities: z.array(z.string()).min(1),
+export const dailyPlannerResponseSchema = z.object({
+  summary: z.string().min(1, "Summary is required"),
+  priorities: z.array(z.string()).min(1, "At least one priority is required"),
   schedule: z.array(
     z.object({
-      time: z.string(),
-      task: z.string(),
+      time: z.string().min(1, "Time block is required"),
+      task: z.string().min(1, "Task description is required"),
     })
   ),
   recommendations: z.array(z.string()),
-  productivityScore: z.number().min(0).max(100),
+  productivityScore: z.number().int().min(0).max(100),
 });
 ```
 
@@ -486,168 +378,91 @@ export const dailyPlanSchema = z.object({
 
 ## Error Handling
 
-Custom exception classes ensure error handling remains predictable across layers.
-
-| Error Class | Trigger Condition | HTTP Status | Retry Behavior |
-| :--- | :--- | :--- | :--- |
-| **`AIProviderError`** | Base exception for AI model errors | `500 Internal Server Error` | Non-retryable |
-| **`AIProviderTimeoutError`** | Provider request exceeded configured timeout | `504 Gateway Timeout` | Non-retryable |
-| **`AIRateLimitError`** | Provider quota or rate limit exceeded | `429 Too Many Requests` | Non-retryable |
-| **`AIParseError`** | Raw response could not be parsed as JSON | `502 Bad Gateway` | Single automatic pipeline retry |
-| **`AIResponseError`** | Response parsed but failed Zod schema validation | `502 Bad Gateway` | Non-retryable (prevents token waste) |
-| **`UnauthorizedError`** | Missing or invalid Bearer JWT token | `401 Unauthorized` | Handled by frontend Auth refresh |
+| Error Class | Trigger Condition | HTTP Status | Error Code | Retry Behavior |
+| :--- | :--- | :---: | :--- | :--- |
+| **`AIRateLimitError`** | Gemini quota or rate limit exceeded (HTTP 429) | `429` | `AI_RATE_LIMIT` | Handled via exponential backoff |
+| **`AIProviderTimeoutError`** | Request exceeded `AI_GEMINI_TIMEOUT_MS` | `504` | `AI_PROVIDER_TIMEOUT` | Non-retryable |
+| **`AIProviderError`** | Gemini API authentication (401) or model error (404) | `401` / `404` / `500` | `AI_PROVIDER_ERROR` | Fail-fast |
+| **`AIParseError`** | Raw response could not be parsed as JSON | `502` | `AI_RESPONSE_INVALID` | Single automatic pipeline retry |
+| **`AIResponseError`** | Response parsed but failed Zod validation | `502` | `AI_RESPONSE_INVALID` | Non-retryable (prevents token waste) |
+| **`UnauthorizedError`** | Missing or invalid Bearer JWT token | `401` | `UNAUTHORIZED` | Handled by frontend auth refresh |
 
 ---
 
-## Frontend Flow
+## Performance & Benchmarks
 
-The React frontend delivers a seamless user experience during long-running AI requests.
+### Telemetry Benchmarks (Google Gemini 3.5 Flash)
 
-```text
-               ┌─────────────────────────────┐
-               │     User clicks button      │
-               └──────────────┬──────────────┘
-                              │
-                              ▼
-               ┌─────────────────────────────┐
-               │    PlanMyDayDialog opens    │
-               └──────────────┬──────────────┘
-                              │
-                              ▼
-               ┌─────────────────────────────┐
-               │  usePlanDay query executes  │
-               └──────────────┬──────────────┘
-                              │
-               ┌──────────────┴──────────────┐
-               ▼                             ▼
-   isFetching = true             isError = true / isSuccess = true
-┌──────────────────────────┐   ┌────────────────────────────────┐
-│ Displays AI Loading Screen│   │ Hides Loader, renders Plan     │
-│ - Pulsing Sparkles Icon  │   │ Success Cards OR Error Alert   │
-│ - Rotating Status Text   │   └────────────────────────────────┘
-│ - Indeterminate Progress │
-│ - MM:SS Elapsed Timer    │
-└──────────────────────────┘
-```
-
-### Key Frontend Components & Configurations
-- **`PlanMyDayDialog`**: Controls modal lifecycle and renders state transitions.
-- **`aiService.planDay()`**: Configured with `{ timeout: 120000 }` (120s) to prevent client-side Axios cancellation during local LLM generation.
-- **`Progress` Component**: Displays smooth, accessible indeterminate loading animation.
+| Metric | Google Gemini 3.5 Flash |
+| :--- | :--- |
+| **Average End-to-End Latency** | 1,800ms – 4,500ms |
+| **Average Prompt Tokens** | ~400 – 1,200 tokens |
+| **Average Completion Tokens** | ~150 – 500 tokens |
+| **Configured Server Timeout** | 30,000ms (`AI_GEMINI_TIMEOUT_MS`) |
+| **Configured Client Timeout** | 120,000ms (`AI_REQUEST_TIMEOUT_MS`) |
 
 ---
 
-## Performance
+## Security & Secrets Management
 
-### Telemetry Benchmarks
-
-| Metric | Local Ollama (`llama3.2:3b`) | Cloud Gemini (`gemini-1.5-flash`) |
-| :--- | :--- | :--- |
-| **Average Execution Time** | 25,000ms – 38,000ms | 1,800ms – 3,500ms |
-| **Average Prompt Tokens** | ~350 – 450 tokens | ~350 – 450 tokens |
-| **Average Completion Tokens** | ~100 – 180 tokens | ~100 – 180 tokens |
-| **Configured HTTP Timeout** | 120,000ms (Client) / 180,000ms (Server) | 60,000ms |
+1. **Server-Side Isolation**: `GEMINI_API_KEY` is loaded strictly in server-side environment variables and is never exposed in client bundles or network responses.
+2. **Context Sanitization**: Context builders exclude password hashes, tokens, session IDs, and administrative secrets from LLM payloads.
+3. **Prompt Injection Mitigation**: All dynamic user inputs are wrapped in untrusted data tags (`<task_context>`, `<task_details>`, `<user_message>`), with explicit system directives forbidding instruction override.
 
 ---
 
-## Security
+## Logging & Telemetry
 
-1. **Strict Transport Security**: All protected endpoints require valid JWT authorization headers.
-2. **Data Isolation**: Context queries are scoped strictly to `request.user.id`.
-3. **Secrets Isolation**: API keys (e.g. `GEMINI_API_KEY`) are stored in server environment variables and never exposed to the client bundle.
-4. **Prompt Injection Mitigation**: User inputs are injected into structured context templates rather than executed as direct instructions.
-
----
-
-## Logging
-
-Structured JSON logging captures end-to-end execution telemetry.
+Structured JSON logs capture execution timing and token telemetry:
 
 ```json
 {
-  "timestamp": "2026-08-03T11:25:04.123Z",
+  "timestamp": "2026-08-20T15:00:01.123Z",
   "level": "info",
-  "message": "AI pipeline task executed successfully",
-  "task": "daily-plan",
-  "provider": "Ollama",
-  "model": "llama3.2:3b",
-  "executionTime": 25999,
-  "tokenUsage": {
-    "inputTokens": 358,
-    "outputTokens": 96,
-    "totalTokens": 454
-  }
+  "message": "AI Pipeline Timing Breakdown",
+  "promptId": "daily-planner",
+  "userId": "6a771494d06ba6a4f43261c8",
+  "provider": "Gemini",
+  "model": "gemini-3.5-flash",
+  "finishReason": "STOP",
+  "outputTokenCount": 430,
+  "inputTokenCount": 1031,
+  "totalTokens": 1461,
+  "contextTimeMs": 28,
+  "promptTimeMs": 0,
+  "llmTimeMs": 2510,
+  "parseTimeMs": 2,
+  "totalTimeMs": 2541
 }
 ```
 
 ---
 
-## Current Example
+## Production Deployment & Serverless Considerations
 
-### Input User Task Backlog
-- *"Refactor auth service"* (Priority: `HIGH`, Due: Today, Est: 60m)
-- *"Fix API documentation typo"* (Priority: `LOW`, Due: Tomorrow, Est: 15m)
-
-### Generated AI Output Payload
-```json
-{
-  "summary": "Focus on high priority core architecture tasks during your morning focus block.",
-  "priorities": [
-    "Refactor auth service"
-  ],
-  "schedule": [
-    { "time": "09:00 AM", "task": "Refactor auth service" },
-    { "time": "11:00 AM", "task": "Fix API documentation typo" }
-  ],
-  "recommendations": [
-    "Take a 10-minute break after the auth refactoring session."
-  ],
-  "productivityScore": 85
-}
-```
+- **Serverless Ready**: The AI subsystem operates purely via HTTPS outbound calls to Google's API, eliminating local process dependencies.
+- **Zero Local Hardware Requirements**: No GPU/VRAM hardware, local daemons (`localhost:11434`), or model weight files are required on hosting infrastructure.
+- **Architecture Compatibility**: Deployable to containerized platforms (Docker, AWS ECS, Google Cloud Run) and serverless environments.
 
 ---
 
-## Future AI Features
-
-The current architecture cleanly accommodates future AI modules without structural changes:
-
-- **`/ai/chat`**: Add `ChatContextProvider` and `chat.template.ts`.
-- **`/ai/summarize`**: Add `summarize.template.ts` and `summarySchema`.
-- **`/ai/weekly-review`**: Register `WeeklyReviewPipelineTask`.
-- **`/ai/task-breakdown`**: Register `TaskBreakdownPipelineTask`.
-
----
-
-## Lessons Learned
+## Historical Migration Note
 
 > [!NOTE]
-> **Key Engineering Insights & Resolutions**
-
-1. **Client Timeout Cancellation (`ECONNABORTED`)**:
-   - *Problem*: Axios default 15s timeout aborted local Ollama inference requests at 15.00s.
-   - *Solution*: Configured `timeout: 120000` (120s) specifically on long-running AI endpoints while updating standard client timeout to 60s.
-
-2. **Malformed Local LLM JSON**:
-   - *Problem*: Small local models (`llama3.2:3b`) occasionally returned markdown code fences or trailing commas.
-   - *Solution*: Added `format: "json"` in `OllamaProvider`, strengthened system prompt constraints, and implemented an automatic single retry on `INVALID_JSON`.
-
-3. **Validation Error Differentiation**:
-   - *Problem*: Retrying schema validation errors wasted LLM tokens without improving results.
-   - *Solution*: Differentiated `INVALID_JSON` (retryable) from `SCHEMA_VALIDATION_FAILED` (non-retryable).
+> *Historical Architecture Note*: Earlier iterations of AetherMind supported local model inference via Ollama (`llama3.2:3b`) alongside a proxy fallback orchestrator (`FallbackProvider`). To optimize response latency (reducing task execution times from ~30s down to ~2s), simplify operational maintenance, and enable serverless cloud deployments, the architecture was migrated to **Google Gemini 3.5 Flash exclusive inference**.
 
 ---
 
 ## Tech Stack
 
-- **Backend**: Node.js, Express, TypeScript, Prisma ORM
-- **Frontend**: React, Vite, React Query, Tailwind CSS, Lucide Icons
-- **AI Engine**: Ollama (`llama3.2:3b`), Google Gemini SDK (`@google/genai`)
-- **Validation**: Zod
-- **Authentication**: JWT, HttpOnly Cookies
+- **Backend**: Node.js, Express 5, TypeScript, Mongoose 9
+- **Frontend**: React 19, Vite 8, TanStack Query 5, Tailwind CSS 4, Radix UI
+- **AI Engine**: Google Gemini SDK (`@google/genai`) — `gemini-3.5-flash`
+- **Validation**: Zod 3
+- **Authentication**: JWT Access Tokens, HttpOnly Cookie Refresh Rotation
 
 ---
 
 ## Conclusion
 
-This AI module architecture provides a production-ready, extensible foundation for intelligent features in **AetherMind AI**. By isolating LLM vendors behind uniform provider abstractions, enforcing strict output schemas with deterministic retry logic, and offering a rich, responsive frontend user experience, the system achieves enterprise-grade reliability for both local and cloud AI inference.
+This AI module architecture provides a production-grade, extensible, and high-performance foundation for **AetherMind AI**. By isolating LLM operations behind uniform provider abstractions, enforcing strict schema compliance with automatic retry logic, and leveraging cloud-native **Google Gemini 3.5 Flash** inference, the system delivers enterprise-grade reliability and lightning-fast user experiences.

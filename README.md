@@ -2,7 +2,7 @@
 
 > An AI-powered, full-stack task management platform that turns your task backlog into an actionable daily plan.
 
-AetherMind AI is a production-grade monorepo application built with **React 19**, **Express**, **TypeScript**, **MongoDB**, and **Turborepo**. It combines classic task management (tasks, calendar, dashboards) with an autonomous AI cognitive layer that prioritizes work, plans your day, breaks down complex tasks, and reviews your week — powered by local **Ollama** models or cloud **Google Gemini**.
+AetherMind AI is a production-grade monorepo application built with **React 19**, **Express**, **TypeScript**, **MongoDB**, and **Turborepo**. It combines classic task management (tasks, calendar, dashboards) with an autonomous AI cognitive layer that prioritizes work, plans your day, breaks down complex tasks, and reviews your week — powered exclusively by **Google Gemini 3.5 Flash**.
 
 ---
 
@@ -29,17 +29,19 @@ AetherMind AI is a production-grade monorepo application built with **React 19**
 
 ### AI Cognitive Layer
 - **Plan My Day** — generates an optimal daily schedule, productivity score, top priorities, and recommendations
-- **Weekly Review** — summarizes your week and surfaces insights
-- **Task Breakdown** — splits large tasks into subtasks
-- **Task Prioritization** — re-ranks your backlog based on due dates and priority
-- **Smart Reschedule** — suggests new dates when tasks slip
-- **Provider abstraction** — swap between local **Ollama** (`llama3.2:3b`, `qwen3`) and cloud **Gemini** via environment variables, no code changes
-- Strict **Zod schema validation** on LLM output with automatic retry on `INVALID_JSON`
+- **Task Breakdown** — splits complex tasks into dependency-ordered subtasks with time estimates
+- **Task Prioritization** — intelligently re-ranks task backlogs using urgency, deadlines, and effort
+- **Smart Reschedule** — detects overdue tasks and calculates optimal future dates to balance workload
+- **Weekly Review** — aggregates weekly completion statistics, highlights achievements, and surfaces insights
+- **Productivity Insights** — analyzes productivity patterns, streaks, and focus strengths
+- **AI Engine** — powered by **Google Gemini 3.5 Flash** (`@google/genai`) with configurable thinking budgets
+- Strict **Zod schema validation** on LLM output with deterministic single-pass retry on `INVALID_JSON`
+- In-memory **AI Response Caching** with configurable TTLs to accelerate repeat requests
 
 ### AI Assistant
-- Conversational chat with your task data
+- Conversational chat grounded strictly in authenticated user tasks, schedules, and metrics
 - Conversation history stored in MongoDB
-- Suggestion chips, typing indicator, and voice input
+- Follow-up suggestion chips, typing indicator, and voice input
 
 ### Notifications & Reminders
 - Full-stack notification center with unread badge, filters, and slide-out drawer
@@ -63,7 +65,7 @@ AetherMind AI is a production-grade monorepo application built with **React 19**
 |---|---|
 | **Frontend** | React 19, TypeScript, Vite 8, React Router 7, TanStack Query 5, Tailwind CSS 4, Radix UI, Framer Motion, Recharts, Zod |
 | **Backend** | Node.js, Express 5, TypeScript, Mongoose 9, Zod, JWT, Helmet, CORS, compression |
-| **AI** | Google Gemini SDK (`@google/genai`), Ollama HTTP API |
+| **AI** | Google Gemini SDK (`@google/genai`) — Gemini 3.5 Flash |
 | **Data** | MongoDB 8 (local or Docker) |
 | **Monorepo** | Turborepo 2, pnpm 9 workspaces |
 
@@ -90,8 +92,9 @@ aethermind-ai/
 │           └── shared/           # events, query builder, utils
 ├── docs/
 │   ├── screenshots/              # Project screenshots
+│   ├── AI_PROVIDERS.md           # AI provider and Gemini integration architecture
 │   └── AUTH_SESSION.md
-├── Ai-Architecture.md            # Deep dive into the AI module
+├── Ai-Architecture.md            # Deep dive into the AI module pipeline
 ├── docker-compose.yml            # MongoDB service
 ├── package.json                  # Turborepo root
 └── turbo.json
@@ -106,11 +109,11 @@ React Web App
 Express API Gateway ── requireAuth ──> AiController
   ▼
 AiService ──> AIPipeline
-  ├── ContextBuilder  (tasks, time, user, settings)
+  ├── ContextBuilder  (tasks, temporal state, user profile, settings)
+  ├── AICacheService  (in-memory TTL cache check)
   ├── PromptBuilder   (versioned system/user prompts)
-  ├── ProviderFactory (Ollama | Gemini)
-  ├── ResponseParser  (JSON extraction)
-  └── Zod validation  (double-pass, auto-retry)
+  ├── GeminiProvider  (@google/genai SDK — Gemini 3.5 Flash)
+  └── ResponseParser  (double-pass Zod validation & auto-retry)
 ```
 
 ---
@@ -122,6 +125,7 @@ AiService ──> AIPipeline
 - Node.js 18+ (LTS recommended)
 - pnpm 9 (`npm install --global pnpm@9`)
 - MongoDB (local install **or** Docker)
+- Google Gemini API Key ([Google AI Studio](https://aistudio.google.com/))
 
 ### 1. Clone and install
 
@@ -154,28 +158,13 @@ JWT_ACCESS_SECRET=aethermind-development-access-secret-change-me
 JWT_REFRESH_SECRET=aethermind-development-refresh-secret-change-me
 JWT_ACCESS_EXPIRES_IN=15m
 JWT_REFRESH_EXPIRES_IN=7d
-```
 
-**AI provider** — use local Ollama (default) or cloud Gemini:
-
-```env
-AI_PROVIDER=ollama
-OLLAMA_BASE_URL=http://localhost:11434
-OLLAMA_MODEL=llama3.2:3b
-OLLAMA_REQUEST_TIMEOUT_MS=180000
-```
-
-```env
+# Google Gemini AI Configuration
 AI_PROVIDER=gemini
-GEMINI_API_KEY=your-key
-GEMINI_MODEL=gemini-1.5-flash
-```
-
-Start Ollama and pull the model:
-
-```bash
-ollama serve
-ollama pull llama3.2:3b
+GEMINI_API_KEY=your-gemini-api-key-here
+GEMINI_MODEL=gemini-3.5-flash
+AI_THINKING_LEVEL=medium
+AI_GEMINI_TIMEOUT_MS=30000
 ```
 
 ### 4. Configure the web app
@@ -255,12 +244,22 @@ All endpoints are prefixed with `/api/v1` and (except auth/health) require `Auth
 | `PATCH` | `/notifications/read-all` | Mark all as read |
 | `GET` | `/notifications/unread-count` | Unread count |
 | `GET` | `/health` | Service health |
+| `GET` | `/ai/health` | AI service & Gemini provider health |
+
+---
+
+## Production & Deployment Notes
+
+- **AI Inference**: All AI requests are executed server-side by the Express API via `@google/genai` against Google's cloud infrastructure.
+- **Security & Secrets**: `GEMINI_API_KEY` is strictly confined to the backend server environment. The frontend React application communicates solely through authenticated AetherMind API endpoints (`/api/v1/ai/*`) and never handles or exposes AI credentials.
+- **Cloud & Serverless Compatibility**: With the complete removal of local Ollama daemons, the AI engine requires zero local GPU resources, persistent model files, or `localhost:11434` daemons. Gemini 3.5 Flash responses complete in ~1.5s–5s, operating comfortably within standard serverless and container execution limits.
 
 ---
 
 ## Learn More
 
 - **[Ai-Architecture.md](Ai-Architecture.md)** — deep dive into the AI pipeline: context builders, prompt engineering, provider abstraction, Zod validation, retry logic, and telemetry
+- **[docs/AI_PROVIDERS.md](docs/AI_PROVIDERS.md)** — detailed guide to the Gemini 3.5 Flash provider, structured outputs, and operational configuration
 - **[docs/AUTH_SESSION.md](docs/AUTH_SESSION.md)** — authentication and session design
 - **[apps/api/docs/api/README.md](apps/api/docs/api/README.md)** — API conventions and response envelope
 
@@ -269,3 +268,4 @@ All endpoints are prefixed with `/api/v1` and (except auth/health) require `Auth
 ## License
 
 [MIT](LICENSE)
+
