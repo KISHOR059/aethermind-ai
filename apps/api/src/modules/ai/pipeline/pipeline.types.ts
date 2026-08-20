@@ -46,9 +46,6 @@ export type AIExecutionMetrics = {
   readonly model: string;
   readonly tokenUsage: UsageMetadata | null;
   readonly promptVersion: string;
-  readonly fallbackUsed?: boolean;
-  readonly primaryProvider?: string;
-  readonly fallbackReason?: string;
   readonly retryCount?: number;
   readonly stageTimings?: {
     readonly contextTimeMs: number;

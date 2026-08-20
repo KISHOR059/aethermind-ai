@@ -232,8 +232,6 @@ export class AIPipeline {
         userId: request.userId,
         provider: finalResponse.model.provider,
         model: finalResponse.model.model,
-        fallbackUsed: Boolean(finalResponse.fallbackUsed),
-        primaryProvider: finalResponse.primaryProvider,
         retryCount: finalResponse.retryCount,
         finishReason: finalResponse.finishReason,
         outputTokenCount: finalResponse.usage?.outputTokens,
@@ -254,9 +252,6 @@ export class AIPipeline {
           model: finalResponse.model.model,
           tokenUsage: finalResponse.usage ?? null,
           promptVersion: builtPrompt.version,
-          fallbackUsed: finalResponse.fallbackUsed,
-          primaryProvider: finalResponse.primaryProvider,
-          fallbackReason: finalResponse.fallbackReason,
           retryCount: finalResponse.retryCount,
           stageTimings: {
             contextTimeMs,

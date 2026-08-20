@@ -38,9 +38,6 @@ export type GenerateTextResponse = {
   finishReason: FinishReason;
   usage?: UsageMetadata;
   model: ModelInformation;
-  fallbackUsed?: boolean;
-  primaryProvider?: string;
-  fallbackReason?: string;
   retryCount?: number;
   latencyMs?: number;
 };
@@ -58,10 +55,5 @@ export type ProviderHealth = {
   version: string;
   isAvailable: boolean;
   latencyMs?: number;
-  fallback?: {
-    provider: string;
-    model: string;
-    status: ProviderStatus;
-    isAvailable: boolean;
-  };
 };
+

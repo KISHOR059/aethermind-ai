@@ -28,12 +28,6 @@ export type AiHealth = {
   version: string;
   isAvailable?: boolean;
   latencyMs?: number;
-  fallback?: {
-    provider: string;
-    model: string;
-    status: ProviderStatus;
-    isAvailable?: boolean;
-  };
 };
 
 export class AiService {
@@ -57,7 +51,6 @@ export class AiService {
         version: health.version,
         isAvailable: health.isAvailable,
         latencyMs: health.latencyMs,
-        fallback: health.fallback,
       };
     }
 

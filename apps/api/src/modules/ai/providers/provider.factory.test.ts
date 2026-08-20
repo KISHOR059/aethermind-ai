@@ -1,8 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { createAIProvider } from "./provider.factory.js";
 import { GeminiProvider } from "./gemini.provider.js";
-import { FallbackProvider } from "./fallback.provider.js";
-import { OllamaProvider } from "./ollama.provider.js";
 
 describe("createAIProvider", () => {
   it("returns GeminiProvider as the sole AI provider", () => {
@@ -10,12 +8,6 @@ describe("createAIProvider", () => {
     expect(provider).toBeInstanceOf(GeminiProvider);
     expect(provider.modelInformation.provider).toBe("Gemini");
     expect(provider.modelInformation.model).toBe("gemini-3.5-flash");
-  });
-
-  it("does not instantiate FallbackProvider or OllamaProvider", () => {
-    const provider = createAIProvider();
-    expect(provider).not.toBeInstanceOf(FallbackProvider);
-    expect(provider).not.toBeInstanceOf(OllamaProvider);
   });
 
   it("provides an AIProvider-compliant instance with generateText method", () => {

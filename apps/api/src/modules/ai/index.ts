@@ -38,8 +38,6 @@ export {
 export {
   createAIProvider,
   GeminiProvider,
-  OllamaProvider,
-  FallbackProvider,
 } from "./providers/index.js";
 export type {
   AIProvider,

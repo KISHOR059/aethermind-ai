@@ -83,11 +83,11 @@ describe("AiService & AIPipeline with Providers", () => {
     }),
   };
 
-  const createServiceWithProviderOutput = (jsonOutput: string, fallbackUsed = false) => {
+  const createServiceWithProviderOutput = (jsonOutput: string) => {
     const mockProvider: AIProvider = {
       modelInformation: {
-        provider: fallbackUsed ? "Ollama" : "Gemini",
-        model: fallbackUsed ? "llama3.2:3b" : "gemini-3.5-flash",
+        provider: "Gemini",
+        model: "gemini-3.5-flash",
         version: "1.0.0",
       },
       status: "healthy",
@@ -96,12 +96,10 @@ describe("AiService & AIPipeline with Providers", () => {
         finishReason: "STOP",
         usage: { inputTokens: 100, outputTokens: 50, totalTokens: 150 },
         model: {
-          provider: fallbackUsed ? "Ollama" : "Gemini",
-          model: fallbackUsed ? "llama3.2:3b" : "gemini-3.5-flash",
+          provider: "Gemini",
+          model: "gemini-3.5-flash",
           version: "1.0.0",
         },
-        fallbackUsed,
-        primaryProvider: fallbackUsed ? "Gemini" : undefined,
       }),
       healthCheck: vi.fn().mockResolvedValue({
         provider: "Gemini",
@@ -172,7 +170,7 @@ describe("AiService & AIPipeline with Providers", () => {
     expect(result.data.estimatedMinutes).toBe(60);
   });
 
-  it("executes Task Prioritization successfully with fallback", async () => {
+  it("executes Task Prioritization successfully", async () => {
     const prioritizeJson = JSON.stringify({
       summary: "1 task prioritized",
       prioritizedTasks: [
@@ -188,13 +186,12 @@ describe("AiService & AIPipeline with Providers", () => {
       recommendations: ["Start with high impact task"],
     });
 
-    const { service } = createServiceWithProviderOutput(prioritizeJson, true);
+    const { service } = createServiceWithProviderOutput(prioritizeJson);
     const result = await service.prioritizeTasks(userId);
 
     expect(result.data.prioritizedTasks).toHaveLength(1);
-    expect(result.metrics.fallbackUsed).toBe(true);
-    expect(result.metrics.provider).toBe("Ollama");
-    expect(result.metrics.primaryProvider).toBe("Gemini");
+    expect(result.metrics.provider).toBe("Gemini");
+    expect(result.metrics.model).toBe("gemini-3.5-flash");
   });
 
   it("executes Smart Reschedule successfully", async () => {

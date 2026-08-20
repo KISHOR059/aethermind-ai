@@ -6,7 +6,6 @@ import { createContextProviderRegistry } from "./context/context-registry.js";
 import { PromptBuilder } from "./prompt/prompt-builder.js";
 import { ResponseParser } from "./parser/response-parser.js";
 import type { AIProvider } from "./providers/ai-provider.interface.js";
-import { FallbackProvider } from "./providers/fallback.provider.js";
 import { AICacheService } from "./cache/ai-cache.js";
 import {
   AIProviderError,
@@ -655,118 +654,59 @@ describe("AetherMind AI Production QA & Hardening Test Suite", () => {
   });
 
   // ==========================================
-  // 10. FALLBACK & ERROR RELIABILITY
+  // 10. GEMINI ERROR HANDLING & RELIABILITY
   // ==========================================
-  describe("10. Fallback & Error Reliability", () => {
-    it("transparently falls back to Ollama when Gemini returns 429 Rate Limit", async () => {
-      const mockPrimary: AIProvider = {
+  describe("10. Gemini Error Handling & Reliability", () => {
+    it("propagates AIRateLimitError when Gemini returns 429 Rate Limit", async () => {
+      const mockProvider: AIProvider = {
         modelInformation: { provider: "Gemini", model: "gemini-3.5-flash", version: "1.0.0" },
         status: "healthy",
         generateText: vi.fn().mockRejectedValue(new AIRateLimitError()),
       };
 
-      const mockFallback: AIProvider = {
-        modelInformation: { provider: "Ollama", model: "llama3.2:3b", version: "1.0.0" },
-        status: "healthy",
-        generateText: vi.fn().mockResolvedValue({
-          text: JSON.stringify({
-            summary: "Ollama fallback plan generated successfully.",
-            priorities: ["Build Core Security Architecture"],
-            schedule: [{ time: "09:00", task: "Build Core Security Architecture" }],
-            recommendations: ["Take breaks"],
-            productivityScore: 80,
-          }),
-          finishReason: "STOP",
-          model: { provider: "Ollama", model: "llama3.2:3b", version: "1.0.0" },
-        }),
-      };
+      const aiService = createTestAiService(mockProvider);
 
-      const fallbackProvider = new FallbackProvider(mockPrimary, mockFallback);
-      const aiService = createTestAiService(fallbackProvider);
-
-      const result = await aiService.planDay(userId);
-
-      expect(result.data.summary).toContain("Ollama fallback plan");
-      expect(result.metrics.fallbackUsed).toBe(true);
-      expect(result.metrics.provider).toBe("Ollama");
+      await expect(aiService.planDay(userId)).rejects.toThrow(AIRateLimitError);
     });
 
-    it("transparently falls back to Ollama when Gemini times out", async () => {
-      const mockPrimary: AIProvider = {
+    it("propagates AIProviderTimeoutError when Gemini times out", async () => {
+      const mockProvider: AIProvider = {
         modelInformation: { provider: "Gemini", model: "gemini-3.5-flash", version: "1.0.0" },
         status: "healthy",
         generateText: vi.fn().mockRejectedValue(new AIProviderTimeoutError()),
       };
 
-      const mockFallback: AIProvider = {
-        modelInformation: { provider: "Ollama", model: "llama3.2:3b", version: "1.0.0" },
-        status: "healthy",
-        generateText: vi.fn().mockResolvedValue({
-          text: JSON.stringify({
-            summary: "Ollama fallback plan after timeout.",
-            priorities: ["Build Core Security Architecture"],
-            schedule: [{ time: "09:00", task: "Build Core Security Architecture" }],
-            recommendations: ["Stay focused"],
-            productivityScore: 82,
-          }),
-          finishReason: "STOP",
-          model: { provider: "Ollama", model: "llama3.2:3b", version: "1.0.0" },
-        }),
-      };
+      const aiService = createTestAiService(mockProvider);
 
-      const fallbackProvider = new FallbackProvider(mockPrimary, mockFallback);
-      const aiService = createTestAiService(fallbackProvider);
-
-      const result = await aiService.planDay(userId);
-
-      expect(result.metrics.fallbackUsed).toBe(true);
-      expect(result.metrics.provider).toBe("Ollama");
+      await expect(aiService.planDay(userId)).rejects.toThrow(AIProviderTimeoutError);
     });
 
-    it("fails fast on 401 authentication error without attempting fallback", async () => {
-      const mockPrimary: AIProvider = {
+    it("fails fast on 401 authentication error", async () => {
+      const mockProvider: AIProvider = {
         modelInformation: { provider: "Gemini", model: "gemini-3.5-flash", version: "1.0.0" },
         status: "healthy",
         generateText: vi.fn().mockRejectedValue(new AIProviderError("Invalid API key", 401)),
       };
 
-      const mockFallback: AIProvider = {
-        modelInformation: { provider: "Ollama", model: "llama3.2:3b", version: "1.0.0" },
-        status: "healthy",
-        generateText: vi.fn(),
-      };
-
-      const fallbackProvider = new FallbackProvider(mockPrimary, mockFallback);
-      const aiService = createTestAiService(fallbackProvider);
+      const aiService = createTestAiService(mockProvider);
 
       await expect(aiService.planDay(userId)).rejects.toMatchObject({
         statusCode: 401,
       });
-
-      expect(mockFallback.generateText).not.toHaveBeenCalled();
     });
 
-    it("fails fast on 404 model error without attempting fallback", async () => {
-      const mockPrimary: AIProvider = {
+    it("fails fast on 404 model error", async () => {
+      const mockProvider: AIProvider = {
         modelInformation: { provider: "Gemini", model: "gemini-3.5-flash", version: "1.0.0" },
         status: "healthy",
         generateText: vi.fn().mockRejectedValue(new AIProviderError("Model not found", 404)),
       };
 
-      const mockFallback: AIProvider = {
-        modelInformation: { provider: "Ollama", model: "llama3.2:3b", version: "1.0.0" },
-        status: "healthy",
-        generateText: vi.fn(),
-      };
-
-      const fallbackProvider = new FallbackProvider(mockPrimary, mockFallback);
-      const aiService = createTestAiService(fallbackProvider);
+      const aiService = createTestAiService(mockProvider);
 
       await expect(aiService.planDay(userId)).rejects.toMatchObject({
         statusCode: 404,
       });
-
-      expect(mockFallback.generateText).not.toHaveBeenCalled();
     });
   });
 });

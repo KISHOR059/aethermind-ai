@@ -37,7 +37,7 @@ const refreshClient = axios.create({ baseURL, withCredentials: true, headers: { 
 
 // Default Axios client timeout (60 seconds) for standard CRUD API requests.
 // Note: AI generation endpoints (e.g. /ai/plan-day) use an extended timeout (120s)
-// to accommodate local LLM inference latencies (e.g. Ollama llama3.2:3b).
+// to accommodate deep reasoning and complex AI planning workloads.
 const apiClient: AxiosInstance = axios.create({
   baseURL,
   headers: { "Content-Type": "application/json" },

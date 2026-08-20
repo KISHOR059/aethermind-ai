@@ -11,12 +11,10 @@ import type {
 
 /**
  * Extended timeout (120 seconds) for AI endpoints.
- * Local LLM inference (e.g., Ollama llama3.2:3b) requires 25–40 seconds
- * to process prompts and generate validated JSON plans. This constant
- * ensures AI requests are not prematurely aborted by Axios, unlike standard
- * millisecond CRUD operations.
+ * Ensures complex reasoning and multi-task plans are not prematurely aborted
+ * by Axios, unlike standard CRUD operations.
  *
- * Exported for easy reuse across present and future AI endpoints:
+ * Exported for easy reuse across AI endpoints:
  * - /ai/plan-day
  * - /ai/tasks/:taskId/breakdown
  * - /ai/prioritize
