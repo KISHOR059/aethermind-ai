@@ -32,20 +32,23 @@ export const errorMiddleware: ErrorRequestHandler = (
     stack: error instanceof Error ? error.stack : undefined,
   });
 
-  const errors = normalizedError.errors.map((item) => {
-    if (isErrorDetail(item)) {
-      return {
-        code: normalizedError.code,
-        ...(item.field ? { field: item.field } : {}),
-        message: item.message,
-      };
-    }
+  const errors =
+    normalizedError.errors.length > 0
+      ? normalizedError.errors.map((item) => {
+          if (isErrorDetail(item)) {
+            return {
+              code: normalizedError.code,
+              ...(item.field ? { field: item.field } : {}),
+              message: item.message,
+            };
+          }
 
-    return {
-      code: normalizedError.code,
-      message: typeof item === "string" ? item : normalizedError.message,
-    };
-  });
+          return {
+            code: normalizedError.code,
+            message: typeof item === "string" ? item : normalizedError.message,
+          };
+        })
+      : [{ code: normalizedError.code, message: normalizedError.message }];
 
   errorResponse(response, normalizedError.message, errors, normalizedError.statusCode);
 };

@@ -12,13 +12,16 @@ import type { LoginInput, RegisterInput } from "./auth.validation.js";
 
 export const REFRESH_TOKEN_COOKIE = "aethermind_refresh_token";
 
-const refreshCookieOptions = {
-  httpOnly: true,
-  secure: env.NODE_ENV === "production",
-  sameSite: "lax" as const,
-  path: "/api/v1/auth",
-  maxAge: parseDuration(env.JWT_REFRESH_EXPIRES_IN),
-};
+export function getRefreshCookieOptions() {
+  const isProd = env.NODE_ENV === "production";
+  return {
+    httpOnly: true,
+    secure: isProd,
+    sameSite: (isProd ? "none" : "lax") as "none" | "lax",
+    path: "/api/v1/auth",
+    maxAge: parseDuration(env.JWT_REFRESH_EXPIRES_IN),
+  };
+}
 
 function decodeSessionId(refreshToken: string): string | undefined {
   const payload = jwt.decode(refreshToken);
@@ -73,7 +76,7 @@ export class AuthController {
       await this.service.revokeSessionById(sessionId);
     }
 
-    response.clearCookie(REFRESH_TOKEN_COOKIE, refreshCookieOptions);
+    response.clearCookie(REFRESH_TOKEN_COOKIE, getRefreshCookieOptions());
     successResponse(response, {}, "Logout successful");
   };
 
@@ -84,7 +87,7 @@ export class AuthController {
 
     await this.service.revokeAllSessions(request.user.id);
 
-    response.clearCookie(REFRESH_TOKEN_COOKIE, refreshCookieOptions);
+    response.clearCookie(REFRESH_TOKEN_COOKIE, getRefreshCookieOptions());
     successResponse(response, {}, "All sessions signed out");
   };
 
@@ -138,7 +141,7 @@ export class AuthController {
     await this.service.revokeSession(request.user.id, sessionId);
 
     if (currentSessionId === sessionId) {
-      response.clearCookie(REFRESH_TOKEN_COOKIE, refreshCookieOptions);
+      response.clearCookie(REFRESH_TOKEN_COOKIE, getRefreshCookieOptions());
     }
 
     successResponse(response, {}, "Session revoked successfully");
@@ -164,7 +167,7 @@ export class AuthController {
   }
 
   private setRefreshToken(response: Response, refreshToken: string) {
-    response.cookie(REFRESH_TOKEN_COOKIE, refreshToken, refreshCookieOptions);
+    response.cookie(REFRESH_TOKEN_COOKIE, refreshToken, getRefreshCookieOptions());
   }
 }
 

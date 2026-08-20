@@ -19,7 +19,18 @@ registerEventListeners();
 
 app.use(requestIdMiddleware);
 app.use(helmet());
-app.use(cors({ origin: env.WEB_ORIGIN, credentials: true }));
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      if (!origin || origin === env.WEB_ORIGIN) {
+        callback(null, true);
+      } else {
+        callback(null, false);
+      }
+    },
+    credentials: true,
+  }),
+);
 app.use(compression());
 app.use(express.json());
 app.use(cookieParser());
