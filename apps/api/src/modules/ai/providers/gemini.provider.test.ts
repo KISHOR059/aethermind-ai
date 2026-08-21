@@ -115,7 +115,6 @@ describe("GeminiProvider", () => {
     expect(response.finishReason).toBe("MAX_TOKENS");
   });
 
-
   it("throws AIProviderError when model returns empty text", async () => {
     mockGenerateContent.mockResolvedValue({
       text: "   ",
@@ -213,5 +212,133 @@ describe("GeminiProvider", () => {
     const configuredHealth = await configured.healthCheck();
     expect(configuredHealth.isAvailable).toBe(true);
     expect(configuredHealth.status).toBe("healthy");
+  });
+
+  describe("API Key Pool & Failover", () => {
+    it("Test 1 — Primary success: uses Key 1 and does not invoke fallbacks", async () => {
+      mockGenerateContent.mockResolvedValueOnce({
+        text: '{"result": "from-primary"}',
+        candidates: [{ finishReason: "STOP" }],
+      });
+
+      const provider = new GeminiProvider(
+        ["key-1", "key-2", "key-3"],
+        "gemini-3.5-flash",
+        5000,
+      );
+      const response = await provider.generateText({ input: "Hello" });
+
+      expect(response.text).toBe('{"result": "from-primary"}');
+      expect(mockGenerateContent).toHaveBeenCalledTimes(1);
+    });
+
+    it("Test 2 — 429 fallback: fails over from Key 1 to Key 2 upon rate limit", async () => {
+      mockGenerateContent
+        .mockRejectedValueOnce(new ApiError("Rate limit exceeded", 429))
+        .mockResolvedValueOnce({
+          text: '{"result": "from-fallback-1"}',
+          candidates: [{ finishReason: "STOP" }],
+        });
+
+      const provider = new GeminiProvider(
+        ["key-1", "key-2"],
+        "gemini-3.5-flash",
+        5000,
+      );
+      const response = await provider.generateText({ input: "Hello" });
+
+      expect(response.text).toBe('{"result": "from-fallback-1"}');
+      expect(mockGenerateContent).toHaveBeenCalledTimes(2);
+    });
+
+    it("Test 3 — Multiple fallback: fails over through 429 and 503 until Key 3 succeeds", async () => {
+      mockGenerateContent
+        .mockRejectedValueOnce(new ApiError("Rate limit exceeded", 429))
+        .mockRejectedValueOnce(new ApiError("Service temporarily unavailable", 503))
+        .mockResolvedValueOnce({
+          text: '{"result": "from-fallback-2"}',
+          candidates: [{ finishReason: "STOP" }],
+        });
+
+      const provider = new GeminiProvider(
+        ["key-1", "key-2", "key-3"],
+        "gemini-3.5-flash",
+        5000,
+      );
+      const response = await provider.generateText({ input: "Hello" });
+
+      expect(response.text).toBe('{"result": "from-fallback-2"}');
+      expect(mockGenerateContent).toHaveBeenCalledTimes(3);
+    });
+
+    it("Test 4 — All keys exhausted: throws controlled AIRateLimitError when all keys return 429", async () => {
+      mockGenerateContent
+        .mockRejectedValueOnce(new ApiError("Rate limit exceeded", 429))
+        .mockRejectedValueOnce(new ApiError("Rate limit exceeded", 429))
+        .mockRejectedValueOnce(new ApiError("Rate limit exceeded", 429));
+
+      const provider = new GeminiProvider(
+        ["key-1", "key-2", "key-3"],
+        "gemini-3.5-flash",
+        5000,
+      );
+
+      await expect(provider.generateText({ input: "Hello" })).rejects.toThrow(
+        AIRateLimitError,
+      );
+      expect(mockGenerateContent).toHaveBeenCalledTimes(3);
+    });
+
+    it("Test 5 — Permanent error: does NOT consume fallback keys on HTTP 400", async () => {
+      mockGenerateContent.mockRejectedValueOnce(
+        new ApiError("Invalid schema / argument", 400),
+      );
+
+      const provider = new GeminiProvider(
+        ["key-1", "key-2", "key-3"],
+        "gemini-3.5-flash",
+        5000,
+      );
+
+      await expect(provider.generateText({ input: "Hello" })).rejects.toMatchObject({
+        statusCode: 400,
+      });
+      expect(mockGenerateContent).toHaveBeenCalledTimes(1);
+    });
+
+    it("Test 6 — Invalid key: treats 401/403 as invalid key and moves immediately to Key 2", async () => {
+      mockGenerateContent
+        .mockRejectedValueOnce(new ApiError("API_KEY_INVALID", 401))
+        .mockResolvedValueOnce({
+          text: '{"result": "from-valid-key-2"}',
+          candidates: [{ finishReason: "STOP" }],
+        });
+
+      const provider = new GeminiProvider(
+        ["invalid-key-1", "valid-key-2"],
+        "gemini-3.5-flash",
+        5000,
+      );
+      const response = await provider.generateText({ input: "Hello" });
+
+      expect(response.text).toBe('{"result": "from-valid-key-2"}');
+      expect(mockGenerateContent).toHaveBeenCalledTimes(2);
+    });
+
+    it("Test 7 — No fallback configured: preserves existing single-key behavior", async () => {
+      mockGenerateContent
+        .mockRejectedValueOnce(new ApiError("Service temporarily unavailable", 503))
+        .mockResolvedValueOnce({
+          text: '{"result": "recovered-single-key"}',
+          candidates: [{ finishReason: "STOP" }],
+        });
+
+      const provider = new GeminiProvider("only-primary-key", "gemini-3.5-flash", 5000);
+      const response = await provider.generateText({ input: "Hello" });
+
+      expect(response.text).toBe('{"result": "recovered-single-key"}');
+      expect(response.retryCount).toBe(1);
+      expect(mockGenerateContent).toHaveBeenCalledTimes(2);
+    });
   });
 });

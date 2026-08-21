@@ -8,6 +8,7 @@ import {
   AIRateLimitError,
 } from "../../../utils/app-error.js";
 import type { AIProvider } from "./ai-provider.interface.js";
+import { GeminiKeyPool } from "./gemini-key-pool.js";
 import type {
   FinishReason,
   GenerateTextRequest,
@@ -23,14 +24,20 @@ export class GeminiProvider implements AIProvider {
   public readonly modelInformation: ModelInformation;
   public status: ProviderStatus;
 
-  private readonly client: GoogleGenAI | null;
+  private readonly keyPool: GeminiKeyPool;
   private readonly configuredModel: string;
   private readonly timeoutMs: number;
 
   public constructor(
-    apiKey = env.GEMINI_API_KEY,
+    apiKey: string | string[] = [
+      env.GEMINI_API_KEY,
+      env.GEMINI_API_KEY_FALLBACK_1,
+      env.GEMINI_API_KEY_FALLBACK_2,
+      env.GEMINI_API_KEY_FALLBACK_3,
+    ],
     model = env.GEMINI_MODEL,
     timeoutMs = env.AI_GEMINI_TIMEOUT_MS,
+    fallbackKeys?: string[],
   ) {
     this.configuredModel = model || "gemini-3.5-flash";
     this.timeoutMs = timeoutMs;
@@ -40,22 +47,34 @@ export class GeminiProvider implements AIProvider {
       version: "1.0.0",
     };
 
-    if (apiKey && apiKey.trim().length > 0) {
-      this.client = new GoogleGenAI({ apiKey: apiKey.trim() });
-      this.status = "configured";
-    } else {
-      this.client = null;
-      this.status = "not_configured";
+    const keysToPool: string[] = [];
+    if (Array.isArray(apiKey)) {
+      keysToPool.push(...apiKey);
+    } else if (typeof apiKey === "string" && apiKey.trim().length > 0) {
+      keysToPool.push(apiKey);
     }
+
+    if (Array.isArray(fallbackKeys)) {
+      keysToPool.push(...fallbackKeys);
+    }
+
+    this.keyPool = new GeminiKeyPool(keysToPool);
+    this.status = this.keyPool.isConfigured ? "configured" : "not_configured";
   }
 
   public async generateText(
     request: GenerateTextRequest,
   ): Promise<GenerateTextResponse> {
-    const client = this.getClient();
+    if (!this.keyPool.isConfigured) {
+      throw new AIProviderError(
+        "Gemini is not configured. Add GEMINI_API_KEY to the API environment.",
+        503,
+      );
+    }
+
     const targetModel = request.model ?? this.configuredModel;
     const startedAt = Date.now();
-    let retryCount = 0;
+    let totalRetryCount = 0;
 
     const thinkingBudget = resolveThinkingBudget(
       request.thinkingBudget,
@@ -77,110 +96,180 @@ export class GeminiProvider implements AIProvider {
       thinkingBudget,
       hasResponseSchema: Boolean(request.responseSchema),
       responseMimeType: request.responseMimeType ?? "application/json",
+      configuredKeySlots: this.keyPool.size,
     });
 
-    const executeOperation = async (): Promise<GenerateTextResponse> => {
-      try {
-        const config: Record<string, unknown> = {
-          responseMimeType: request.responseMimeType ?? "application/json",
-          temperature: request.temperature ?? 0.1,
-          maxOutputTokens: geminiMaxOutputTokens,
-        };
+    const executeWithClient = async (
+      client: GoogleGenAI,
+      slot: number,
+    ): Promise<GenerateTextResponse> => {
+      const config: Record<string, unknown> = {
+        responseMimeType: request.responseMimeType ?? "application/json",
+        temperature: request.temperature ?? 0.1,
+        maxOutputTokens: geminiMaxOutputTokens,
+      };
 
-        if (request.topP !== undefined) {
-          config.topP = request.topP;
-        }
+      if (request.topP !== undefined) {
+        config.topP = request.topP;
+      }
 
-        if (request.responseSchema) {
-          config.responseSchema = request.responseSchema;
-        }
+      if (request.responseSchema) {
+        config.responseSchema = request.responseSchema;
+      }
 
-        if (thinkingBudget !== undefined && thinkingBudget > 0) {
-          config.thinkingConfig = {
-            thinkingBudget,
-          };
-        } else if (thinkingBudget === 0) {
-          config.thinkingConfig = {
-            thinkingBudget: 0,
-          };
-        }
-
-        const response = await withTimeout(
-          client.models.generateContent({
-            model: targetModel,
-            contents: request.input,
-            config,
-          }),
-          this.timeoutMs,
-        );
-
-        const candidate = response.candidates?.[0];
-        const finishReason = normalizeFinishReason(candidate?.finishReason);
-        const usage = toUsageMetadata(response.usageMetadata);
-        const text = response.text?.trim() ?? "";
-
-        logger.debug("Gemini response extracted", {
-          provider: "Gemini",
-          model: targetModel,
-          rawResponseLength: text.length,
-          finishReason,
-          candidateCount: response.candidates?.length ?? 0,
-          geminiMaxOutputTokens,
+      if (thinkingBudget !== undefined && thinkingBudget > 0) {
+        config.thinkingConfig = {
           thinkingBudget,
-          usage,
-        });
+        };
+      } else if (thinkingBudget === 0) {
+        config.thinkingConfig = {
+          thinkingBudget: 0,
+        };
+      }
 
-        if (finishReason === "MAX_TOKENS") {
-          logger.warn(
-            "Gemini generation reached MAX_TOKENS limit. Output may be truncated.",
-            {
-              provider: "Gemini",
-              model: targetModel,
-              rawResponseLength: text.length,
-              geminiMaxOutputTokens,
-              finishReason,
-              usage,
-            },
-          );
-        }
+      const response = await withTimeout(
+        client.models.generateContent({
+          model: targetModel,
+          contents: request.input,
+          config,
+        }),
+        this.timeoutMs,
+      );
 
-        if (!text) {
-          throw new AIProviderError(
-            "The AI provider returned an empty response",
-          );
-        }
+      const candidate = response.candidates?.[0];
+      const finishReason = normalizeFinishReason(candidate?.finishReason);
+      const usage = toUsageMetadata(response.usageMetadata);
+      const text = response.text?.trim() ?? "";
 
-        this.status = "healthy";
+      logger.debug("Gemini response extracted", {
+        provider: "Gemini",
+        model: targetModel,
+        keySlot: slot,
+        rawResponseLength: text.length,
+        finishReason,
+        candidateCount: response.candidates?.length ?? 0,
+        geminiMaxOutputTokens,
+        thinkingBudget,
+        usage,
+      });
 
-        return {
-          text,
-          finishReason,
-          usage,
-          model: {
+      if (finishReason === "MAX_TOKENS") {
+        logger.warn(
+          "Gemini generation reached MAX_TOKENS limit. Output may be truncated.",
+          {
             provider: "Gemini",
             model: targetModel,
-            version: response.modelVersion ?? "1.0.0",
+            keySlot: slot,
+            rawResponseLength: text.length,
+            geminiMaxOutputTokens,
+            finishReason,
+            usage,
           },
-          retryCount,
-          latencyMs: Date.now() - startedAt,
-        };
-      } catch (error) {
-        throw mapProviderError(error, targetModel);
+        );
       }
+
+      if (!text) {
+        throw new AIProviderError(
+          "The AI provider returned an empty response",
+        );
+      }
+
+      this.status = "healthy";
+
+      return {
+        text,
+        finishReason,
+        usage,
+        model: {
+          provider: "Gemini",
+          model: targetModel,
+          version: response.modelVersion ?? "1.0.0",
+        },
+        retryCount: totalRetryCount,
+        latencyMs: Date.now() - startedAt,
+      };
     };
 
-    return withRetry(
-      executeOperation,
-      2,
-      500,
-      (count) => {
-        retryCount = count;
-      },
-    );
+    const clients = this.keyPool.getClients();
+
+    // Mode 1: Single configured key (preserve standard transient retry loop)
+    if (clients.length === 1) {
+      const { client, slot } = clients[0];
+      const singleKeyOp = async (): Promise<GenerateTextResponse> => {
+        try {
+          return await executeWithClient(client, slot);
+        } catch (error) {
+          throw mapProviderError(error, targetModel);
+        }
+      };
+
+      return withRetry(
+        singleKeyOp,
+        2,
+        500,
+        (count) => {
+          totalRetryCount = count;
+        },
+      );
+    }
+
+    // Mode 2: Multiple configured keys (controlled failover: Slot 1 -> Slot 2 -> Slot 3 -> Slot 4)
+    let lastError: unknown;
+    for (let i = 0; i < clients.length; i++) {
+      const { client, slot } = clients[i];
+      const hasNextSlot = i < clients.length - 1;
+      const nextSlot = hasNextSlot ? clients[i + 1].slot : null;
+
+      try {
+        return await executeWithClient(client, slot);
+      } catch (error) {
+        lastError = error;
+        totalRetryCount = i;
+
+        // Permanent request/configuration errors (e.g. 400, 404): do NOT fail over
+        if (isPermanentError(error)) {
+          throw mapProviderError(error, targetModel);
+        }
+
+        // Authentication failures (401, 403): treat slot as invalid, fail over to next slot
+        if (isAuthError(error)) {
+          if (hasNextSlot) {
+            logger.warn(
+              `Gemini key slot ${slot} failed with authentication error (HTTP 401/403); trying fallback slot ${nextSlot}...`,
+            );
+            continue;
+          }
+          throw mapProviderError(error, targetModel);
+        }
+
+        // Retryable / Transient errors (429, 408, 500, 502, 503, 504, timeout): fail over to next slot
+        if (isTransientError(error)) {
+          const reason = getErrorStatusOrReason(error);
+          if (hasNextSlot) {
+            logger.warn(
+              `Gemini key slot ${slot} failed with ${reason}; failing over to fallback slot ${nextSlot}...`,
+            );
+            continue;
+          }
+          throw mapProviderError(error, targetModel);
+        }
+
+        // Unexpected errors: if a fallback slot exists, attempt it; otherwise throw mapped error
+        if (hasNextSlot) {
+          logger.warn(
+            `Gemini key slot ${slot} failed with unexpected error; trying fallback slot ${nextSlot}...`,
+          );
+          continue;
+        }
+        throw mapProviderError(error, targetModel);
+      }
+    }
+
+    throw mapProviderError(lastError, targetModel);
   }
 
   public async healthCheck(): Promise<ProviderHealth> {
-    if (!this.client) {
+    if (!this.keyPool.isConfigured) {
       return {
         provider: "Gemini",
         model: this.configuredModel,
@@ -198,18 +287,9 @@ export class GeminiProvider implements AIProvider {
       isAvailable: this.status !== "offline",
     };
   }
-
-  private getClient(): GoogleGenAI {
-    if (!this.client) {
-      throw new AIProviderError(
-        "Gemini is not configured. Add GEMINI_API_KEY to the API environment.",
-        503,
-      );
-    }
-
-    return this.client;
-  }
 }
+
+
 
 function resolveThinkingBudget(
   explicitBudget?: number,
@@ -286,6 +366,67 @@ async function withRetry<T>(
   }
 }
 
+function isPermanentError(error: unknown): boolean {
+  if (error instanceof ApiError) {
+    return error.status === 400 || error.status === 404;
+  }
+  if (error instanceof AIProviderError) {
+    return error.statusCode === 400 || error.statusCode === 404;
+  }
+  if (error instanceof Error) {
+    const msg = error.message.toLowerCase();
+    return (
+      msg.includes("400") ||
+      msg.includes("bad request") ||
+      msg.includes("invalid argument") ||
+      msg.includes("404") ||
+      msg.includes("not found") ||
+      msg.includes("is no longer available")
+    );
+  }
+  return false;
+}
+
+function isAuthError(error: unknown): boolean {
+  if (error instanceof ApiError) {
+    return error.status === 401 || error.status === 403;
+  }
+  if (error instanceof AIProviderError) {
+    return error.statusCode === 401 || error.statusCode === 403;
+  }
+  if (error instanceof Error) {
+    const msg = error.message.toLowerCase();
+    return (
+      msg.includes("401") ||
+      msg.includes("403") ||
+      msg.includes("api key") ||
+      msg.includes("unauthorized") ||
+      msg.includes("permission_denied") ||
+      msg.includes("api_key_invalid")
+    );
+  }
+  return false;
+}
+
+function getErrorStatusOrReason(error: unknown): string {
+  if (error instanceof AIRateLimitError) {
+    return "rate limit (HTTP 429)";
+  }
+  if (error instanceof AIProviderTimeoutError) {
+    return "timeout (HTTP 504)";
+  }
+  if (error instanceof ApiError) {
+    return `HTTP ${error.status}`;
+  }
+  if (error instanceof AIProviderError) {
+    return `HTTP ${error.statusCode}`;
+  }
+  if (error instanceof Error) {
+    return error.message;
+  }
+  return "transient error";
+}
+
 function isTransientError(error: unknown): boolean {
   if (error instanceof AIRateLimitError) {
     return true;
@@ -306,6 +447,7 @@ function isTransientError(error: unknown): boolean {
 
     return (
       error.status === 429 ||
+      error.status === 408 ||
       error.status === 500 ||
       error.status === 502 ||
       error.status === 503 ||
@@ -321,7 +463,28 @@ function isTransientError(error: unknown): boolean {
     ) {
       return false;
     }
-    return error.statusCode >= 500 || error.statusCode === 429;
+    return (
+      error.statusCode >= 500 ||
+      error.statusCode === 429 ||
+      error.statusCode === 408
+    );
+  }
+  if (error instanceof Error) {
+    const msg = error.message.toLowerCase();
+    return (
+      msg.includes("resource_exhausted") ||
+      msg.includes("quota") ||
+      msg.includes("rate limit") ||
+      msg.includes("429") ||
+      msg.includes("timeout") ||
+      msg.includes("timed out") ||
+      msg.includes("deadline_exceeded") ||
+      msg.includes("service temporarily unavailable") ||
+      msg.includes("500") ||
+      msg.includes("502") ||
+      msg.includes("503") ||
+      msg.includes("504")
+    );
   }
   return false;
 }
@@ -398,7 +561,8 @@ function mapProviderError(error: unknown, targetModel: string): Error {
     if (
       msg.includes("api key") ||
       msg.includes("unauthorized") ||
-      msg.includes("permission_denied")
+      msg.includes("permission_denied") ||
+      msg.includes("api_key_invalid")
     ) {
       return new AIProviderError(
         "Gemini authentication failed. Please verify GEMINI_API_KEY.",
