@@ -62,9 +62,9 @@ const MOTION_OVERLAY = {
 };
 
 const MOTION_CONTENT = {
-  initial: { opacity: 0, y: 16, scale: 0.98 },
-  animate: { opacity: 1, y: 0, scale: 1 },
-  exit: { opacity: 0, y: 16, scale: 0.98 },
+  initial: { opacity: 0, scale: 0.96, y: -10 },
+  animate: { opacity: 1, scale: 1, y: 0 },
+  exit: { opacity: 0, scale: 0.96, y: -10 },
   transition: { duration: 0.15, ease: "easeOut" as const },
 };
 
@@ -340,7 +340,7 @@ export function CommandPaletteDialog({ open, onOpenChange }: CommandPaletteDialo
           {open && (
             <DialogPrimitive.Overlay forceMount asChild>
               <motion.div
-                className="fixed inset-0 z-50 bg-black/50 backdrop-blur-[2px]"
+                className="fixed inset-0 z-50 bg-black/30 backdrop-blur-[1px] dark:bg-black/50"
                 {...MOTION_OVERLAY}
               />
             </DialogPrimitive.Overlay>
@@ -357,13 +357,11 @@ export function CommandPaletteDialog({ open, onOpenChange }: CommandPaletteDialo
                 }
               }}
             >
-              <motion.div
-                aria-label="Command palette"
-                className="fixed inset-x-0 bottom-0 z-50 mx-auto sm:top-1/2 sm:bottom-auto sm:-translate-y-1/2 sm:px-0"
-                {...MOTION_CONTENT}
-              >
-                <div
-                  className="flex max-h-[85dvh] w-full flex-col overflow-hidden rounded-t-2xl border bg-popover text-popover-foreground shadow-2xl ring-1 ring-border/50 sm:max-h-[70vh] sm:rounded-xl"
+              <div className="fixed inset-0 z-50 flex items-start justify-center p-3 pt-[10vh] sm:p-4 sm:pt-[14vh] pointer-events-none">
+                <motion.div
+                  aria-label="Command palette"
+                  className="pointer-events-auto flex max-h-[min(80vh,560px)] w-full max-w-[620px] flex-col overflow-hidden rounded-2xl border border-border/60 bg-popover/95 text-popover-foreground shadow-2xl shadow-black/20 ring-1 ring-border/50 backdrop-blur-md dark:shadow-black/60"
+                  {...MOTION_CONTENT}
                   onKeyDown={handleListKeyDown}
                 >
                   <CommandInput
@@ -388,8 +386,8 @@ export function CommandPaletteDialog({ open, onOpenChange }: CommandPaletteDialo
                     isMac={isMac}
                     activeLabel={flatItems[activeIndex]?.command.label}
                   />
-                </div>
-              </motion.div>
+                </motion.div>
+              </div>
             </DialogPrimitive.Content>
           )}
         </AnimatePresence>

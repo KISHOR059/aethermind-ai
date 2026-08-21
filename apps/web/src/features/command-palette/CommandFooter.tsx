@@ -7,10 +7,10 @@ export type CommandFooterProps = {
 
 export function CommandFooter({ isMac, activeLabel }: CommandFooterProps) {
   return (
-    <div className="flex items-center justify-between gap-2 border-t border-border px-4 py-2.5">
+    <div className="flex items-center justify-between gap-2 border-t border-border/60 bg-muted/20 px-4 py-2.5">
       <div className="flex items-center gap-3">
         <CommandShortcuts keys={["↑", "↓"]} label="Navigate" />
-        <CommandShortcuts keys={["Enter"]} label="Open" />
+        <CommandShortcuts keys={["Enter"]} label="Select" />
         <CommandShortcuts keys={["Esc"]} label="Close" />
       </div>
       {activeLabel ? (

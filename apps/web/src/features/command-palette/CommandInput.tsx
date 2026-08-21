@@ -11,7 +11,7 @@ export type CommandInputProps = {
 
 export function CommandInput({ query, onQueryChange, placeholder }: CommandInputProps) {
   return (
-    <div className="flex items-center gap-3 border-b border-border px-4">
+    <div className="flex items-center gap-3 border-b border-border/60 px-4">
       <Search className="size-4 shrink-0 text-muted-foreground" />
       <input
         autoFocus
