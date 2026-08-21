@@ -42,7 +42,7 @@ export const DEFAULT_OFFLINE_VOICE_SETTINGS: OfflineVoiceSettings = {
   gender: "female",
   speechRate: 1.0,
   pitch: 1.0,
-  autoSpeak: true,
+  autoSpeak: false,
   autoListen: false,
   noiseSuppression: true,
   echoCancellation: true,

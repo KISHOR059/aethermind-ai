@@ -19,7 +19,7 @@ export const DEFAULT_VOICE_SETTINGS: VoiceSettings = {
   rate: 1.0,
   pitch: 1.0,
   voiceURI: "",
-  autoSpeak: true,
+  autoSpeak: false,
   autoListen: false,
 };
 
