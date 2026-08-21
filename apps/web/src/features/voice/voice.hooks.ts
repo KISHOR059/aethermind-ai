@@ -35,7 +35,19 @@ export function useOfflineVoiceAssistant(): UseOfflineVoiceAssistantReturn {
     try {
       if (typeof window !== "undefined") {
         const saved = localStorage.getItem(OFFLINE_VOICE_SETTINGS_KEY);
-        if (saved) return JSON.parse(saved) as OfflineVoiceSettings;
+        if (saved) {
+          const parsed = JSON.parse(saved) as Partial<OfflineVoiceSettings>;
+          const normalized: OfflineVoiceSettings = {
+            ...DEFAULT_OFFLINE_VOICE_SETTINGS,
+            ...parsed,
+            autoSpeak: false,
+          };
+          localStorage.setItem(
+            OFFLINE_VOICE_SETTINGS_KEY,
+            JSON.stringify(normalized),
+          );
+          return normalized;
+        }
       }
     } catch {
       // Ignore

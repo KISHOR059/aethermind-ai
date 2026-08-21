@@ -33,7 +33,17 @@ export function ChatInput({
       if (typeof window !== "undefined") {
         const saved = localStorage.getItem(VOICE_SETTINGS_STORAGE_KEY);
         if (saved) {
-          return JSON.parse(saved) as VoiceSettings;
+          const parsed = JSON.parse(saved) as Partial<VoiceSettings>;
+          const normalized: VoiceSettings = {
+            ...DEFAULT_VOICE_SETTINGS,
+            ...parsed,
+            autoSpeak: false,
+          };
+          localStorage.setItem(
+            VOICE_SETTINGS_STORAGE_KEY,
+            JSON.stringify(normalized),
+          );
+          return normalized;
         }
       }
     } catch {
