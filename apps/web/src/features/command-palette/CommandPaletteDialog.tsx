@@ -283,6 +283,14 @@ export function CommandPaletteDialog({ open, onOpenChange }: CommandPaletteDialo
 
   const handleListKeyDown = useCallback(
     (event: KeyboardEvent<HTMLDivElement>) => {
+      if (event.key === "Escape") {
+        if (mode === "task-pick") {
+          event.preventDefault();
+          setMode("default");
+          setActiveIndex(0);
+        }
+        return;
+      }
       if (flatItems.length === 0) return;
       switch (event.key) {
         case "ArrowDown":
@@ -312,7 +320,7 @@ export function CommandPaletteDialog({ open, onOpenChange }: CommandPaletteDialo
         }
       }
     },
-    [flatItems, activeIndex, handleExecute],
+    [flatItems, activeIndex, handleExecute, mode],
   );
 
   const handleOpenChange = useCallback(
@@ -354,7 +362,10 @@ export function CommandPaletteDialog({ open, onOpenChange }: CommandPaletteDialo
                 className="fixed inset-x-0 bottom-0 z-50 mx-auto sm:top-1/2 sm:bottom-auto sm:-translate-y-1/2 sm:px-0"
                 {...MOTION_CONTENT}
               >
-                <div className="flex max-h-[85dvh] w-full flex-col overflow-hidden rounded-t-2xl border bg-popover text-popover-foreground shadow-2xl ring-1 ring-border/50 sm:max-h-[70vh] sm:rounded-xl">
+                <div
+                  className="flex max-h-[85dvh] w-full flex-col overflow-hidden rounded-t-2xl border bg-popover text-popover-foreground shadow-2xl ring-1 ring-border/50 sm:max-h-[70vh] sm:rounded-xl"
+                  onKeyDown={handleListKeyDown}
+                >
                   <CommandInput
                     query={query}
                     onQueryChange={handleQueryChange}

@@ -111,8 +111,12 @@ export function CommandPaletteProvider({ children }: CommandPaletteProviderProps
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
+      if (
+        (event.metaKey || event.ctrlKey) &&
+        (event.key.toLowerCase() === "k" || event.code === "KeyK")
+      ) {
         event.preventDefault();
+        setHasOpened(true);
         setIsOpen((previous) => !previous);
       }
     };
