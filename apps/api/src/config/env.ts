@@ -21,6 +21,9 @@ const envSchema = z.object({
   WEB_ORIGIN: z.string().url().default("http://localhost:5173"),
   AI_PROVIDER: z.enum(["gemini"]).default("gemini"),
   GEMINI_API_KEY: z.string().trim().default(""),
+  GEMINI_API_KEY_FALLBACK_1: z.string().trim().default(""),
+  GEMINI_API_KEY_FALLBACK_2: z.string().trim().default(""),
+  GEMINI_API_KEY_FALLBACK_3: z.string().trim().default(""),
   GEMINI_MODEL: z.string().trim().min(1).default("gemini-3.5-flash"),
   AI_THINKING_LEVEL: z
     .enum(["none", "low", "medium", "high"])
