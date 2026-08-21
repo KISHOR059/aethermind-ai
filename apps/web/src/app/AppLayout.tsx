@@ -23,6 +23,7 @@ import {
 import RouteLoading from "@/app/RouteLoading";
 import { env } from "@/shared/config/env";
 import { Avatar, AvatarFallback } from "@/shared/components/ui/avatar";
+import { Badge } from "@/shared/components/ui/badge";
 import { Button } from "@/shared/components/ui/button";
 import {
   DropdownMenu,
@@ -204,6 +205,14 @@ function AppLayout() {
               <CommandPaletteSearchButton />
             </div>
             <div className="ml-auto flex items-center gap-2">
+              <Badge
+                variant="outline"
+                className="h-5 px-1.5 py-0 text-[10px] font-semibold uppercase tracking-wider rounded-full border-primary/25 bg-primary/10 text-primary select-none cursor-default"
+                title="AetherMind is currently in beta"
+                aria-label="AetherMind is currently in beta"
+              >
+                BETA
+              </Badge>
               <NotificationDrawer>
                 <NotificationBell />
               </NotificationDrawer>
