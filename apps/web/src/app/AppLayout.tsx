@@ -6,7 +6,6 @@ import {
   Menu,
   Search,
   Settings,
-  Sparkles,
 } from "lucide-react";
 import { Suspense } from "react";
 import { NavLink, Outlet } from "react-router-dom";
@@ -44,19 +43,29 @@ import {
 import { cn } from "@/shared/lib/cn";
 import { useAuth } from "@/features/auth/hooks/auth.context";
 import SessionManager from "@/features/auth/session/SessionManager";
+import { AetherMindLogo } from "@/shared/components/AetherMindLogo";
 
-const navigationItems = [
+const mainNavigationItems = [
   { label: "Dashboard", icon: LayoutDashboard, to: "/dashboard" },
   { label: "Tasks", icon: CheckSquare, to: "/tasks" },
   { label: "Calendar", icon: CalendarDays, to: "/calendar" },
   { label: "AI Assistant", icon: Bot, to: "/assistant" },
+];
+
+const bottomNavigationItems = [
   { label: "Settings", icon: Settings, to: "/settings" },
 ];
 
-function SidebarNavigation() {
+function SidebarNavigation({
+  items,
+  ariaLabel = "Primary navigation",
+}: {
+  items: Array<{ label: string; icon: React.ComponentType<{ className?: string }>; to: string }>;
+  ariaLabel?: string;
+}) {
   return (
-    <nav aria-label="Primary navigation" className="space-y-1.5">
-      {navigationItems.map(({ label, icon: Icon, to }) => (
+    <nav aria-label={ariaLabel} className="space-y-1.5">
+      {items.map(({ label, icon: Icon, to }) => (
         <NavLink
           key={label}
           to={to}
@@ -81,17 +90,15 @@ function SidebarNavigation() {
 function Sidebar() {
   return (
     <div className="flex h-full flex-col">
-      <div className="flex h-16 items-center gap-2.5 px-6 border-b border-border/40">
-        <div className="flex size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-sm">
-          <Sparkles className="size-4" />
-        </div>
-        <span className="text-lg font-bold tracking-tight bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text">
-          {env.appName}
-        </span>
+      <div className="flex h-16 shrink-0 items-center px-6 border-b border-border/40">
+        <AetherMindLogo size="md" />
       </div>
       <ScrollArea className="flex-1 px-4 py-6">
-        <SidebarNavigation />
+        <SidebarNavigation items={mainNavigationItems} />
       </ScrollArea>
+      <div className="mt-auto shrink-0 border-t border-border/40 p-4">
+        <SidebarNavigation items={bottomNavigationItems} ariaLabel="Secondary navigation" />
+      </div>
     </div>
   );
 }
@@ -184,23 +191,28 @@ function AppLayout() {
         </aside>
 
         <div className="lg:pl-64 flex flex-1 flex-col">
-          <header className="sticky top-0 z-10 flex h-16 items-center gap-4 border-b bg-background/95 px-4 backdrop-blur sm:px-6">
-            <Sheet>
-              <SheetTrigger asChild>
-                <Button
-                  aria-label="Open navigation"
-                  className="lg:hidden"
-                  size="icon"
-                  variant="outline"
-                >
-                  <Menu className="size-4" />
-                </Button>
-              </SheetTrigger>
-              <SheetContent className="p-0" side="left">
-                <SheetTitle className="sr-only">Navigation</SheetTitle>
-                <Sidebar />
-              </SheetContent>
-            </Sheet>
+          <header className="sticky top-0 z-10 flex h-16 items-center gap-3 border-b bg-background/95 px-4 backdrop-blur sm:gap-4 sm:px-6">
+            <div className="flex items-center gap-2.5 lg:hidden">
+              <Sheet>
+                <SheetTrigger asChild>
+                  <Button
+                    aria-label="Open navigation"
+                    className="size-9 shrink-0"
+                    size="icon"
+                    variant="outline"
+                  >
+                    <Menu className="size-4" />
+                  </Button>
+                </SheetTrigger>
+                <SheetContent className="p-0" side="left">
+                  <SheetTitle className="sr-only">Navigation</SheetTitle>
+                  <Sidebar />
+                </SheetContent>
+              </Sheet>
+
+              <AetherMindLogo size="sm" textClassName="hidden sm:inline-block" />
+            </div>
+
             <div className="max-w-md flex-1">
               <CommandPaletteSearchButton />
             </div>

@@ -1,0 +1,22 @@
+<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <style>
+    :root {
+      --bg: #18181b;
+      --fg: #ffffff;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #ffffff;
+        --fg: #18181b;
+      }
+    }
+    .brand-bg { fill: var(--bg, #18181b); }
+    .brand-fg { fill: var(--fg, #ffffff); }
+  </style>
+  <!-- Ambient squircle -->
+  <rect class="brand-bg" x="2" y="2" width="28" height="28" rx="8" />
+  <!-- Neural apex & spark -->
+  <path class="brand-fg" d="M16 6.5L23.5 21H19.5L16 13.8L12.5 21H8.5L16 6.5Z" />
+  <circle class="brand-fg" cx="16" cy="17.5" r="2.2" />
+  <circle class="brand-fg" cx="16" cy="24.5" r="1.3" opacity="0.85" />
+</svg>

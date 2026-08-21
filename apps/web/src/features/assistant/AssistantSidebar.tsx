@@ -1,7 +1,6 @@
-import { Bot } from "lucide-react";
 import type { Conversation } from "./assistant.types";
 import ConversationList from "./ConversationList";
-import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
+import { cn } from "@/shared/lib/cn";
 
 export interface AssistantSidebarProps {
   conversations: Conversation[];
@@ -10,6 +9,7 @@ export interface AssistantSidebarProps {
   onNew: () => void;
   onRename: (id: string, title: string) => void;
   onDelete: (id: string) => void;
+  className?: string;
 }
 
 export function AssistantSidebar({
@@ -19,26 +19,24 @@ export function AssistantSidebar({
   onNew,
   onRename,
   onDelete,
+  className,
 }: AssistantSidebarProps) {
   return (
-    <Card className="h-full flex flex-col border-primary/20">
-      <CardHeader className="py-2.5 px-4 border-b">
-        <CardTitle className="text-sm font-semibold flex items-center gap-2">
-          <Bot className="size-4 text-primary" />
-          Conversations
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="flex-1 min-h-0 overflow-y-auto p-2.5">
-        <ConversationList
-          conversations={conversations}
-          activeId={activeId}
-          onSelect={onSelect}
-          onNew={onNew}
-          onRename={onRename}
-          onDelete={onDelete}
-        />
-      </CardContent>
-    </Card>
+    <div
+      className={cn(
+        "flex h-full flex-col rounded-2xl border border-border/70 bg-card/50 p-3 shadow-2xs",
+        className,
+      )}
+    >
+      <ConversationList
+        conversations={conversations}
+        activeId={activeId}
+        onSelect={onSelect}
+        onNew={onNew}
+        onRename={onRename}
+        onDelete={onDelete}
+      />
+    </div>
   );
 }
 
