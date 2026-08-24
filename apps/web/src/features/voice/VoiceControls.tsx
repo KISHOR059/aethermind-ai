@@ -138,8 +138,8 @@ export function VoiceControls({
         />
       )}
 
-      {/* Metrics Footer (Observability) */}
-      {metrics && metrics.totalResponseTimeMs && (
+      {/* Metrics Footer (Observability - Dev Only) */}
+      {import.meta.env.DEV && metrics && metrics.totalResponseTimeMs && (
         <div className="text-[10px] text-muted-foreground font-mono flex items-center justify-between pt-1 border-t border-border/40">
           <span>
             STT: {metrics.transcriptionTimeMs ?? 0}ms | AI: {metrics.aiInferenceTimeMs ?? 0}ms | TTS: {metrics.speechGenerationTimeMs ?? 0}ms

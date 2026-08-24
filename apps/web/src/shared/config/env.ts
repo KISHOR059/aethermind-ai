@@ -27,6 +27,8 @@ function positiveNumber(value: string | undefined, fallback: number, name: strin
 }
 
 export const env = Object.freeze({
+  isDev: import.meta.env.DEV,
+  isProd: import.meta.env.PROD,
   apiUrl: apiUrl(import.meta.env.VITE_API_URL),
   appName: requiredText(import.meta.env.VITE_APP_NAME, "AetherMind", "VITE_APP_NAME"),
   version: requiredText(import.meta.env.VITE_APP_VERSION, "1.0.0", "VITE_APP_VERSION"),

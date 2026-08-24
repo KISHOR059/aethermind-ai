@@ -351,15 +351,19 @@ function WeeklyReviewSuccessState({
       </div>
 
       <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2 border-t text-xs text-muted-foreground">
-        <div className="flex items-center gap-2 truncate">
-          <span>
-            {metrics.provider} • {metrics.model} • {metrics.executionTime}ms • v
-            {metrics.promptVersion}
-          </span>
-          {metrics.tokenUsage && (
-            <span>• {metrics.tokenUsage.totalTokens} tokens</span>
-          )}
-        </div>
+        {import.meta.env.DEV ? (
+          <div className="flex items-center gap-2 truncate">
+            <span>
+              {metrics.provider} • {metrics.model} • {metrics.executionTime}ms • v
+              {metrics.promptVersion}
+            </span>
+            {metrics.tokenUsage && (
+              <span>• {metrics.tokenUsage.totalTokens} tokens</span>
+            )}
+          </div>
+        ) : (
+          <div />
+        )}
         <DialogFooter className="w-full sm:w-auto">
           <Button variant="outline" size="sm" onClick={onClose}>
             Close

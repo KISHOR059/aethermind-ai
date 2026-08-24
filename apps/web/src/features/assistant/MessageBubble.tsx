@@ -142,7 +142,7 @@ export function MessageBubble({ message, userName }: MessageBubbleProps) {
               </TooltipContent>
             </Tooltip>
 
-            {message.metrics && (
+            {import.meta.env.DEV && message.metrics && (
               <Tooltip>
                 <TooltipTrigger asChild>
                   <button
@@ -173,7 +173,7 @@ export function MessageBubble({ message, userName }: MessageBubbleProps) {
         </div>
 
         {/* Execution Metrics detail pill */}
-        {message.metrics && showMetrics && (
+        {import.meta.env.DEV && message.metrics && showMetrics && (
           <div className="flex flex-wrap items-center gap-2 pt-1 text-[10px] text-muted-foreground font-mono">
             <span className="inline-flex items-center gap-1 rounded bg-muted/60 px-2 py-0.5 border border-border/40">
               <Sparkles className="size-2.5 text-primary" />

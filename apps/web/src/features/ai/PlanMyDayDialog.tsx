@@ -304,9 +304,11 @@ function PlanSuccessState({
         </CardContent>
       </Card>
 
-      <p className="text-xs text-muted-foreground">
-        {metrics.provider} - {metrics.model} - {metrics.executionTime}ms
-      </p>
+      {import.meta.env.DEV && (
+        <p className="text-xs text-muted-foreground">
+          {metrics.provider} - {metrics.model} - {metrics.executionTime}ms
+        </p>
+      )}
     </div>
   );
 }

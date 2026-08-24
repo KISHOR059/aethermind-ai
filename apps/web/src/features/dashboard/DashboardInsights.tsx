@@ -292,15 +292,17 @@ function InsightsSuccessState({
         </div>
       </div>
 
-      {/* Execution Metrics Footer */}
-      <div className="flex flex-wrap items-center justify-between gap-2 pt-1.5 border-t border-border/40 text-[10px] text-muted-foreground font-mono shrink-0">
-        <span>
-          {metrics.provider} • {metrics.model} • {metrics.executionTime}ms
-        </span>
-        {metrics.tokenUsage && (
-          <span>{metrics.tokenUsage.totalTokens} tokens</span>
-        )}
-      </div>
+      {/* Execution Metrics Footer (Dev Only) */}
+      {import.meta.env.DEV && (
+        <div className="flex flex-wrap items-center justify-between gap-2 pt-1.5 border-t border-border/40 text-[10px] text-muted-foreground font-mono shrink-0">
+          <span>
+            {metrics.provider} • {metrics.model} • {metrics.executionTime}ms
+          </span>
+          {metrics.tokenUsage && (
+            <span>{metrics.tokenUsage.totalTokens} tokens</span>
+          )}
+        </div>
+      )}
     </div>
   );
 }
