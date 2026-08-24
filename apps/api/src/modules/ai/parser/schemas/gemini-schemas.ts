@@ -380,12 +380,38 @@ export const assistantChatGeminiSchema: Schema = {
   properties: {
     reply: {
       type: Type.STRING,
-      description: "Direct, helpful, and meaningful response to the user's inquiry.",
+      description: "Direct, helpful, and meaningful response to the user's inquiry. When creating or updating a task with a time, mention the scheduled time naturally (e.g. 'Done — I created 'Call Rahul' for tomorrow at 4:00 PM.').",
     },
     suggestedActions: {
       type: Type.ARRAY,
       items: { type: Type.STRING },
       description: "List of relevant follow-up action chips or quick prompts.",
+    },
+    taskAction: {
+      type: Type.OBJECT,
+      description: "Optional task action if the user requested task creation or scheduling.",
+      properties: {
+        action: {
+          type: Type.STRING,
+          description: "Action type: 'CREATE', 'UPDATE', or 'NONE'",
+        },
+        title: {
+          type: Type.STRING,
+          description: "Title of the task",
+        },
+        dueDate: {
+          type: Type.STRING,
+          description: "ISO-8601 date or datetime string with time (e.g. 2026-08-25T16:00:00.000Z or 2026-08-25)",
+        },
+        priority: {
+          type: Type.STRING,
+          description: "Task priority: LOW, MEDIUM, HIGH, or URGENT",
+        },
+        estimatedMinutes: {
+          type: Type.INTEGER,
+          description: "Estimated duration in minutes if specified",
+        },
+      },
     },
   },
   required: ["reply", "suggestedActions"],

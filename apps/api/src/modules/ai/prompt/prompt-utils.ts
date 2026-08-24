@@ -44,7 +44,11 @@ export function formatTaskContextForPrompt(
     title: task.title,
     status: task.status,
     priority: task.priority,
-    dueDate: task.dueDate ? task.dueDate.toISOString().slice(0, 10) : undefined,
+    dueDate: task.dueDate
+      ? task.dueDate.toISOString().endsWith("T00:00:00.000Z")
+        ? task.dueDate.toISOString().slice(0, 10)
+        : task.dueDate.toISOString()
+      : undefined,
     estMins: task.estimatedMinutes ?? undefined,
   }));
 

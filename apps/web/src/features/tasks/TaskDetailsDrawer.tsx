@@ -1,5 +1,6 @@
 import { useState } from "react";
 import {
+  CalendarClock,
   CalendarDays,
   CheckCircle2,
   Clock3,
@@ -16,6 +17,12 @@ import TaskPriorityBadge from "./TaskPriorityBadge";
 import TaskStatusBadge from "./TaskStatusBadge";
 import type { Task, TaskPriority, TaskStatus } from "./task.types";
 import { useDeleteTask, useUpdateTask } from "./task.hooks";
+import {
+  combineDateAndTime,
+  formatTaskDueDate,
+  formatTaskTimestamp,
+  splitDateAndTime,
+} from "./task.utils";
 import TaskBreakdownDialog from "@/features/ai/TaskBreakdownDialog";
 import ConfirmDialog from "@/shared/components/ConfirmDialog";
 import { Button } from "@/shared/components/ui/button";
@@ -47,6 +54,8 @@ export function TaskDetailsDrawer({
   const updateTask = useUpdateTask();
   const deleteTask = useDeleteTask();
 
+  const { date: taskDate, time: taskTime } = splitDateAndTime(task?.dueDate);
+
   if (!task) return null;
 
   const handleStatusChange = (newStatus: TaskStatus) => {
@@ -65,6 +74,40 @@ export function TaskDetailsDrawer({
       {
         onSuccess: () => notify.success(`Priority set to ${newPriority}`),
         onError: (err) => notify.error("Failed to update priority", err.message),
+      },
+    );
+  };
+
+  const handleDateChange = (newDate: string) => {
+    const combined = combineDateAndTime(newDate, taskTime);
+    updateTask.mutate(
+      { id: task.id, input: { dueDate: combined } },
+      {
+        onSuccess: () => notify.success("Due date updated"),
+        onError: (err) => notify.error("Failed to update due date", err.message),
+      },
+    );
+  };
+
+  const handleTimeChange = (newTime: string) => {
+    if (taskDate) {
+      const combined = combineDateAndTime(taskDate, newTime);
+      updateTask.mutate(
+        { id: task.id, input: { dueDate: combined } },
+        {
+          onSuccess: () => notify.success(newTime ? "Due time updated" : "Due time removed"),
+          onError: (err) => notify.error("Failed to update due time", err.message),
+        },
+      );
+    }
+  };
+
+  const handleClearSchedule = () => {
+    updateTask.mutate(
+      { id: task.id, input: { dueDate: undefined } },
+      {
+        onSuccess: () => notify.success("Due date cleared"),
+        onError: (err) => notify.error("Failed to clear due date", err.message),
       },
     );
   };
@@ -92,13 +135,20 @@ export function TaskDetailsDrawer({
     );
   };
 
-  const formattedDueDate = task.dueDate
-    ? new Intl.DateTimeFormat(undefined, { dateStyle: "full" }).format(new Date(task.dueDate))
-    : "No due date set";
+  const formattedDueDate = formatTaskDueDate(task.dueDate, task.estimatedMinutes);
+  const formattedCreatedDate = formatTaskTimestamp(task.createdAt);
 
-  const formattedCreatedDate = task.createdAt
-    ? new Intl.DateTimeFormat(undefined, { dateStyle: "medium", timeStyle: "short" }).format(new Date(task.createdAt))
-    : "N/A";
+  const createdTime = task.createdAt ? new Date(task.createdAt).getTime() : NaN;
+  const updatedTime = task.updatedAt ? new Date(task.updatedAt).getTime() : NaN;
+  const isMovedOrUpdated = !isNaN(createdTime) && !isNaN(updatedTime) && Math.abs(updatedTime - createdTime) > 2000;
+
+  const formattedMovedDate = isMovedOrUpdated && task.updatedAt
+    ? formatTaskTimestamp(task.updatedAt)
+    : null;
+
+  const formattedCompletedDate = task.completedAt
+    ? formatTaskTimestamp(task.completedAt)
+    : null;
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -209,6 +259,53 @@ export function TaskDetailsDrawer({
             </div>
           </div>
 
+          {/* Schedule Date & Time Controls */}
+          <div className="space-y-2.5 p-4 rounded-xl border border-border/60 bg-muted/20">
+            <div className="flex items-center justify-between">
+              <h4 className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                <CalendarDays className="size-3.5 text-primary" />
+                Schedule & Due Time
+              </h4>
+              {task.dueDate && (
+                <button
+                  type="button"
+                  onClick={handleClearSchedule}
+                  className="text-[10px] text-muted-foreground hover:text-rose-500 font-medium transition-colors cursor-pointer"
+                >
+                  Clear deadline
+                </button>
+              )}
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-[10px] font-semibold text-muted-foreground block mb-1">
+                  Due Date
+                </label>
+                <Input
+                  type="date"
+                  value={taskDate}
+                  onChange={(e) => handleDateChange(e.target.value)}
+                  className="h-8 text-xs bg-background"
+                />
+              </div>
+
+              <div>
+                <label className="text-[10px] font-semibold text-muted-foreground block mb-1">
+                  Due Time
+                </label>
+                <Input
+                  type="time"
+                  value={taskTime}
+                  disabled={!taskDate}
+                  onChange={(e) => handleTimeChange(e.target.value)}
+                  className="h-8 text-xs bg-background disabled:opacity-50"
+                  placeholder="Set time"
+                />
+              </div>
+            </div>
+          </div>
+
           {/* AI Quick Actions Bar */}
           <div className="space-y-2">
             <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
@@ -252,9 +349,9 @@ export function TaskDetailsDrawer({
             <div className="flex items-center justify-between text-xs text-muted-foreground">
               <span className="flex items-center gap-1.5">
                 <CalendarDays className="size-3.5 text-primary" />
-                Due Date
+                Scheduled Date
               </span>
-              <span className="font-semibold text-foreground">{formattedDueDate}</span>
+              <span className="font-semibold text-foreground text-right">{formattedDueDate}</span>
             </div>
 
             <div className="flex items-center justify-between text-xs text-muted-foreground">
@@ -262,8 +359,28 @@ export function TaskDetailsDrawer({
                 <Clock3 className="size-3.5 text-amber-500" />
                 Created At
               </span>
-              <span className="font-medium">{formattedCreatedDate}</span>
+              <span className="font-medium text-foreground">{formattedCreatedDate}</span>
             </div>
+
+            {formattedMovedDate && (
+              <div className="flex items-center justify-between text-xs text-muted-foreground">
+                <span className="flex items-center gap-1.5">
+                  <CalendarClock className="size-3.5 text-blue-500" />
+                  Moved / Rescheduled
+                </span>
+                <span className="font-medium text-foreground">{formattedMovedDate}</span>
+              </div>
+            )}
+
+            {formattedCompletedDate && (
+              <div className="flex items-center justify-between text-xs text-muted-foreground">
+                <span className="flex items-center gap-1.5">
+                  <CheckCircle2 className="size-3.5 text-emerald-500" />
+                  Completed At
+                </span>
+                <span className="font-medium text-foreground">{formattedCompletedDate}</span>
+              </div>
+            )}
           </div>
         </div>
 

@@ -27,6 +27,8 @@ type TaskEventSource = {
   priority: TaskPriority;
   dueDate?: Date;
   estimatedMinutes?: number;
+  createdAt?: Date;
+  updatedAt?: Date;
 };
 
 export type CalendarEventsResult = {
@@ -116,9 +118,18 @@ function toCalendarEvent(task: TaskEventSource): CalendarEvent | null {
   if (!task.dueDate) return null;
 
   const start = task.dueDate;
+  const hasExplicitTime =
+    start.getUTCHours() !== 0 ||
+    start.getUTCMinutes() !== 0 ||
+    start.getUTCSeconds() !== 0;
+
+  const allDay = !hasExplicitTime && !task.estimatedMinutes;
+
   const end = task.estimatedMinutes
     ? new Date(start.getTime() + task.estimatedMinutes * MINUTE_MS)
-    : start;
+    : hasExplicitTime
+      ? new Date(start.getTime() + 30 * MINUTE_MS)
+      : start;
 
   return {
     id: task._id.toString(),
@@ -129,8 +140,10 @@ function toCalendarEvent(task: TaskEventSource): CalendarEvent | null {
     priority: task.priority,
     start: start.toISOString(),
     end: end.toISOString(),
-    allDay: !task.estimatedMinutes,
+    allDay,
     color: getEventColor(task.status, task.priority),
+    createdAt: task.createdAt ? task.createdAt.toISOString() : undefined,
+    updatedAt: task.updatedAt ? task.updatedAt.toISOString() : undefined,
   };
 }
 
@@ -170,7 +183,7 @@ export class CalendarService {
       ...(query.priority ? { priority: query.priority } : {}),
       dueDate: { $gte: start, $lte: end },
     })
-      .select("_id title description status priority dueDate estimatedMinutes")
+      .select("_id title description status priority dueDate estimatedMinutes createdAt updatedAt")
       .sort({ dueDate: 1 })
       .lean<TaskEventSource[]>()
       .exec();

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { Plus } from "lucide-react";
+import { CalendarDays, Clock3, Plus } from "lucide-react";
 
 import { Button } from "@/shared/components/ui/button";
 import {
@@ -19,6 +19,7 @@ import { notify } from "@/shared/lib/notifications";
 import { useCreateTask } from "./task.hooks";
 import { createTaskSchema, type CreateTaskFormValues } from "./task.validation";
 import { TASK_PRIORITIES } from "./task.types";
+import { combineDateAndTime } from "./task.utils";
 
 export interface CreateTaskDialogProps {
   open?: boolean;
@@ -51,18 +52,27 @@ export function CreateTaskDialog({
     formState: { errors },
   } = useForm<CreateTaskFormValues>({
     resolver: zodResolver(createTaskSchema),
-    defaultValues: { title: "", description: "", priority: "MEDIUM", dueDate: "" },
+    defaultValues: { title: "", description: "", priority: "MEDIUM", dueDate: "", dueTime: "" },
   });
 
   const onSubmit = (values: CreateTaskFormValues) => {
-    createTask.mutate(values, {
-      onSuccess: () => {
-        reset();
-        setOpen(false);
-        notify.success("Task created", "Your task has been added to the workspace.");
+    const combinedDueDate = combineDateAndTime(values.dueDate, values.dueTime);
+    createTask.mutate(
+      {
+        title: values.title,
+        description: values.description,
+        priority: values.priority,
+        dueDate: combinedDueDate,
       },
-      onError: (error) => notify.error("Unable to create task", error.message),
-    });
+      {
+        onSuccess: () => {
+          reset();
+          setOpen(false);
+          notify.success("Task created", "Your task has been added to the workspace.");
+        },
+        onError: (error) => notify.error("Unable to create task", error.message),
+      },
+    );
   };
 
   return (
@@ -116,29 +126,38 @@ export function CreateTaskDialog({
             )}
           </div>
 
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-foreground" htmlFor="task-priority">
-                Priority
-              </label>
-              <select
-                id="task-priority"
-                className="h-9 w-full rounded-md border bg-background px-3 text-xs"
-                {...register("priority")}
-              >
-                {TASK_PRIORITIES.map((priority) => (
-                  <option key={priority} value={priority}>
-                    {priority.charAt(0) + priority.slice(1).toLowerCase()}
-                  </option>
-                ))}
-              </select>
-            </div>
+          <div className="space-y-1.5">
+            <label className="text-xs font-semibold text-foreground" htmlFor="task-priority">
+              Priority
+            </label>
+            <select
+              id="task-priority"
+              className="h-9 w-full rounded-md border bg-background px-3 text-xs"
+              {...register("priority")}
+            >
+              {TASK_PRIORITIES.map((priority) => (
+                <option key={priority} value={priority}>
+                  {priority.charAt(0) + priority.slice(1).toLowerCase()}
+                </option>
+              ))}
+            </select>
+          </div>
 
+          <div className="grid gap-3 sm:grid-cols-2">
             <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-foreground" htmlFor="task-due-date">
+              <label className="text-xs font-semibold text-foreground flex items-center gap-1.5" htmlFor="task-due-date">
+                <CalendarDays className="size-3.5 text-primary" />
                 Due date
               </label>
               <Input id="task-due-date" type="date" {...register("dueDate")} />
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-foreground flex items-center gap-1.5" htmlFor="task-due-time">
+                <Clock3 className="size-3.5 text-amber-500" />
+                Due time
+              </label>
+              <Input id="task-due-time" type="time" {...register("dueTime")} />
             </div>
           </div>
 

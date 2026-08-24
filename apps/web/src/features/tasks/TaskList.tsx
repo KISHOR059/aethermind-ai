@@ -8,7 +8,7 @@ export interface TaskListProps {
   onSelectTask?: (task: Task) => void;
 }
 
-export function TaskList({ tasks, viewMode = "list", onSelectTask }: TaskListProps) {
+export function TaskList({ tasks, viewMode = "grid", onSelectTask }: TaskListProps) {
   if (viewMode === "grid") {
     return (
       <div className="grid gap-4 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">

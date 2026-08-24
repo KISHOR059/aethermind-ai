@@ -1,5 +1,9 @@
 import type { AiService } from "../ai/ai.service.js";
+import type { TaskService } from "../tasks/task.service.js";
 import { AssistantRepository } from "./assistant.repository.js";
+import { TaskPriority, TaskStatus } from "../tasks/task.model.js";
+import type { PublicUser } from "../auth/auth.types.js";
+import { logger } from "../../lib/logger.js";
 
 export class AssistantService {
   private readonly repository: AssistantRepository;
@@ -7,6 +11,7 @@ export class AssistantService {
   public constructor(
     private readonly aiService: AiService,
     repository?: AssistantRepository,
+    private readonly taskService?: TaskService,
   ) {
     this.repository = repository ?? new AssistantRepository();
   }
@@ -91,6 +96,44 @@ export class AssistantService {
     );
 
     const replyContent = executionResult.data.reply;
+
+    // Handle taskAction if present (e.g. creating task with specific datetime)
+    const taskAction = executionResult.data.taskAction;
+    if (
+      taskAction &&
+      taskAction.action === "CREATE" &&
+      taskAction.title &&
+      this.taskService
+    ) {
+      try {
+        const priority =
+          taskAction.priority &&
+          Object.values(TaskPriority).includes(taskAction.priority as TaskPriority)
+            ? (taskAction.priority as TaskPriority)
+            : TaskPriority.MEDIUM;
+
+        const dueDate = taskAction.dueDate
+          ? new Date(taskAction.dueDate)
+          : undefined;
+
+        await this.taskService.create(
+          { id: ownerId } as PublicUser,
+          {
+            title: taskAction.title,
+            dueDate,
+            priority,
+            status: TaskStatus.TODO,
+            tags: [],
+            estimatedMinutes: taskAction.estimatedMinutes,
+          },
+        );
+      } catch (err) {
+        logger.error("Failed to execute AI task action", {
+          error: err instanceof Error ? err.message : String(err),
+          taskAction,
+        });
+      }
+    }
 
     // Save assistant message to database
     const assistantMessage = await this.repository.createMessage(

@@ -24,8 +24,9 @@ function mapTaskPriority(taskPriority: string): NotificationPriority {
 
 function formatMoveDate(date: Date, estimatedMinutes?: number | null): string {
   const hasTime =
-    estimatedMinutes != null &&
-    (date.getUTCHours() !== 0 || date.getUTCMinutes() !== 0);
+    date.getUTCHours() !== 0 ||
+    date.getUTCMinutes() !== 0 ||
+    estimatedMinutes != null;
 
   const day = new Intl.DateTimeFormat("en-US", {
     timeZone: "UTC",

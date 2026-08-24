@@ -114,9 +114,11 @@ export function formatTime(date: Date): string {
 }
 
 export function formatTimeRange(event: CalendarEvent): string {
+  if (event.allDay) return "All day";
   const start = formatTime(new Date(event.start));
-  if (event.allDay) return start;
-  return `${start} – ${formatTime(new Date(event.end))}`;
+  const end = formatTime(new Date(event.end));
+  if (start === end) return start;
+  return `${start} – ${end}`;
 }
 
 export function isOverdueEvent(
@@ -203,8 +205,8 @@ export function eventToTask(event: CalendarEvent): Task {
     completedAt: undefined,
     tags: [],
     owner: "",
-    createdAt: event.start,
-    updatedAt: event.start,
+    createdAt: event.createdAt || event.start,
+    updatedAt: event.updatedAt || event.start,
   };
 }
 

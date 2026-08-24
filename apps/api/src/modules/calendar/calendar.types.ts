@@ -25,6 +25,8 @@ export type CalendarEvent = {
   allDay: boolean;
   color: string;
   taskId: string;
+  createdAt?: string;
+  updatedAt?: string;
 };
 
 export type CalendarRange = {

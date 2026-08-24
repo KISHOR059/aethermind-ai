@@ -7,6 +7,7 @@ export const createTaskSchema = z.object({
   description: z.string().trim().max(2000, "Description is too long").optional(),
   priority: z.enum(TASK_PRIORITIES),
   dueDate: z.string().optional(),
+  dueTime: z.string().optional(),
 });
 
 export type CreateTaskFormValues = z.infer<typeof createTaskSchema>;

@@ -18,17 +18,12 @@ import {
 import TaskList from "@/features/tasks/TaskList";
 import { useTaskCounts, useTasks } from "@/features/tasks/task.hooks";
 import type { Task, TaskPriority, TaskStatusFilter } from "@/features/tasks/task.types";
+import { isTaskSameDay } from "@/features/tasks/task.utils";
 import { Button } from "@/shared/components/ui/button";
 import PageHeader from "@/shared/components/PageHeader";
 
 function isSameDay(isoDate: string | undefined, date: Date) {
-  if (!isoDate) return false;
-  const target = new Date(isoDate);
-  return (
-    target.getFullYear() === date.getFullYear() &&
-    target.getMonth() === date.getMonth() &&
-    target.getDate() === date.getDate()
-  );
+  return isTaskSameDay(isoDate, date);
 }
 
 function parseStatusFilter(value: string | null): TaskStatusFilter {
@@ -55,7 +50,7 @@ function TasksPage() {
   const taskIdFromUrl = searchParams.get("task");
 
   const [sortBy, setSortBy] = useState<string>("createdAt");
-  const [viewMode, setViewMode] = useState<"list" | "grid">("list");
+  const [viewMode, setViewMode] = useState<"list" | "grid">("grid");
 
   // AI Modal Dialog States
   const [prioritizationOpen, setPrioritizationOpen] = useState(false);

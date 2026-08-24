@@ -23,15 +23,7 @@ import {
   DropdownMenuTrigger,
 } from "@/shared/components/ui/dropdown-menu";
 import { notify } from "@/shared/lib/notifications";
-
-function formatDueDate(value?: string) {
-  if (!value) return null;
-  const date = new Date(value);
-  const now = new Date();
-  const isToday = date.toDateString() === now.toDateString();
-  if (isToday) return "Today";
-  return new Intl.DateTimeFormat(undefined, { month: "short", day: "numeric" }).format(date);
-}
+import { formatShortTaskDueDate } from "./task.utils";
 
 export interface TaskCardProps {
   task: Task;
@@ -44,7 +36,7 @@ export function TaskCard({ task, onSelect }: TaskCardProps) {
   const updateTask = useUpdateTask();
   const deleteTask = useDeleteTask();
 
-  const formattedDate = formatDueDate(task.dueDate);
+  const formattedDate = formatShortTaskDueDate(task.dueDate);
   const isCompleted = task.status === "COMPLETED";
 
   const handleToggleComplete = (e: React.MouseEvent) => {
