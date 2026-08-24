@@ -17,6 +17,7 @@ function LoginForm() {
   const onSubmit = async (values: LoginFormValues) => {
     try {
       await login(values);
+      sessionStorage.setItem("aethermind_just_logged_in", "true");
       notify.success("Welcome back");
       navigate("/dashboard", { replace: true });
     } catch (error) {

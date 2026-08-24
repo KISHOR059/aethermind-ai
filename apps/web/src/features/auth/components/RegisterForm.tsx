@@ -17,6 +17,7 @@ function RegisterForm() {
   const onSubmit = async (values: RegisterFormValues) => {
     try {
       await registerUser({ firstName: values.firstName, lastName: values.lastName, email: values.email, password: values.password });
+      sessionStorage.setItem("aethermind_just_logged_in", "true");
       notify.success("Account created", "You are now signed in.");
       navigate("/dashboard", { replace: true });
     } catch (error) {
