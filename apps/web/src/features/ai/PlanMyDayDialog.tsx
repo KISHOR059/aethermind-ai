@@ -34,11 +34,13 @@ import { Separator } from "@/shared/components/ui/separator";
 export interface PlanMyDayDialogProps {
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
+  trigger?: React.ReactNode;
 }
 
 export function PlanMyDayDialog({
   open: externalOpen,
   onOpenChange: externalOnOpenChange,
+  trigger,
 }: PlanMyDayDialogProps = {}) {
   const [internalOpen, setInternalOpen] = useState(false);
   const isControlled = externalOpen !== undefined;
@@ -60,14 +62,16 @@ export function PlanMyDayDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      {!isControlled && (
+      {trigger ? (
+        <DialogTrigger asChild>{trigger}</DialogTrigger>
+      ) : !isControlled ? (
         <DialogTrigger asChild>
           <Button variant="outline">
             <Sparkles />
             Plan My Day
           </Button>
         </DialogTrigger>
-      )}
+      ) : null}
       <DialogContent className="max-w-2xl">
         <DialogHeader>
           <DialogTitle>AI Daily Plan</DialogTitle>

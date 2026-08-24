@@ -48,7 +48,6 @@ const PRIORITY_COLORS = {
 };
 
 export function DashboardCharts({ stats }: DashboardChartsProps) {
-  // 1. Task Status Pie Data
   const statusPieData = [
     { name: "Completed", value: stats.statusDistribution.completed, fill: STATUS_COLORS.Completed },
     { name: "Pending", value: stats.statusDistribution.pending, fill: STATUS_COLORS.Pending },
@@ -56,7 +55,6 @@ export function DashboardCharts({ stats }: DashboardChartsProps) {
     { name: "Overdue", value: stats.statusDistribution.overdue, fill: STATUS_COLORS.Overdue },
   ].filter((item) => item.value > 0);
 
-  // 2. Priority Distribution Data
   const priorityData = [
     { priority: "Low", count: stats.taskPriorityDistribution.LOW, fill: PRIORITY_COLORS.Low },
     { priority: "Medium", count: stats.taskPriorityDistribution.MEDIUM, fill: PRIORITY_COLORS.Medium },
@@ -67,26 +65,24 @@ export function DashboardCharts({ stats }: DashboardChartsProps) {
   const totalPriorityTasks = priorityData.reduce((acc, curr) => acc + curr.count, 0);
 
   return (
-    <div className="grid gap-6 md:grid-cols-2">
+    <div className="grid gap-3.5 md:grid-cols-2">
       {/* 1. Task Completion Trend (Area Chart) */}
-      <Card className="rounded-xl border-border/60 shadow-xs hover:border-border transition-all">
-        <CardHeader className="pb-2">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className="size-7 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-500">
-                <TrendingUp className="size-4" />
-              </div>
-              <CardTitle className="text-base font-semibold">
-                Task Completion Trend
-              </CardTitle>
+      <Card className="rounded-lg border-border/60 bg-card shadow-2xs hover:border-border transition-colors">
+        <CardHeader className="p-3.5 sm:p-4 pb-2">
+          <div className="flex items-center gap-2">
+            <div className="size-6 rounded-md bg-emerald-500/10 flex items-center justify-center text-emerald-500">
+              <TrendingUp className="size-3.5" />
             </div>
+            <CardTitle className="text-xs font-bold tracking-tight text-foreground">
+              Task Completion Trend
+            </CardTitle>
           </div>
-          <CardDescription className="text-xs">
+          <CardDescription className="text-[11px]">
             Daily completion momentum over recent days
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          <div className="h-64 w-full">
+        <CardContent className="p-3.5 sm:p-4 pt-0">
+          <div className="h-52 w-full">
             {stats.dailyProductivity.every((d) => d.count === 0 && d.minutes === 0) ? (
               <EmptyChartState message="No task completion history recorded yet" />
             ) : (
@@ -94,7 +90,7 @@ export function DashboardCharts({ stats }: DashboardChartsProps) {
                 <AreaChart data={stats.dailyProductivity}>
                   <defs>
                     <linearGradient id="colorTrend" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#10b981" stopOpacity={0.3} />
+                      <stop offset="5%" stopColor="#10b981" stopOpacity={0.25} />
                       <stop offset="95%" stopColor="#10b981" stopOpacity={0.0} />
                     </linearGradient>
                   </defs>
@@ -117,24 +113,22 @@ export function DashboardCharts({ stats }: DashboardChartsProps) {
       </Card>
 
       {/* 2. Tasks by Status (Donut / Pie Chart) */}
-      <Card className="rounded-xl border-border/60 shadow-xs hover:border-border transition-all">
-        <CardHeader className="pb-2">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className="size-7 rounded-lg bg-indigo-500/10 flex items-center justify-center text-indigo-500">
-                <PieIcon className="size-4" />
-              </div>
-              <CardTitle className="text-base font-semibold">
-                Tasks by Status
-              </CardTitle>
+      <Card className="rounded-lg border-border/60 bg-card shadow-2xs hover:border-border transition-colors">
+        <CardHeader className="p-3.5 sm:p-4 pb-2">
+          <div className="flex items-center gap-2">
+            <div className="size-6 rounded-md bg-indigo-500/10 flex items-center justify-center text-indigo-500">
+              <PieIcon className="size-3.5" />
             </div>
+            <CardTitle className="text-xs font-bold tracking-tight text-foreground">
+              Tasks by Status
+            </CardTitle>
           </div>
-          <CardDescription className="text-xs">
-            Distribution of tasks across completed, pending, in progress, and overdue
+          <CardDescription className="text-[11px]">
+            Distribution across completed, pending, in progress, and overdue
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          <div className="h-64 w-full flex items-center justify-center">
+        <CardContent className="p-3.5 sm:p-4 pt-0">
+          <div className="h-52 w-full flex items-center justify-center">
             {statusPieData.length === 0 ? (
               <EmptyChartState message="No task data available for status distribution" />
             ) : (
@@ -144,8 +138,8 @@ export function DashboardCharts({ stats }: DashboardChartsProps) {
                     data={statusPieData}
                     cx="50%"
                     cy="50%"
-                    innerRadius={55}
-                    outerRadius={85}
+                    innerRadius={45}
+                    outerRadius={68}
                     paddingAngle={4}
                     dataKey="value"
                   >
@@ -154,7 +148,7 @@ export function DashboardCharts({ stats }: DashboardChartsProps) {
                     ))}
                   </Pie>
                   <Tooltip content={<CustomTooltip />} />
-                  <Legend wrapperStyle={{ fontSize: "12px", paddingTop: "12px" }} />
+                  <Legend wrapperStyle={{ fontSize: "11px", paddingTop: "6px" }} />
                 </PieChart>
               </ResponsiveContainer>
             )}
@@ -163,24 +157,22 @@ export function DashboardCharts({ stats }: DashboardChartsProps) {
       </Card>
 
       {/* 3. Weekly Activity (Bar Chart) */}
-      <Card className="rounded-xl border-border/60 shadow-xs hover:border-border transition-all">
-        <CardHeader className="pb-2">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className="size-7 rounded-lg bg-amber-500/10 flex items-center justify-center text-amber-500">
-                <BarChart3 className="size-4" />
-              </div>
-              <CardTitle className="text-base font-semibold">
-                Weekly Activity
-              </CardTitle>
+      <Card className="rounded-lg border-border/60 bg-card shadow-2xs hover:border-border transition-colors">
+        <CardHeader className="p-3.5 sm:p-4 pb-2">
+          <div className="flex items-center gap-2">
+            <div className="size-6 rounded-md bg-amber-500/10 flex items-center justify-center text-amber-500">
+              <BarChart3 className="size-3.5" />
             </div>
+            <CardTitle className="text-xs font-bold tracking-tight text-foreground">
+              Weekly Activity
+            </CardTitle>
           </div>
-          <CardDescription className="text-xs">
-            Comparison of completed vs active pending tasks across weekdays
+          <CardDescription className="text-[11px]">
+            Comparison of completed vs pending tasks across weekdays
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          <div className="h-64 w-full">
+        <CardContent className="p-3.5 sm:p-4 pt-0">
+          <div className="h-52 w-full">
             {stats.weeklyTrend.every((w) => w.completed === 0 && w.pending === 0) ? (
               <EmptyChartState message="No weekly activity recorded yet" />
             ) : (
@@ -189,9 +181,9 @@ export function DashboardCharts({ stats }: DashboardChartsProps) {
                   <XAxis dataKey="day" stroke="#888888" fontSize={11} tickLine={false} />
                   <YAxis stroke="#888888" fontSize={11} tickLine={false} allowDecimals={false} />
                   <Tooltip content={<CustomTooltip />} />
-                  <Legend wrapperStyle={{ fontSize: "12px", paddingTop: "10px" }} />
-                  <Bar dataKey="completed" name="Completed" fill="#10b981" radius={[4, 4, 0, 0]} />
-                  <Bar dataKey="pending" name="Pending" fill="#f59e0b" radius={[4, 4, 0, 0]} />
+                  <Legend wrapperStyle={{ fontSize: "11px", paddingTop: "6px" }} />
+                  <Bar dataKey="completed" name="Completed" fill="#10b981" radius={[3, 3, 0, 0]} />
+                  <Bar dataKey="pending" name="Pending" fill="#f59e0b" radius={[3, 3, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             )}
@@ -200,24 +192,22 @@ export function DashboardCharts({ stats }: DashboardChartsProps) {
       </Card>
 
       {/* 4. Priority Distribution (Bar Chart) */}
-      <Card className="rounded-xl border-border/60 shadow-xs hover:border-border transition-all">
-        <CardHeader className="pb-2">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className="size-7 rounded-lg bg-cyan-500/10 flex items-center justify-center text-cyan-500">
-                <Layers className="size-4" />
-              </div>
-              <CardTitle className="text-base font-semibold">
-                Priority Distribution
-              </CardTitle>
+      <Card className="rounded-lg border-border/60 bg-card shadow-2xs hover:border-border transition-colors">
+        <CardHeader className="p-3.5 sm:p-4 pb-2">
+          <div className="flex items-center gap-2">
+            <div className="size-6 rounded-md bg-cyan-500/10 flex items-center justify-center text-cyan-500">
+              <Layers className="size-3.5" />
             </div>
+            <CardTitle className="text-xs font-bold tracking-tight text-foreground">
+              Priority Distribution
+            </CardTitle>
           </div>
-          <CardDescription className="text-xs">
+          <CardDescription className="text-[11px]">
             Breakdown of tasks by urgency level
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          <div className="h-64 w-full">
+        <CardContent className="p-3.5 sm:p-4 pt-0">
+          <div className="h-52 w-full">
             {totalPriorityTasks === 0 ? (
               <EmptyChartState message="No tasks created to analyze priority distribution" />
             ) : (
@@ -226,7 +216,7 @@ export function DashboardCharts({ stats }: DashboardChartsProps) {
                   <XAxis dataKey="priority" stroke="#888888" fontSize={11} tickLine={false} />
                   <YAxis stroke="#888888" fontSize={11} tickLine={false} allowDecimals={false} />
                   <Tooltip content={<CustomTooltip />} />
-                  <Bar dataKey="count" name="Tasks" radius={[4, 4, 0, 0]}>
+                  <Bar dataKey="count" name="Tasks" radius={[3, 3, 0, 0]}>
                     {priorityData.map((entry, index) => (
                       <Cell key={`bar-${index}`} fill={entry.fill} />
                     ))}
@@ -276,7 +266,7 @@ function CustomTooltip({ active, payload, label }: CustomTooltipProps) {
 function EmptyChartState({ message }: { message: string }) {
   return (
     <div className="h-full w-full flex flex-col items-center justify-center space-y-2 text-center p-4 border border-dashed rounded-xl bg-muted/20">
-      <Clock3 className="size-6 text-muted-foreground/60" />
+      <Clock3 className="size-5 text-muted-foreground/60" />
       <p className="text-xs text-muted-foreground max-w-xs">{message}</p>
     </div>
   );
