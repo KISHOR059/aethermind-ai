@@ -19,16 +19,26 @@ const envSchema = z.object({
     .enum(["development", "test", "production"])
     .default("development"),
   WEB_ORIGIN: z.string().url().default("http://localhost:5173"),
-  AI_PROVIDER: z.enum(["gemini"]).default("gemini"),
+  AI_PROVIDER: z.enum(["gemini", "groq"]).default("gemini"),
   GEMINI_API_KEY: z.string().trim().default(""),
   GEMINI_API_KEY_FALLBACK_1: z.string().trim().default(""),
   GEMINI_API_KEY_FALLBACK_2: z.string().trim().default(""),
   GEMINI_API_KEY_FALLBACK_3: z.string().trim().default(""),
-  GEMINI_MODEL: z.string().trim().min(1).default("gemini-3.5-flash"),
+  GEMINI_MODEL: z.string().trim().min(1).default("gemini-3.8-flash"),
+  GROQ_API_KEY: z.string().trim().default(""),
+  GROQ_API_KEY_FALLBACK_1: z.string().trim().default(""),
+  GROQ_API_KEY_FALLBACK_2: z.string().trim().default(""),
+  GROQ_MODEL: z.string().trim().min(1).default("qwen/qwen3.8-27b"),
   AI_THINKING_LEVEL: z
     .enum(["none", "low", "medium", "high"])
     .default("medium"),
   AI_GEMINI_TIMEOUT_MS: z.coerce
+    .number()
+    .int()
+    .min(1_000)
+    .max(120_000)
+    .default(30_000),
+  AI_GROQ_TIMEOUT_MS: z.coerce
     .number()
     .int()
     .min(1_000)
@@ -78,8 +88,13 @@ if (
   );
 }
 
-if (env.NODE_ENV === "production" && !env.GEMINI_API_KEY) {
-  throw new Error("GEMINI_API_KEY is required in production");
+if (env.NODE_ENV === "production") {
+  if (env.AI_PROVIDER === "gemini" && !env.GEMINI_API_KEY) {
+    throw new Error("GEMINI_API_KEY is required in production when AI_PROVIDER is gemini");
+  }
+  if (env.AI_PROVIDER === "groq" && !env.GROQ_API_KEY) {
+    throw new Error("GROQ_API_KEY is required in production when AI_PROVIDER is groq");
+  }
 }
 
 if (env.NODE_ENV === "production" && !env.CRON_SECRET) {
@@ -93,3 +108,4 @@ if (env.SESSION_WARNING_MS >= env.SESSION_INACTIVITY_TIMEOUT_MS) {
 }
 
 export type Environment = z.infer<typeof envSchema>;
+

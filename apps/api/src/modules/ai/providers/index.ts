@@ -1,6 +1,8 @@
 export type { AIProvider } from "./ai-provider.interface.js";
 export { GeminiProvider } from "./gemini.provider.js";
 export { GeminiKeyPool } from "./gemini-key-pool.js";
+export { GroqProvider } from "./groq.provider.js";
+export { GroqKeyPool } from "./groq-key-pool.js";
 export { createAIProvider } from "./provider.factory.js";
 export type {
   FinishReason,
