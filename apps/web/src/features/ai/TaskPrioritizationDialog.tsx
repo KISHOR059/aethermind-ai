@@ -63,9 +63,9 @@ export function TaskPrioritizationDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl max-h-[90vh] flex flex-col">
+      <DialogContent className="max-w-3xl max-h-[90dvh] flex flex-col p-4 sm:p-6">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-xl">
+          <DialogTitle className="flex items-center gap-2 text-lg sm:text-xl">
             <Sparkles className="size-5 text-primary" />
             AI Task Prioritization
           </DialogTitle>
@@ -346,8 +346,8 @@ function PrioritizationSuccessState({
 
               return (
                 <Card key={pt.taskId || index} className="transition-all border">
-                  <CardHeader className="p-3.5 flex flex-row items-start justify-between gap-3 space-y-0">
-                    <div className="space-y-1.5 min-w-0">
+                  <CardHeader className="p-3 sm:p-3.5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5 sm:gap-3 space-y-0">
+                    <div className="space-y-1.5 min-w-0 w-full sm:w-auto flex-1">
                       <div className="flex items-center gap-2 flex-wrap">
                         {getRankBadge(rank)}
                         <CardTitle className="text-sm font-semibold truncate">
@@ -359,7 +359,7 @@ function PrioritizationSuccessState({
                       </CardDescription>
                     </div>
 
-                    <div className="flex shrink-0 flex-col items-end gap-1">
+                    <div className="flex shrink-0 items-center sm:flex-col sm:items-end gap-1.5 sm:gap-1 flex-wrap">
                       {getUrgencyBadge(pt.urgency)}
                       {pt.estimatedFocusMinutes && (
                         <Badge variant="secondary" className="text-[10px] gap-1">
@@ -378,7 +378,7 @@ function PrioritizationSuccessState({
 
       <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2 border-t text-xs text-muted-foreground">
         {import.meta.env.DEV ? (
-          <div className="flex items-center gap-2 truncate">
+          <div className="hidden sm:flex items-center gap-2 truncate">
             <span>
               {metrics.provider} • {metrics.model} • {metrics.executionTime}ms • v
               {metrics.promptVersion}
@@ -390,14 +390,15 @@ function PrioritizationSuccessState({
         ) : (
           <div />
         )}
-        <DialogFooter className="flex items-center gap-2 w-full sm:w-auto">
-          <Button variant="ghost" size="sm" onClick={onClose} disabled={isApplying}>
+        <DialogFooter className="flex flex-col-reverse sm:flex-row items-center gap-2 w-full sm:w-auto">
+          <Button variant="ghost" size="sm" onClick={onClose} disabled={isApplying} className="w-full sm:w-auto">
             Cancel
           </Button>
           <Button
             size="sm"
             onClick={() => setConfirmApply(true)}
             disabled={isApplying || prioritization.prioritizedTasks.length === 0}
+            className="w-full sm:w-auto"
           >
             {isApplying ? (
               <>

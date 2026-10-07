@@ -17,10 +17,10 @@ export function DashboardCards({ stats }: DashboardCardsProps) {
   const activeCount = stats.pendingTasks + stats.inProgressTasks;
 
   return (
-    <div className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-4">
+    <div className="grid gap-2 sm:gap-2.5 grid-cols-2 lg:grid-cols-4">
       {/* 1. Today's Tasks */}
       <Card className="rounded-lg border-border/60 bg-card shadow-2xs hover:border-border transition-colors">
-        <CardContent className="p-3 sm:p-3.5 flex flex-col justify-between space-y-1.5">
+        <CardContent className="p-2.5 sm:p-3.5 flex flex-col justify-between space-y-1.5">
           <div className="flex items-center justify-between">
             <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
               Today's Tasks
@@ -46,7 +46,7 @@ export function DashboardCards({ stats }: DashboardCardsProps) {
 
       {/* 2. Completed Tasks */}
       <Card className="rounded-lg border-border/60 bg-card shadow-2xs hover:border-border transition-colors">
-        <CardContent className="p-3 sm:p-3.5 flex flex-col justify-between space-y-1.5">
+        <CardContent className="p-2.5 sm:p-3.5 flex flex-col justify-between space-y-1.5">
           <div className="flex items-center justify-between">
             <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
               Completed Tasks
@@ -70,7 +70,7 @@ export function DashboardCards({ stats }: DashboardCardsProps) {
 
       {/* 3. Active Queue */}
       <Card className="rounded-lg border-border/60 bg-card shadow-2xs hover:border-border transition-colors">
-        <CardContent className="p-3 sm:p-3.5 flex flex-col justify-between space-y-1.5">
+        <CardContent className="p-2.5 sm:p-3.5 flex flex-col justify-between space-y-1.5">
           <div className="flex items-center justify-between">
             <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
               Active Queue
@@ -101,7 +101,7 @@ export function DashboardCards({ stats }: DashboardCardsProps) {
 
       {/* 4. Productivity Score */}
       <Card className="rounded-lg border-border/60 bg-card shadow-2xs hover:border-border transition-colors">
-        <CardContent className="p-3 sm:p-3.5 flex flex-col justify-between space-y-1.5">
+        <CardContent className="p-2.5 sm:p-3.5 flex flex-col justify-between space-y-1.5">
           <div className="flex items-center justify-between">
             <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
               Productivity

@@ -88,7 +88,7 @@ export function CreateTaskDialog({
         </DialogTrigger>
       ) : null}
 
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-md max-h-[90dvh] overflow-y-auto p-4 sm:p-6">
         <DialogHeader>
           <DialogTitle>Create Task</DialogTitle>
           <DialogDescription>

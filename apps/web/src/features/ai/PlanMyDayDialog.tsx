@@ -72,7 +72,7 @@ export function PlanMyDayDialog({
           </Button>
         </DialogTrigger>
       ) : null}
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-w-2xl max-h-[90dvh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>AI Daily Plan</DialogTitle>
           <DialogDescription>
@@ -208,12 +208,12 @@ function PlanSuccessState({
 }) {
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between gap-3">
+      <div className="flex flex-wrap items-center justify-between gap-2">
         <Badge variant="secondary">
           Productivity score: {plan.productivityScore}/100
         </Badge>
-        <Button variant="ghost" size="sm" onClick={onRefresh}>
-          <RefreshCw />
+        <Button variant="ghost" size="sm" onClick={onRefresh} className="gap-1.5 text-xs">
+          <RefreshCw className="size-3.5" />
           Refresh
         </Button>
       </div>

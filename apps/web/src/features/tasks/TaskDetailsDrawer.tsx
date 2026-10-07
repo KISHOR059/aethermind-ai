@@ -154,7 +154,7 @@ export function TaskDetailsDrawer({
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent side="right" className="w-full sm:max-w-md lg:max-w-lg p-0 flex flex-col justify-between h-full bg-card">
         {/* Header */}
-        <SheetHeader className="p-6 border-b border-border/60 space-y-4">
+        <SheetHeader className="p-4 sm:p-6 border-b border-border/60 space-y-3 sm:space-y-4">
           <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-2">
               <TaskStatusBadge status={task.status} />
@@ -222,9 +222,9 @@ export function TaskDetailsDrawer({
         </SheetHeader>
 
         {/* Content Body */}
-        <div className="flex-1 overflow-y-auto p-6 space-y-6">
+        <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-5 sm:space-y-6">
           {/* Quick Selectors Grid */}
-          <div className="grid grid-cols-2 gap-3 p-4 rounded-xl border border-border/60 bg-muted/20">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3 p-3.5 sm:p-4 rounded-xl border border-border/60 bg-muted/20">
             <div>
               <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1">
                 <CheckCircle2 className="size-3 text-emerald-500" />
@@ -260,7 +260,7 @@ export function TaskDetailsDrawer({
           </div>
 
           {/* Schedule Date & Time Controls */}
-          <div className="space-y-2.5 p-4 rounded-xl border border-border/60 bg-muted/20">
+          <div className="space-y-2.5 p-3.5 sm:p-4 rounded-xl border border-border/60 bg-muted/20">
             <div className="flex items-center justify-between">
               <h4 className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
                 <CalendarDays className="size-3.5 text-primary" />
@@ -277,7 +277,7 @@ export function TaskDetailsDrawer({
               )}
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3">
               <div>
                 <label className="text-[10px] font-semibold text-muted-foreground block mb-1">
                   Due Date
@@ -312,7 +312,7 @@ export function TaskDetailsDrawer({
               <Sparkles className="size-3.5 text-primary" />
               AI Assistant Actions
             </h4>
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               <Button
                 variant="outline"
                 size="sm"

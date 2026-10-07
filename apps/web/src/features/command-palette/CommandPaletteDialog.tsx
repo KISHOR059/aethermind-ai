@@ -357,10 +357,10 @@ export function CommandPaletteDialog({ open, onOpenChange }: CommandPaletteDialo
                 }
               }}
             >
-              <div className="fixed inset-0 z-50 flex items-start justify-center p-3 pt-[10vh] sm:p-4 sm:pt-[14vh] pointer-events-none">
+              <div className="fixed inset-0 z-50 flex items-start justify-center p-2.5 pt-[4vh] sm:p-4 sm:pt-[12vh] pointer-events-none">
                 <motion.div
                   aria-label="Command palette"
-                  className="pointer-events-auto flex max-h-[min(80vh,560px)] w-full max-w-[620px] flex-col overflow-hidden rounded-2xl border border-border/60 bg-popover/95 text-popover-foreground shadow-2xl shadow-black/20 ring-1 ring-border/50 backdrop-blur-md dark:shadow-black/60"
+                  className="pointer-events-auto flex max-h-[min(85dvh,560px)] w-full max-w-[620px] flex-col overflow-hidden rounded-2xl border border-border/60 bg-popover/95 text-popover-foreground shadow-2xl shadow-black/20 ring-1 ring-border/50 backdrop-blur-md dark:shadow-black/60"
                   {...MOTION_CONTENT}
                   onKeyDown={handleListKeyDown}
                 >

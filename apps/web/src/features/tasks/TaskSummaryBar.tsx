@@ -67,35 +67,38 @@ export function TaskSummaryBar({
   ];
 
   return (
-    <div className="grid gap-3 grid-cols-2 sm:grid-cols-3 md:grid-cols-5">
-      {items.map((item) => {
+    <div className="grid gap-2 sm:gap-3 grid-cols-2 sm:grid-cols-3 md:grid-cols-5">
+      {items.map((item, index) => {
         const Icon = item.icon;
         const isActive = activeStatusFilter === item.id;
+        const isLastOnTwoCols = index === items.length - 1;
 
         return (
           <button
             key={item.id}
             type="button"
             onClick={() => onStatusSelect(item.id)}
-            className={`group flex items-center justify-between rounded-xl border p-3 text-left transition-all duration-200 hover:-translate-y-0.5 shadow-2xs ${
+            className={`group flex items-center justify-between rounded-xl border p-2.5 sm:p-3 text-left transition-all duration-200 hover:-translate-y-0.5 shadow-2xs ${
+              isLastOnTwoCols ? "col-span-2 sm:col-span-1 md:col-span-1" : ""
+            } ${
               isActive
                 ? "border-primary/50 bg-primary/5 ring-1 ring-primary/20"
                 : "border-border/60 bg-card/80 backdrop-blur-md hover:border-border"
             }`}
           >
-            <div className="flex items-center gap-2.5">
+            <div className="flex items-center gap-2 sm:gap-2.5">
               <div
-                className={`size-8 rounded-lg flex items-center justify-center border ${item.color} group-hover:scale-105 transition-transform`}
+                className={`size-7 sm:size-8 rounded-lg flex items-center justify-center border ${item.color} group-hover:scale-105 transition-transform shrink-0`}
               >
-                <Icon className="size-4" />
+                <Icon className="size-3.5 sm:size-4" />
               </div>
-              <div>
-                <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
+              <div className="min-w-0">
+                <p className="text-[10px] sm:text-[11px] font-semibold text-muted-foreground uppercase tracking-wider truncate">
                   {item.label}
                 </p>
-                <p className="text-lg font-extrabold tracking-tight text-foreground">
+                <p className="text-base sm:text-lg font-extrabold tracking-tight text-foreground">
                   {isLoading ? (
-                    <Skeleton className="h-7 w-14 rounded-full" />
+                    <Skeleton className="h-6 sm:h-7 w-12 sm:w-14 rounded-full" />
                   ) : (
                     item.count
                   )}

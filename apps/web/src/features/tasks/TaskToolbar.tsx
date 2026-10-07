@@ -46,20 +46,21 @@ export function TaskToolbar({
   };
 
   return (
-    <div className="sticky top-0 z-20 backdrop-blur-md bg-background/90 py-3 border-b border-border/60 flex flex-wrap items-center justify-between gap-3 shadow-2xs">
+    <div className="sticky top-0 z-20 backdrop-blur-md bg-background/90 py-2.5 sm:py-3 border-b border-border/60 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 sm:gap-3 shadow-2xs">
       {/* Left: Search input */}
-      <div className="relative flex-1 min-w-[200px] max-w-md">
+      <div className="relative w-full sm:flex-1 sm:max-w-md">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground pointer-events-none" />
         <Input
           value={search}
           onChange={(e) => onSearchChange(e.target.value)}
-          placeholder="Search tasks by title or description... (Press '/')"
-          className="pl-9 pr-8 h-9 text-xs rounded-xl bg-card/80 border-border/60 focus:bg-background transition-all"
+          placeholder="Search tasks..."
+          className="pl-9 pr-8 h-9 text-xs rounded-xl bg-card/80 border-border/60 focus:bg-background transition-all w-full"
         />
         {search && (
           <button
             onClick={() => onSearchChange("")}
-            className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+            className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground p-1"
+            aria-label="Clear search"
           >
             <X className="size-3.5" />
           </button>
@@ -67,12 +68,12 @@ export function TaskToolbar({
       </div>
 
       {/* Right: Filters & Controls */}
-      <div className="flex flex-wrap items-center gap-2">
+      <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
         {/* Status Filter */}
         <select
           value={statusFilter}
           onChange={(e) => onStatusChange(e.target.value as TaskStatusFilter)}
-          className="h-9 px-3 text-xs rounded-xl border border-border/60 bg-card/80 font-medium text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+          className="h-9 px-2.5 sm:px-3 text-xs rounded-xl border border-border/60 bg-card/80 font-medium text-foreground focus:outline-none focus:ring-1 focus:ring-primary flex-1 sm:flex-none min-w-[110px]"
         >
           <option value="ALL">Status: All</option>
           <option value="TODO">Status: Todo</option>
@@ -85,7 +86,7 @@ export function TaskToolbar({
         <select
           value={priorityFilter}
           onChange={(e) => onPriorityChange(e.target.value as TaskPriority | "ALL")}
-          className="h-9 px-3 text-xs rounded-xl border border-border/60 bg-card/80 font-medium text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+          className="h-9 px-2.5 sm:px-3 text-xs rounded-xl border border-border/60 bg-card/80 font-medium text-foreground focus:outline-none focus:ring-1 focus:ring-primary flex-1 sm:flex-none min-w-[110px]"
         >
           <option value="ALL">Priority: All</option>
           <option value="URGENT">Priority: Urgent</option>
@@ -95,14 +96,14 @@ export function TaskToolbar({
         </select>
 
         {/* Sort Dropdown */}
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-1 flex-1 sm:flex-none min-w-[120px]">
           <ArrowUpDown className="size-3.5 text-muted-foreground hidden sm:inline-block" />
           <select
             value={sortBy}
             onChange={(e) => onSortByChange(e.target.value)}
-            className="h-9 px-3 text-xs rounded-xl border border-border/60 bg-card/80 font-medium text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+            className="h-9 px-2.5 sm:px-3 text-xs rounded-xl border border-border/60 bg-card/80 font-medium text-foreground focus:outline-none focus:ring-1 focus:ring-primary w-full"
           >
-            <option value="createdAt">Sort: Created Date</option>
+            <option value="createdAt">Sort: Created</option>
             <option value="dueDate">Sort: Due Date</option>
             <option value="priority">Sort: Priority</option>
             <option value="title">Sort: Title</option>
@@ -118,12 +119,12 @@ export function TaskToolbar({
             className="h-9 px-2.5 text-xs text-muted-foreground hover:text-foreground gap-1 rounded-xl"
           >
             <FilterX className="size-3.5" />
-            Clear
+            <span className="hidden sm:inline">Clear</span>
           </Button>
         )}
 
         {/* View Mode Toggle */}
-        <div className="flex items-center rounded-xl border border-border/60 bg-card/80 p-0.5">
+        <div className="flex items-center rounded-xl border border-border/60 bg-card/80 p-0.5 ml-auto sm:ml-0">
           <button
             onClick={() => onViewModeChange("list")}
             className={`p-1.5 rounded-lg text-xs transition-colors ${

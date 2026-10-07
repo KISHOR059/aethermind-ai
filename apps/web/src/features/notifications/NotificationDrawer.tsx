@@ -75,25 +75,25 @@ function NotificationDrawerHeader({ onClose }: { onClose: () => void }) {
   const markAllRead = useMarkAllAsRead();
 
   return (
-    <div className="flex items-center justify-between border-b border-border px-4 py-3">
-      <SheetTitle className="flex items-center gap-2 text-sm font-semibold">
-        <Bell className="size-4" />
-        Notifications
+    <div className="flex items-center justify-between border-b border-border px-3 sm:px-4 py-3 gap-2">
+      <SheetTitle className="flex items-center gap-1.5 sm:gap-2 text-sm font-semibold truncate min-w-0">
+        <Bell className="size-4 shrink-0" />
+        <span className="truncate">Notifications</span>
         {unreadQuery.data && unreadQuery.data.count > 0 && (
-          <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
-            {unreadQuery.data.count} unread
+          <span className="shrink-0 rounded-full bg-primary/10 px-1.5 sm:px-2 py-0.5 text-[11px] sm:text-xs font-medium text-primary">
+            {unreadQuery.data.count}
           </span>
         )}
       </SheetTitle>
-      <div className="flex items-center gap-0.5">
+      <div className="flex items-center gap-0.5 shrink-0">
         <Button
           variant="ghost"
           size="sm"
-          className="h-7 gap-1 px-2 text-xs text-muted-foreground"
+          className="h-7 gap-1 px-1.5 sm:px-2 text-xs text-muted-foreground"
           onClick={() => markAllRead.mutate()}
         >
           <CheckCheck className="size-3.5" />
-          Mark all read
+          <span className="hidden xs:inline">Mark all read</span>
         </Button>
         <Button variant="ghost" size="icon" className="size-7" onClick={onClose} aria-label="Close notifications">
           <X className="size-4" />

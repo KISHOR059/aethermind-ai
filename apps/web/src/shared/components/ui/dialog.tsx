@@ -25,11 +25,14 @@ function DialogContent({ className, children, ...props }: React.ComponentProps<t
     <DialogPortal>
       <DialogOverlay />
       <DialogPrimitive.Content
-        className={cn("fixed top-1/2 left-1/2 z-50 grid w-[calc(100%-2rem)] max-w-lg -translate-x-1/2 -translate-y-1/2 gap-4 rounded-lg border bg-background p-6 shadow-lg", className)}
+        className={cn(
+          "fixed top-1/2 left-1/2 z-50 grid w-[calc(100%-1.5rem)] max-w-lg -translate-x-1/2 -translate-y-1/2 gap-4 rounded-xl border bg-background p-4 sm:p-6 shadow-lg max-h-[90dvh] overflow-y-auto",
+          className
+        )}
         {...props}
       >
         {children}
-        <DialogPrimitive.Close className="absolute top-4 right-4 rounded-sm opacity-70 hover:opacity-100">
+        <DialogPrimitive.Close className="absolute top-3.5 right-3.5 sm:top-4 sm:right-4 rounded-sm opacity-70 hover:opacity-100 focus:outline-none focus:ring-1 focus:ring-ring">
           <X className="size-4" />
           <span className="sr-only">Close</span>
         </DialogPrimitive.Close>

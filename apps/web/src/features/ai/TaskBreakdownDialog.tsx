@@ -59,9 +59,9 @@ export function TaskBreakdownDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl max-h-[90vh] flex flex-col">
+      <DialogContent className="max-w-3xl max-h-[90dvh] flex flex-col p-4 sm:p-6">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-xl">
+          <DialogTitle className="flex items-center gap-2 text-lg sm:text-xl">
             <Sparkles className="size-5 text-primary" />
             AI Task Breakdown
           </DialogTitle>
@@ -325,8 +325,8 @@ function BreakdownSuccessState({
                   }`}
                   onClick={() => toggleSubtask(index)}
                 >
-                  <CardHeader className="p-3.5 flex flex-row items-start justify-between gap-3 space-y-0">
-                    <div className="flex items-start gap-3 min-w-0">
+                  <CardHeader className="p-3 sm:p-3.5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5 sm:gap-3 space-y-0">
+                    <div className="flex items-start gap-3 min-w-0 w-full sm:w-auto flex-1">
                       <div className="pt-0.5 shrink-0">
                         <input
                           type="checkbox"
@@ -337,7 +337,7 @@ function BreakdownSuccessState({
                           onClick={(e) => e.stopPropagation()}
                         />
                       </div>
-                      <div className="space-y-1 min-w-0">
+                      <div className="space-y-1 min-w-0 flex-1">
                         <CardTitle className="text-sm font-medium leading-snug">
                           {index + 1}. {subtask.title}
                         </CardTitle>
@@ -349,7 +349,7 @@ function BreakdownSuccessState({
                       </div>
                     </div>
 
-                    <div className="flex shrink-0 items-center gap-1.5">
+                    <div className="flex shrink-0 items-center gap-1.5 self-end sm:self-auto">
                       <TaskPriorityBadge priority={subtask.priority} />
                       {subtask.estimatedMinutes && (
                         <Badge variant="secondary" className="text-[10px] gap-1">
@@ -368,7 +368,7 @@ function BreakdownSuccessState({
 
       <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2 border-t text-xs text-muted-foreground">
         {import.meta.env.DEV ? (
-          <div className="flex items-center gap-2 truncate">
+          <div className="hidden sm:flex items-center gap-2 truncate">
             <span>
               {metrics.provider} • {metrics.model} • {metrics.executionTime}ms • v
               {metrics.promptVersion}
@@ -380,14 +380,15 @@ function BreakdownSuccessState({
         ) : (
           <div />
         )}
-        <DialogFooter className="flex items-center gap-2 w-full sm:w-auto">
-          <Button variant="ghost" size="sm" onClick={onClose} disabled={isSaving}>
+        <DialogFooter className="flex flex-col-reverse sm:flex-row items-center gap-2 w-full sm:w-auto">
+          <Button variant="ghost" size="sm" onClick={onClose} disabled={isSaving} className="w-full sm:w-auto">
             Cancel
           </Button>
           <Button
             size="sm"
             onClick={() => void handleSave()}
             disabled={isSaving || selectedIndices.size === 0}
+            className="w-full sm:w-auto"
           >
             {isSaving ? (
               <>

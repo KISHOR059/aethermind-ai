@@ -81,7 +81,7 @@ export function AssistantPage() {
   const userName = user ? `${user.firstName} ${user.lastName}` : undefined;
 
   return (
-    <div className="flex h-[calc(100vh-7.5rem)] sm:h-[calc(100vh-8rem)] lg:h-[calc(100vh-8.5rem)] flex-col gap-3">
+    <div className="flex h-[calc(100dvh-6.5rem)] sm:h-[calc(100dvh-8rem)] lg:h-[calc(100dvh-8.5rem)] flex-col gap-3">
       {/* Modern, Minimal Header */}
       <header className="flex shrink-0 items-center justify-between border-b border-border/50 pb-3">
         <div className="flex items-center gap-3">

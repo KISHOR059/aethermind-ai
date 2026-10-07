@@ -57,14 +57,14 @@ export function TaskRow({ task, onSelect }: TaskRowProps) {
   return (
     <div
       onClick={() => onSelect?.(task)}
-      className="group relative flex items-center justify-between rounded-xl border border-border/60 bg-card/80 backdrop-blur-md px-4 py-3 shadow-2xs hover:shadow-sm hover:border-primary/40 hover:-translate-y-0.5 transition-all duration-200 cursor-pointer gap-4"
+      className="group relative flex items-center justify-between rounded-xl border border-border/60 bg-card/80 backdrop-blur-md px-3 py-2.5 sm:px-4 sm:py-3 shadow-2xs hover:shadow-sm hover:border-primary/40 hover:-translate-y-0.5 transition-all duration-200 cursor-pointer gap-2.5 sm:gap-4"
     >
       {/* Left: Checkbox & Title/Desc */}
-      <div className="flex items-center gap-3 min-w-0 flex-1">
+      <div className="flex items-center gap-2.5 sm:gap-3 min-w-0 flex-1">
         <button
           onClick={handleToggleComplete}
           aria-label={isCompleted ? "Mark incomplete" : "Mark complete"}
-          className="shrink-0 text-muted-foreground hover:text-emerald-500 transition-colors"
+          className="shrink-0 text-muted-foreground hover:text-emerald-500 transition-colors p-0.5"
         >
           {isCompleted ? (
             <CheckCircle2 className="size-5 text-emerald-500 fill-emerald-500/20" />
@@ -82,7 +82,7 @@ export function TaskRow({ task, onSelect }: TaskRowProps) {
             {task.title}
           </p>
           {task.description && (
-            <p className="text-xs text-muted-foreground truncate max-w-md">
+            <p className="text-xs text-muted-foreground truncate max-w-md hidden xs:block">
               {task.description}
             </p>
           )}
@@ -90,10 +90,12 @@ export function TaskRow({ task, onSelect }: TaskRowProps) {
       </div>
 
       {/* Right: Badges & Metadata */}
-      <div className="flex items-center gap-3 shrink-0">
-        <div className="hidden sm:flex items-center gap-1.5">
+      <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
+        <div className="flex items-center gap-1 sm:gap-1.5">
           <TaskPriorityBadge priority={task.priority} />
-          <TaskStatusBadge status={task.status} />
+          <div className="hidden sm:block">
+            <TaskStatusBadge status={task.status} />
+          </div>
         </div>
 
         {formattedDate && (
@@ -123,7 +125,7 @@ export function TaskRow({ task, onSelect }: TaskRowProps) {
             <Button
               variant="ghost"
               size="icon-sm"
-              className="opacity-0 group-hover:opacity-100 transition-opacity"
+              className="opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity"
             >
               <MoreHorizontal className="size-4" />
             </Button>

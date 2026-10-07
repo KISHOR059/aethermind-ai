@@ -79,7 +79,7 @@ export function VoiceSettingsDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-md max-h-[90dvh] overflow-y-auto p-4 sm:p-6">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-base">
             <Sliders className="size-4 text-primary" />
@@ -261,27 +261,27 @@ export function VoiceSettingsDialog({
           </div>
         </div>
 
-        <div className="flex items-center justify-between border-t pt-3">
+        <div className="flex flex-col-reverse sm:flex-row sm:items-center justify-between gap-2.5 border-t pt-3">
           <Button
             variant="ghost"
             size="sm"
             onClick={handleReset}
-            className="text-xs text-muted-foreground gap-1.5"
+            className="text-xs text-muted-foreground gap-1.5 w-full sm:w-auto"
           >
             <RotateCcw className="size-3.5" />
             Reset Defaults
           </Button>
 
-          <div className="flex gap-2">
+          <div className="flex gap-2 w-full sm:w-auto">
             <Button
               variant="outline"
               size="sm"
               onClick={() => onOpenChange(false)}
-              className="text-xs"
+              className="text-xs flex-1 sm:flex-none"
             >
               Cancel
             </Button>
-            <Button size="sm" onClick={handleSave} className="text-xs gap-1.5">
+            <Button size="sm" onClick={handleSave} className="text-xs gap-1.5 flex-1 sm:flex-none">
               <Check className="size-3.5" />
               Save Settings
             </Button>

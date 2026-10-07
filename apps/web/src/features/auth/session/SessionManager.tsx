@@ -77,16 +77,17 @@ function SessionManager() {
             you continue your session.
           </DialogDescription>
         </DialogHeader>
-        <DialogFooter className="gap-2 sm:justify-end">
+        <DialogFooter className="flex flex-col-reverse sm:flex-row gap-2 sm:justify-end">
           <Button
             variant="outline"
+            className="w-full sm:w-auto"
             onClick={() => {
               void signOut("user");
             }}
           >
             Sign Out
           </Button>
-          <Button onClick={() => void continueSession()}>Continue Session</Button>
+          <Button className="w-full sm:w-auto" onClick={() => void continueSession()}>Continue Session</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

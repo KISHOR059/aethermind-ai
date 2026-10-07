@@ -439,7 +439,7 @@ export function CalendarWorkspace() {
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -8 }}
           transition={{ duration: 0.15, ease: "easeOut" }}
-          className="relative overflow-x-auto pb-2"
+          className="relative overflow-x-auto pb-2 -mx-3 sm:mx-0 px-3 sm:px-0 touch-pan-x [scrollbar-width:thin]"
         >
           <CalendarDndRoot onReschedule={handleReschedule}>
             {viewContent}

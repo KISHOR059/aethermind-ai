@@ -58,9 +58,9 @@ export function WeeklyReviewDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl max-h-[90vh] flex flex-col">
+      <DialogContent className="max-w-3xl max-h-[90dvh] flex flex-col p-4 sm:p-6">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-xl">
+          <DialogTitle className="flex items-center gap-2 text-lg sm:text-xl">
             <BarChart3 className="size-5 text-primary" />
             Weekly Productivity Review
           </DialogTitle>
@@ -352,7 +352,7 @@ function WeeklyReviewSuccessState({
 
       <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2 border-t text-xs text-muted-foreground">
         {import.meta.env.DEV ? (
-          <div className="flex items-center gap-2 truncate">
+          <div className="hidden sm:flex items-center gap-2 truncate">
             <span>
               {metrics.provider} • {metrics.model} • {metrics.executionTime}ms • v
               {metrics.promptVersion}
@@ -365,7 +365,7 @@ function WeeklyReviewSuccessState({
           <div />
         )}
         <DialogFooter className="w-full sm:w-auto">
-          <Button variant="outline" size="sm" onClick={onClose}>
+          <Button variant="outline" size="sm" onClick={onClose} className="w-full sm:w-auto">
             Close
           </Button>
         </DialogFooter>

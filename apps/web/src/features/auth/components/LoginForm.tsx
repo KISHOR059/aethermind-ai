@@ -78,7 +78,7 @@ function LoginForm() {
   };
 
   return (
-    <main className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-background px-4 py-10 sm:px-6">
+    <main className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-background px-3.5 py-6 sm:px-6 sm:py-10">
       {/* Very subtle purple ambient glow — adapts via opacity */}
       <div
         className="pointer-events-none absolute inset-0 -z-10 overflow-hidden"
@@ -95,7 +95,7 @@ function LoginForm() {
         className="w-full max-w-[420px]"
       >
         {/* ── Brand block ── */}
-        <div className="mb-7 flex flex-col items-center gap-2 text-center">
+        <div className="mb-6 sm:mb-7 flex flex-col items-center gap-2 text-center">
           <AetherMindLogo size="lg" linkToHome={false} />
           <p className="mt-1 text-[11px] font-medium tracking-[0.25em] text-muted-foreground/70 uppercase select-none">
             Your intelligent productivity assistant
@@ -104,7 +104,7 @@ function LoginForm() {
 
         {/* ── Card ── */}
         <div className={cn(
-          "rounded-2xl border border-border/60 bg-card p-8 shadow-sm",
+          "rounded-2xl border border-border/60 bg-card p-5 sm:p-8 shadow-sm",
           "dark:border-border/40 dark:shadow-none",
         )}>
           {/* Header */}

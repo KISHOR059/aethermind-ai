@@ -169,13 +169,15 @@ function CommandPaletteSearchButton() {
       type="button"
       onClick={open}
       aria-label="Search commands"
-      className="flex h-9 w-full max-w-md items-center gap-2 rounded-lg border border-input bg-muted/40 px-3 text-xs text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
+      className="flex h-9 w-full max-w-md items-center gap-2 rounded-lg border border-input bg-muted/40 px-2.5 sm:px-3 text-xs text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
     >
       <Search className="size-4 shrink-0" />
       <span className="min-w-0 flex-1 truncate text-left">
         Search {env.appName}…
       </span>
-      <CommandShortcuts keys={[IS_MAC ? "⌘" : "Ctrl", "K"]} />
+      <span className="hidden sm:inline-flex">
+        <CommandShortcuts keys={[IS_MAC ? "⌘" : "Ctrl", "K"]} />
+      </span>
     </button>
   );
 }
@@ -191,8 +193,8 @@ function AppLayout() {
         </aside>
 
         <div className="lg:pl-64 flex flex-1 flex-col">
-          <header className="sticky top-0 z-10 flex h-16 items-center gap-3 border-b bg-background/95 px-4 backdrop-blur sm:gap-4 sm:px-6">
-            <div className="flex items-center gap-2.5 lg:hidden">
+          <header className="sticky top-0 z-10 flex h-16 items-center gap-2 sm:gap-3 border-b bg-background/95 px-3 sm:px-6 backdrop-blur">
+            <div className="flex items-center gap-2 lg:hidden">
               <Sheet>
                 <SheetTrigger asChild>
                   <Button
@@ -204,7 +206,7 @@ function AppLayout() {
                     <Menu className="size-4" />
                   </Button>
                 </SheetTrigger>
-                <SheetContent className="p-0" side="left">
+                <SheetContent className="w-72 max-w-[85vw] p-0" side="left">
                   <SheetTitle className="sr-only">Navigation</SheetTitle>
                   <Sidebar />
                 </SheetContent>
@@ -216,10 +218,10 @@ function AppLayout() {
             <div className="max-w-md flex-1">
               <CommandPaletteSearchButton />
             </div>
-            <div className="ml-auto flex items-center gap-2">
+            <div className="ml-auto flex items-center gap-1 sm:gap-2">
               <Badge
                 variant="outline"
-                className="h-5 px-1.5 py-0 text-[10px] font-semibold uppercase tracking-wider rounded-full border-primary/25 bg-primary/10 text-primary select-none cursor-default"
+                className="hidden sm:inline-flex h-5 px-1.5 py-0 text-[10px] font-semibold uppercase tracking-wider rounded-full border-primary/25 bg-primary/10 text-primary select-none cursor-default"
                 title="AetherMind is currently in beta"
                 aria-label="AetherMind is currently in beta"
               >
@@ -233,7 +235,7 @@ function AppLayout() {
               <UserMenu />
             </div>
           </header>
-          <main className="mx-auto w-full max-w-[1600px] flex-1 p-4 sm:p-6 lg:p-8 space-y-6">
+          <main className="mx-auto w-full max-w-[1600px] flex-1 p-3 sm:p-6 lg:p-8 space-y-4 sm:space-y-6">
             <Suspense fallback={<RouteLoading />}>
               <Outlet />
             </Suspense>

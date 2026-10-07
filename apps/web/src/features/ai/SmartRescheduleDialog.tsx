@@ -61,9 +61,9 @@ export function SmartRescheduleDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl max-h-[90vh] flex flex-col">
+      <DialogContent className="max-w-3xl max-h-[90dvh] flex flex-col p-4 sm:p-6">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-xl">
+          <DialogTitle className="flex items-center gap-2 text-lg sm:text-xl">
             <Sparkles className="size-5 text-primary" />
             Smart Reschedule
           </DialogTitle>
@@ -353,7 +353,7 @@ function RescheduleSuccessState({
 
       <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2 border-t text-xs text-muted-foreground">
         {import.meta.env.DEV ? (
-          <div className="flex items-center gap-2 truncate">
+          <div className="hidden sm:flex items-center gap-2 truncate">
             <span>
               {metrics.provider} • {metrics.model} • {metrics.executionTime}ms • v
               {metrics.promptVersion}
@@ -365,14 +365,15 @@ function RescheduleSuccessState({
         ) : (
           <div />
         )}
-        <DialogFooter className="flex items-center gap-2 w-full sm:w-auto">
-          <Button variant="ghost" size="sm" onClick={onClose} disabled={isApplying}>
+        <DialogFooter className="flex flex-col-reverse sm:flex-row items-center gap-2 w-full sm:w-auto">
+          <Button variant="ghost" size="sm" onClick={onClose} disabled={isApplying} className="w-full sm:w-auto">
             Cancel
           </Button>
           <Button
             size="sm"
             onClick={() => setConfirmApply(true)}
             disabled={isApplying}
+            className="w-full sm:w-auto"
           >
             {isApplying ? (
               <>
